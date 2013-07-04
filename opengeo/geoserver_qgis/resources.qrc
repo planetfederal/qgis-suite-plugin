@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/plugins/geoserver_bridge" >
+        <file alias="icon.png">resources/icon.png</file>
+        <file alias="upload_icon.png">resources/upload_icon.png</file>
+        <file alias="download_icon.png">resources/download_icon.png</file>
+    </qresource>
+</RCC>

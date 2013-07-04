@@ -1,0 +1,14 @@
+[general]
+name=OpenGeo
+description=OpenGeo utilities for QGIS
+category=Analysis
+version=1.0
+qgisMinimumVersion=2.0
+
+author=Victor Olaya
+email=volayaf@opengeo.org
+website=www.opengeo.org
+
+icon=images/toolbox.png
+
+class_name=OpenGeoPlugin

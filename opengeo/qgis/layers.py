@@ -2,6 +2,7 @@
 
 from qgis.core import *
 from opengeo import config
+import opengeo.config
 
 ALL_TYPES = -1
 
@@ -45,6 +46,20 @@ def getAllLayers():
     layers += getVectorLayers();
     return layers
 
+
+def getGroups():
+
+    layers = getAllLayers()
+    names = [layer.name() for layer in layers]
+    groups = {}    
+    rels = opengeo.config.iface.legendInterface().groupLayerRelationship()    
+    for rel in rels:
+        groupName = rel[0] 
+        if groupName != '':
+            groupLayers = rel[1]            
+            groups[groupName] = [layer for layer in groupLayers if layer in names]
+            
+    return groups
 
 
 

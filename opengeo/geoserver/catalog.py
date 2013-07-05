@@ -9,7 +9,7 @@ from opengeo.geoserver.layergroup import LayerGroup, UnsavedLayerGroup
 from opengeo.geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
 #import opengeo.httplib2
-from xml.etree.ElementTree import XML
+from xml.etree.ElementTree import XML, dump
 from xml.parsers.expat import ExpatError
 from urlparse import urlparse
 from opengeo import httplib2
@@ -79,6 +79,10 @@ class Catalog(object):
                         self.http
                         ))
         self._cache = dict()
+        
+    @property
+    def gs_base_url(self):
+        return self.service_url.rstrip("rest")
 
     def delete(self, config_object, purge=False, recurse=False):
         """
@@ -406,9 +410,9 @@ class Catalog(object):
             resources.extend(self.get_resources(workspace=ws))
         return resources
 
-    def get_layer(self, name):
+    def get_layer(self, typename):
         try:
-            lyr = Layer(self, name)
+            lyr = Layer(self, typename)
             lyr.fetch()
             return lyr
         except FailedRequestError:
@@ -419,7 +423,8 @@ class Catalog(object):
             resource = self.get_resource(resource)
         layers_url = url(self.service_url, ["layers.xml"])
         description = self.get_xml(layers_url)
-        lyrs = [Layer(self, l.find("name").text) for l in description.findall("layer")]
+        dump(description)
+        lyrs = [Layer(self, l.find("workspace").text + ":" + l.find("name").text) for l in description.findall("layer")]
         if resource is not None:
             lyrs = [l for l in lyrs if l.resource.href == resource.href]
         # TODO: Filter by style

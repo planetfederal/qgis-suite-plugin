@@ -6,6 +6,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 #from qgis.core import *
 from opengeo import config
+from opengeo.gui.explorer import GeoServerExplorer
+from opengeo.qgis import tools
 
 cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
 if cmd_folder not in sys.path:
@@ -18,12 +20,21 @@ class OpenGeoPlugin:
         config.iface = iface
         
     def unload(self):
-        pass
+        self.menu.deleteLater()
 
     def initGui(self):
-        pass
-        #=======================================================================
-        # publishLayerAction = QAction( u"Publish Layer", self.iface.legendInterface())
-        # publishLayerAction.triggered.connect(self.publishLayer)
-        # self.iface.legendInterface().addLegendLayerAction(publishLayerAction, u"My Plugin Menu", u"id1", QgsMapLayer.VectorLayer, True )
-        #=======================================================================
+        self.menu = QMenu(self.iface.mainWindow())
+        self.menu.setTitle("OpenGeo")
+
+        self.explorerAction = QAction(QIcon("opengeo/images/geoserver.png"),
+            "GeoServer Explorer",
+            self.iface.mainWindow())
+        self.explorerAction.triggered.connect(self.openExplorer)
+        self.menu.addAction(self.explorerAction)
+
+        menuBar = self.iface.mainWindow().menuBar()
+        menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)
+        
+    def openExplorer(self):
+        dlg = GeoServerExplorer(tools.defaultCatalog())
+        dlg.exec_()        

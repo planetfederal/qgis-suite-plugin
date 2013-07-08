@@ -1,4 +1,4 @@
-from opengeo.geoserver.support import ResourceInfo, bbox, write_bbox, \
+from opengeo.core.support import ResourceInfo, bbox, write_bbox, \
         write_string, xml_property, url
 
 def _maybe_text(n):

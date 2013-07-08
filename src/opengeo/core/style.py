@@ -1,4 +1,4 @@
-from opengeo.geoserver.support import ResourceInfo, url, xml_property
+from opengeo.core.support import ResourceInfo, url, xml_property
 
 class Style(ResourceInfo):
     def __init__(self, catalog, name):

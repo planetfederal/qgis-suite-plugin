@@ -1,0 +1,12 @@
+<project name="OG_PLUGIN" default="copy" basedir=".">
+    <description>
+        SEXTANTE
+    </description>
+    <property name="version.number" value="1.0"/>
+  <target name="copy"
+    description="copy files">
+    <copy todir="C:/Users/volaya/.qgis2/python/plugins/opengeo">
+        <fileset dir="D:/github/suite-qgis-plugin/src/opengeo" includes="**"/>
+    </copy>
+  </target>
+</project>

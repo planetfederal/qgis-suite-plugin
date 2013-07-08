@@ -9,7 +9,7 @@
 # from sextante.tests.TestData import loadTestData
 #===============================================================================
 
-from opengeo.qgis.tools import publishLayer, publishStyle, createStore
+from opengeo.qgis.catalog import *
 
 def classFactory(iface):
     from opengeo.plugin import OpenGeoPlugin

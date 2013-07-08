@@ -2,15 +2,15 @@ import sys
 from PyQt4.QtCore import *
 from PyQt4 import QtGui, QtCore
 from qgis.core import *
-from opengeo.qgis import tools
+from opengeo.qgis import catalog
 from opengeo.qgis import layers as qgislayers
-from opengeo.geoserver.workspace import Workspace
-from opengeo.geoserver.layer import Layer
+from opengeo.core.workspace import Workspace
+from opengeo.core.layer import Layer
 
 
 class GeoServerExplorer(QtGui.QDialog):
     
-    def __init__(self, catalog = tools.defaultCatalog(), parent = None):
+    def __init__(self, catalog = catalog.createGeoServerCatalog(), parent = None):
         super(GeoServerExplorer, self).__init__()
         self.catalog = catalog
         self.initGui()
@@ -62,19 +62,19 @@ class GeoServerExplorer(QtGui.QDialog):
         geoserverItem.setText(0, "GeoServer catalog")
         workspacesItem = QtGui.QTreeWidgetItem()
         workspacesItem.setText(0, "Workspaces")
-        workspaces = self.catalog.get_workspaces()
+        workspaces = self.catalog.catalog.get_workspaces()
         for workspace in workspaces:
             workspaceItem = QtGui.QTreeWidgetItem()
             workspaceItem.setText(0, workspace.name)
             workspaceItem.setData(0, QtCore.Qt.UserRole, workspace)
             workspacesItem.addChild(workspaceItem)
-            stores = self.catalog.get_stores(workspace)
+            stores = self.catalog.catalog.get_stores(workspace)
             for store in stores:
                 storeItem = QtGui.QTreeWidgetItem()
                 storeItem.setText(0, store.name)
                 storeItem.setData(0, QtCore.Qt.UserRole, store)
                 workspaceItem.addChild(storeItem)
-                resources = self.catalog.get_resources(store, workspace)
+                resources = self.catalog.catalog.get_resources(store, workspace)
                 for resource in resources:
                     resourceItem = QtGui.QTreeWidgetItem()
                     resourceItem.setText(0, resource.name)
@@ -83,7 +83,7 @@ class GeoServerExplorer(QtGui.QDialog):
         geoserverItem.addChild(workspacesItem)  
         layersItem = QtGui.QTreeWidgetItem()
         layersItem.setText(0, "Layers")
-        layers = self.catalog.get_layers()
+        layers = self.catalog.catalog.get_layers()
         for layer in layers:
             layerItem = QtGui.QTreeWidgetItem()
             layerItem.setText(0, layer.name)
@@ -92,7 +92,7 @@ class GeoServerExplorer(QtGui.QDialog):
         geoserverItem.addChild(layersItem)
         groupsItem = QtGui.QTreeWidgetItem()
         groupsItem.setText(0, "Groups")
-        groups = self.catalog.get_layergroups()
+        groups = self.catalog.catalog.get_layergroups()
         for group in groups:
             groupItem = QtGui.QTreeWidgetItem()
             groupItem.setText(0, group.name)
@@ -106,7 +106,7 @@ class GeoServerExplorer(QtGui.QDialog):
         geoserverItem.addChild(groupsItem)
         stylesItem = QtGui.QTreeWidgetItem()
         stylesItem.setText(0, "Styles")
-        styles = self.catalog.get_styles()
+        styles = self.catalog.catalog.get_styles()
         for style in styles:
             styleItem = QtGui.QTreeWidgetItem()
             styleItem.setText(0, style.name)
@@ -119,7 +119,7 @@ class GeoServerExplorer(QtGui.QDialog):
         qgisItem.setText(0, "QGIS proyect")        
         layersItem = QtGui.QTreeWidgetItem()
         layersItem.setText(0, "Layers")
-        layers = qgislayers.getAllLayers()
+        layers = qgislayers.get_all_layers()
         for layer in layers:
             layerItem = QtGui.QTreeWidgetItem()
             layerItem.setText(0, layer.name())
@@ -128,7 +128,7 @@ class GeoServerExplorer(QtGui.QDialog):
         qgisItem.addChild(layersItem)
         groupsItem = QtGui.QTreeWidgetItem()
         groupsItem.setText(0, "Groups")
-        groups = qgislayers.getGroups()
+        groups = qgislayers.get_groups()
         for group in groups:
             groupItem = QtGui.QTreeWidgetItem()
             groupItem.setText(0, group)
@@ -137,7 +137,7 @@ class GeoServerExplorer(QtGui.QDialog):
         qgisItem.addChild(groupsItem)
         stylesItem = QtGui.QTreeWidgetItem()
         stylesItem.setText(0, "Styles")
-        styles = qgislayers.getAllLayers()
+        styles = qgislayers.get_all_layers()
         for style in styles:
             styleItem = QtGui.QTreeWidgetItem()
             styleItem.setText(0, "style of layer '" + style.name() + "'")
@@ -186,7 +186,7 @@ class GeoServerExplorer(QtGui.QDialog):
     def addLayer(self):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor)) 
         try:
-            tools.addLayerToProject(self.currentElementData.typename)
+            self.catalog.add_layer_to_project(self.currentElementData.typename)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
         #TODO:update tree
@@ -194,7 +194,7 @@ class GeoServerExplorer(QtGui.QDialog):
     def publishStyle(self):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor)) 
         try:
-            tools.publishStyle(self.currentElementData, self.catalog, True)
+            self.catalog.publish_style(self.currentElementData, True)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
         #TODO:update tree        
@@ -202,7 +202,7 @@ class GeoServerExplorer(QtGui.QDialog):
     def publishLayer(self):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor)) 
         try:
-            tools.publishLayer(self.currentElementData, self.catalog, True)
+            self.catalog.publish_layer(self.currentElementData, overwrite=True)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
         #TODO:update tree

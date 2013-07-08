@@ -1,5 +1,5 @@
-from opengeo.geoserver.support import ResourceInfo, xml_property, write_bool, url
-from opengeo.geoserver.style import Style
+from opengeo.core.support import ResourceInfo, xml_property, write_bool, url
+from opengeo.core.style import Style
 
 class _attribution(object):
     def __init__(self, title, width, height):
@@ -109,7 +109,7 @@ class Layer(ResourceInfo):
         return [Style(self.catalog, s.text) for s in styles]
 
     def _set_alternate_styles(self, styles):
-        self.dirty["alternate_styles"] = styles
+        self.dirty["alternate_styles"] = styles        
 
     default_style = property(_get_default_style, _set_default_style)
     styles = property(_get_alternate_styles, _set_alternate_styles)

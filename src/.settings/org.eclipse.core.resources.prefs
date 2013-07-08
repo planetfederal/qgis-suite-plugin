@@ -1,0 +1,7 @@
+eclipse.preferences.version=1
+encoding//opengeo/__init__.py=utf-8
+encoding//opengeo/httplib2/__init__.py=utf-8
+encoding//opengeo/plugin.py=utf-8
+encoding//opengeo/qgis/catalog.py=utf-8
+encoding//opengeo/qgis/exporter.py=utf-8
+encoding//opengeo/qgis/layers.py=utf-8

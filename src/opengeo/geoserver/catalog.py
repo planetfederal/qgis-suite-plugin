@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 import logging
-from opengeo.geoserver.layer import Layer
-from opengeo.geoserver.store import coveragestore_from_index, datastore_from_index, \
+from opengeo.core.layer import Layer
+from opengeo.core.store import coveragestore_from_index, datastore_from_index, \
     UnsavedDataStore, UnsavedCoverageStore
-from opengeo.geoserver.style import Style
-from opengeo.geoserver.support import prepare_upload_bundle, url
-from opengeo.geoserver.layergroup import LayerGroup, UnsavedLayerGroup
-from opengeo.geoserver.workspace import workspace_from_index, Workspace
+from opengeo.core.style import Style
+from opengeo.core.support import prepare_upload_bundle, url
+from opengeo.core.layergroup import LayerGroup, UnsavedLayerGroup
+from opengeo.core.workspace import workspace_from_index, Workspace
 from os import unlink
 #import opengeo.httplib2
 from xml.etree.ElementTree import XML, dump
@@ -58,7 +58,8 @@ class Catalog(object):
     - Namespaces, which provide unique identifiers for resources
     """
 
-    def __init__(self, service_url, username="admin", password="geoserver", disable_ssl_certificate_validation=False):
+    def __init__(self, service_url = "http://localhost:8080/geoserver/rest", 
+                 username="admin", password="geoserver", disable_ssl_certificate_validation=False):
         self.service_url = service_url
         if self.service_url.endswith("/"):
             self.service_url = self.service_url.strip("/")
@@ -281,7 +282,98 @@ class Catalog(object):
         finally:
             unlink(bundle)
 
-    def create_featurestore(self, name, data, workspace=None, overwrite=False, charset=None):
+    def create_pg_featurestore(self, name, workspace=None, overwrite=False, 
+                               host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):
+        '''creates a postgis-based datastore'''
+        if workspace is None:
+            workspace = self.get_default_workspace()
+        try:
+            store = self.get_store(name, workspace)
+        except FailedRequestError:
+            store = None
+            
+        if not overwrite:
+            if store is not None:                
+                msg = "There is already a store named " + name
+                if workspace:
+                    msg += " in " + str(workspace)
+                raise ConflictingDataError(msg)            
+
+        if workspace is None:
+            workspace = self.get_default_workspace()
+        workspace = _name(workspace)
+        params = dict()
+        
+
+        #create the datastore
+        headers = {
+            "Content-type": "text/xml"
+        }
+
+        if user is None:
+            raise Exception("Undefined user")
+        
+        xml = ("<dataStore>\n"
+                "<name>" + name + "</name>\n"
+                "<connectionParameters>"
+                "<host>" + host + "</host>\n"
+                "<port>" + str(port) + "</port>\n"
+                "<database>" + database + "</database>\n"
+                "<schema>" + schema + "</schema>\n"
+                "<user>" + user + "</user>\n"
+                "<passwd>" + passwd + "</passwd>\n"
+                "<dbtype>postgis</dbtype>\n"
+                "</connectionParameters>\n"
+                "</dataStore>")
+        
+        print xml
+        if store is not None:
+            ds_url = url(self.service_url,
+                         ["workspaces", workspace, "datastores", name], params)
+            headers, response = self.http.request(ds_url, "PUT", xml, headers)
+        else:
+            ds_url = url(self.service_url,
+                         ["workspaces", workspace, "datastores.xml"], params)
+            headers, response = self.http.request(ds_url, "POST", xml, headers)
+
+        self._cache.clear()
+        if headers.status != 201 and headers.status != 200:
+            print headers.status
+            raise UploadError(response)
+        
+    def create_pg_featuretype(self, name, store, workspace=None):
+        
+        if workspace is None:
+            workspace = self.get_default_workspace()
+            
+        params = dict()
+        workspace = _name(workspace)
+        store = _name(store)
+        ds_url = url(self.service_url,
+            ["workspaces", workspace, "datastores", store, "featuretypes.xml"], params)
+
+        #create the datastore
+        headers = {
+            "Content-type": "text/xml"
+        }
+        xml = ("<featureType>\n" 
+        "<enabled>true</enabled>\n" 
+        "<metadata />\n" 
+        "<keywords><string>KEYWORD</string></keywords>\n" 
+        "<projectionPolicy>REPROJECT_TO_DECLARED</projectionPolicy>\n" 
+        "<title>stand_manual</title>\n" 
+        "<name>" + name +"</name>\n"         
+        "<srs>EPSG:32632</srs>" 
+        "</featureType>")
+                
+        headers, response = self.http.request(ds_url, "POST", xml, headers)
+
+
+        
+    def create_shp_featurestore(self, name, data, workspace=None, overwrite=False, charset=None):
+        '''creates a shapefile-based datastore'''
+        if workspace is None:
+            workspace = self.get_default_workspace()
         if not overwrite:
             try:
                 store = self.get_store(name, workspace)
@@ -292,9 +384,7 @@ class Catalog(object):
             except FailedRequestError:
                 # we don't really expect that every layer name will be taken
                 pass
-
-        if workspace is None:
-            workspace = self.get_default_workspace()
+        
         workspace = _name(workspace)
         params = dict()
         if charset is not None:
@@ -323,9 +413,14 @@ class Catalog(object):
             try:
                 unlink(archive)
             except WindowsError:
+                #FIXME: handle this better
                 pass
 
     def create_coveragestore(self, name, data, workspace=None, overwrite=False):
+        
+        if workspace is None:
+            workspace = self.get_default_workspace()
+            
         if not overwrite:
             try:
                 store = self.get_store(name, workspace)
@@ -336,9 +431,7 @@ class Catalog(object):
             except FailedRequestError:
                 # we don't really expect that every layer name will be taken
                 pass
-
-        if workspace is None:
-            workspace = self.get_default_workspace()
+        
         headers = {
             "Content-type": "image/tiff",
             "Accept": "application/xml"
@@ -410,9 +503,9 @@ class Catalog(object):
             resources.extend(self.get_resources(workspace=ws))
         return resources
 
-    def get_layer(self, typename):
+    def get_layer(self, name):
         try:
-            lyr = Layer(self, typename)
+            lyr = Layer(self, name)
             lyr.fetch()
             return lyr
         except FailedRequestError:
@@ -424,7 +517,7 @@ class Catalog(object):
         layers_url = url(self.service_url, ["layers.xml"])
         description = self.get_xml(layers_url)
         dump(description)
-        lyrs = [Layer(self, l.find("workspace").text + ":" + l.find("name").text) for l in description.findall("layer")]
+        lyrs = [Layer(self, l.find("name").text) for l in description.findall("layer")]
         if resource is not None:
             lyrs = [l for l in lyrs if l.resource.href == resource.href]
         # TODO: Filter by style
@@ -462,22 +555,23 @@ class Catalog(object):
         return [Style(self, s.find('name').text) for s in description.findall("style")]
 
     def create_style(self, name, data, overwrite = False):
-        if not overwrite:
-            style = self.get_style(name)
+        style = self.get_style(name)
+        if not overwrite:            
             if style is not None:
-                raise ConflictingDataError("There is already a style named %s" % name)
+                raise ConflictingDataError("There is already a style named %s" % name)        
 
         headers = {
             "Content-type": "application/vnd.ogc.sld+xml",
             "Accept": "application/xml"
         }
 
-        if overwrite:
+        if overwrite and style is not None:
             style_url = url(self.service_url, ["styles", name + ".sld"])
             headers, response = self.http.request(style_url, "PUT", data, headers)
         else:
             style_url = url(self.service_url, ["styles"], dict(name=name))
             headers, response = self.http.request(style_url, "POST", data, headers)
+            print "post"
 
         self._cache.clear()
         if headers.status < 200 or headers.status > 299: raise UploadError(response)

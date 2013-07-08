@@ -7,7 +7,7 @@ from PyQt4.QtGui import *
 #from qgis.core import *
 from opengeo import config
 from opengeo.gui.explorer import GeoServerExplorer
-from opengeo.qgis import tools
+from opengeo.qgis import catalog
 
 cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
 if cmd_folder not in sys.path:
@@ -36,5 +36,5 @@ class OpenGeoPlugin:
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)
         
     def openExplorer(self):
-        dlg = GeoServerExplorer(tools.defaultCatalog())
+        dlg = GeoServerExplorer(catalog.createGeoServerCatalog())
         dlg.exec_()        

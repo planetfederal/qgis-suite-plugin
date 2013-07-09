@@ -26,9 +26,8 @@ class OpenGeoPlugin:
         self.menu = QMenu(self.iface.mainWindow())
         self.menu.setTitle("OpenGeo")
 
-        self.explorerAction = QAction(QIcon("opengeo/images/geoserver.png"),
-            "GeoServer Explorer",
-            self.iface.mainWindow())
+        icon = QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
+        self.explorerAction = QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
         self.explorerAction.triggered.connect(self.openExplorer)
         self.menu.addAction(self.explorerAction)
 

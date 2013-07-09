@@ -13,6 +13,7 @@ from xml.etree.ElementTree import XML, dump
 from xml.parsers.expat import ExpatError
 from urlparse import urlparse
 from opengeo import httplib2
+from opengeo.core import util
 
 logger = logging.getLogger("gsconfig.catalog")
 
@@ -28,20 +29,7 @@ class AmbiguousRequestError(Exception):
 class FailedRequestError(Exception):
     pass
 
-def _name(named):
-    """Get the name out of an object.  This varies based on the type of the input:
-       * the "name" of a string is itself
-       * the "name" of None is itself
-       * the "name" of an object with a property named name is that property -
-         as long as it's a string
-       * otherwise, we raise a ValueError
-    """
-    if isinstance(named, basestring) or named is None:
-        return named
-    elif hasattr(named, 'name') and isinstance(named.name, basestring):
-        return named.name
-    else:
-        raise ValueError("Can't interpret %s as a name or a configuration object" % named)
+
 
 class Catalog(object):
     """
@@ -252,7 +240,7 @@ class Catalog(object):
         if isinstance(store, basestring):
             store = self.get_store(store, workspace=workspace)
         if workspace is not None:
-            workspace = _name(workspace)
+            workspace = util.name(workspace)
             assert store.workspace.name == workspace, "Specified store (%s) is not in specified workspace (%s)!" % (store, workspace)
         else:
             workspace = store.workspace.name
@@ -301,7 +289,7 @@ class Catalog(object):
 
         if workspace is None:
             workspace = self.get_default_workspace()
-        workspace = _name(workspace)
+        workspace = util.name(workspace)
         params = dict()
         
 
@@ -347,8 +335,8 @@ class Catalog(object):
             workspace = self.get_default_workspace()
             
         params = dict()
-        workspace = _name(workspace)
-        store = _name(store)
+        workspace = util.name(workspace)
+        store = util.name(store)
         ds_url = url(self.service_url,
             ["workspaces", workspace, "datastores", store, "featuretypes.xml"], params)
 
@@ -385,7 +373,7 @@ class Catalog(object):
                 # we don't really expect that every layer name will be taken
                 pass
         
-        workspace = _name(workspace)
+        workspace = util.name(workspace)
         params = dict()
         if charset is not None:
             params['charset'] = charset

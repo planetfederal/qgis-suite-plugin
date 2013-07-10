@@ -77,5 +77,6 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.close()
 
     def cancelPressed(self):
-        self.ref = None
+        self.catalog = None
+        self.name = None
         self.close()  

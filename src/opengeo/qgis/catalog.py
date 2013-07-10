@@ -32,7 +32,7 @@ class OGCatalog(object):
     def __init__(self, catalog):
         self.catalog = catalog
     
-    def publish_style(self, layer, overwrite = False):
+    def publish_style(self, layer, name = None, overwrite = False):
      
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
@@ -42,13 +42,8 @@ class OGCatalog(object):
         if isinstance(layer, basestring):
             layer = layers.resolve_layer(layer)         
         sld = self.get_style_as_sld(layer)
-        print sld  
-        self.catalog.create_style(layer.name(), sld, overwrite)
-        
-        
-    
-    def publishProject(self):
-        pass
+        name = name if name is not None else layer.name()
+        self.catalog.create_style(name, sld, overwrite)
        
     def get_style_as_sld(self, layer):
         

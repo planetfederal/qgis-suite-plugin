@@ -510,6 +510,9 @@ class Catalog(object):
             lyrs = [l for l in lyrs if l.resource.href == resource.href]
         # TODO: Filter by style
         return lyrs
+    
+    def create_layer(self, resource, style):
+        pass
 
     def get_layergroup(self, name=None):
         try: 
@@ -593,5 +596,14 @@ class Catalog(object):
     def get_default_workspace(self):
         return Workspace(self, "default")
 
-    def set_default_workspace(self):
-        raise NotImplementedError()
+    def set_default_workspace(self, name):
+        workspace = self.get_workspace(name)
+        if workspace is not None:            
+            headers = { "Content-Type": "application/xml" }
+            default_workspace_url = self.service_url + "/workspaces/default.xml"
+            headers, response = self.http.request(default_workspace_url, "POST", workspace.message(), headers)
+            assert 200 <= headers.status < 300, "Tried to set default workspace but got " + str(headers.status) + ": " + response
+            self._cache.clear()
+            
+            
+        

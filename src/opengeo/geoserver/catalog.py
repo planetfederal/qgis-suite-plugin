@@ -148,6 +148,8 @@ class Catalog(object):
         """
         rest_url = obj.href
         message = obj.message()
+        
+        print message
 
         headers = {
             "Content-type": "application/xml",
@@ -601,7 +603,8 @@ class Catalog(object):
         if workspace is not None:            
             headers = { "Content-Type": "application/xml" }
             default_workspace_url = self.service_url + "/workspaces/default.xml"
-            headers, response = self.http.request(default_workspace_url, "POST", workspace.message(), headers)
+            print workspace.message()
+            headers, response = self.http.request(default_workspace_url, "PUT", workspace.message(), headers)
             assert 200 <= headers.status < 300, "Tried to set default workspace but got " + str(headers.status) + ": " + response
             self._cache.clear()
             

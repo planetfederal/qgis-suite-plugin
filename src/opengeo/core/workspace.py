@@ -1,4 +1,5 @@
-from opengeo.core.support import xml_property, write_bool, ResourceInfo, url
+from opengeo.core.support import xml_property, write_bool, ResourceInfo, url,\
+    write_string
 
 def workspace_from_index(catalog, node):
     name = node.find("name")
@@ -24,10 +25,12 @@ class Workspace(ResourceInfo):
     def datastore_url(self):
         return url(self.catalog.service_url, ["workspaces", self.name, "datastores.xml"])
 
-    enabled = xml_property("enabled", lambda x: x.lower() == 'true')
-    writers = dict(
-        enabled = write_bool("enabled")
-    )
+    #enabled = xml_property("enabled", lambda x: x.lower() == 'true')
+    
+    
+    name = xml_property("name")
+    writers = dict(name = write_string("name"))
+
 
     def __repr__(self):
         return "%s @ %s" % (self.name, self.href)

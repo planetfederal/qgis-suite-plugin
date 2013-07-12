@@ -3,8 +3,9 @@ from opengeo.qgis import layers
 
 class StyleFromLayerDialog(QtGui.QDialog):
     
-    def __init__(self, parent = None):
+    def __init__(self, catalogs, parent = None):
         super(StyleFromLayerDialog, self).__init__(parent)
+        self.catalogs = catalogs
         self.layer = None        
         self.name = None
         self.initGui()
@@ -23,6 +24,17 @@ class StyleFromLayerDialog(QtGui.QDialog):
         self.layerBox.addItems(self.alllayers)
         horizontalLayout.addWidget(layerLabel)
         horizontalLayout.addWidget(self.layerBox)
+        layout.addLayout(horizontalLayout)
+        
+        horizontalLayout = QtGui.QHBoxLayout()
+        horizontalLayout.setSpacing(30)
+        horizontalLayout.setMargin(0)        
+        catalogLabel = QtGui.QLabel('Catalog')
+        self.catalogBox = QtGui.QComboBox()
+        self.catalognames = [catalog.name for catalog in self.catalogs]
+        self.catalogBox.addItems(self.catalognames)
+        horizontalLayout.addWidget(catalogLabel)
+        horizontalLayout.addWidget(self.catalogBox)
         layout.addLayout(horizontalLayout)
         
         horizontalLayout = QtGui.QHBoxLayout()
@@ -48,6 +60,7 @@ class StyleFromLayerDialog(QtGui.QDialog):
         self.layer = self.layerBox.currentText()
         self.name = unicode(self.nameBox.text())
         self.name = self.name if not self.name.strip() == "" else self.layer.name() 
+        self.catalog = self.catalogs[self.catalogBox.currentIndex()]
         self.close()
 
     def cancelPressed(self):

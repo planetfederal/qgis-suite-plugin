@@ -12,6 +12,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         
         
     def initGui(self):                         
+        self.setWindowTitle('Catalog definition')
         layout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         

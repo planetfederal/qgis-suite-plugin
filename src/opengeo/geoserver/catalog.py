@@ -9,7 +9,7 @@ from opengeo.core.layergroup import LayerGroup, UnsavedLayerGroup
 from opengeo.core.workspace import workspace_from_index, Workspace
 from os import unlink
 #import opengeo.httplib2
-from xml.etree.ElementTree import XML, dump
+from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 from urlparse import urlparse
 from opengeo import httplib2
@@ -104,7 +104,7 @@ class Catalog(object):
         if response.status == 200:
             return (response, content)
         else:
-            raise FailedRequestError("Tried to make a DELETE request to %s but got a %d status code: \n%s" % (rest_url, response.status, content))
+            raise FailedRequestError(content)
 
     def get_xml(self, rest_url):
         logger.debug("GET %s", rest_url)
@@ -131,7 +131,7 @@ class Catalog(object):
                 self._cache[rest_url] = (datetime.now(), content)
                 return parse_or_raise(content)
             else:
-                raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (url, response.status, content))
+                raise FailedRequestError(content)
 
     def reload(self):
         reload_url = url(self.service_url, ['reload'])
@@ -160,8 +160,7 @@ class Catalog(object):
         headers, body = response
         self._cache.clear()
         if 400 <= int(headers['status']) < 600:
-            raise FailedRequestError("Error code (%s) from GeoServer: %s" %
-                (headers['status'], body))
+            raise FailedRequestError(body)
         return response
 
     def get_store(self, name, workspace=None):
@@ -506,7 +505,7 @@ class Catalog(object):
             resource = self.get_resource(resource)
         layers_url = url(self.service_url, ["layers.xml"])
         description = self.get_xml(layers_url)
-        dump(description)
+        #dump(description)
         lyrs = [Layer(self, l.find("name").text) for l in description.findall("layer")]
         if resource is not None:
             lyrs = [l for l in lyrs if l.resource.href == resource.href]
@@ -578,7 +577,7 @@ class Catalog(object):
         workspace_url = self.service_url + "/namespaces/"
 
         headers, response = self.http.request(workspace_url, "POST", xml, headers)
-        assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response
+        assert 200 <= headers.status < 300, "Error creating workspace: " + str(headers.status) + ": " + response
         self._cache.clear()
         return self.get_workspace(name)
 
@@ -605,7 +604,7 @@ class Catalog(object):
             default_workspace_url = self.service_url + "/workspaces/default.xml"
             print workspace.message()
             headers, response = self.http.request(default_workspace_url, "PUT", workspace.message(), headers)
-            assert 200 <= headers.status < 300, "Tried to set default workspace but got " + str(headers.status) + ": " + response
+            assert 200 <= headers.status < 300, "Error setting default workspace: " + str(headers.status) + ": " + response
             self._cache.clear()
             
             

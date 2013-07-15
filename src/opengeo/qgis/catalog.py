@@ -32,7 +32,7 @@ class OGCatalog(object):
     def __init__(self, catalog):
         self.catalog = catalog
     
-    def publish_style(self, layer, name = None, overwrite = False):
+    def publish_style(self, layer, overwrite = False, name = None):
      
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
@@ -101,7 +101,7 @@ class OGCatalog(object):
         keys = [u'port', u'dbname', u'schema', u'host']
         params = {key: value for (key, value) in params if k in keys}
     
-    def create_store(self, layer, workspace=None, overwrite=False, title=None,
+    def create_store(self, layer, workspace=None, overwrite=False, name=None,
                            abstract=None, permissions=None, keywords=()):
         
         '''Creates a datastore for the specified layer'''
@@ -109,10 +109,12 @@ class OGCatalog(object):
         if isinstance(layer, basestring):
             layer = layers.resolve_layer(layer)     
             
+        name = name if name is not None else layer.name()
+                    
         try:
             if layer.type() == layer.RasterLayer:
                 data = self.get_data_from_layer(layer)
-                self.catalog.create_coveragestore(layer.name(),
+                self.catalog.create_coveragestore(name,
                                            data,
                                            workspace=workspace,
                                            overwrite=overwrite)      
@@ -133,7 +135,7 @@ class OGCatalog(object):
                     self.catalog.create_pg_featuretype(uri.table(),"postgis_store")
                 else:                             
                     data = self.get_data_from_layer(layer)
-                    self.catalog.create_shp_featurestore(layer.name(),
+                    self.catalog.create_shp_featurestore(name,
                                            data,
                                            workspace=workspace,
                                            overwrite=overwrite)
@@ -211,7 +213,7 @@ class OGCatalog(object):
         layergroup = self.catalog.create_layergroup(name, group, group)
         self.catalog.save(layergroup)
         
-    def publish_layer (self, layer, workspace=None, overwrite=True, title=None,
+    def publish_layer (self, layer, workspace=None, overwrite=True, name=None,
                            abstract=None, permissions=None, keywords=()):
         '''
         Publishes a QGIS layer. 
@@ -235,19 +237,21 @@ class OGCatalog(object):
         
         if isinstance(layer, basestring):
             layer = layers.resolve_layer(layer)          
+        
+        name = name if name is not None else layer.name()
           
         if layer.type() == layer.VectorLayer:  
             #publish style
-            self.publish_style(layer,overwrite)
-        
+            self.publish_style(layer, overwrite, name)
+                        
         #create store
-        self.create_store(layer, workspace, overwrite)      
+        self.create_store(layer, workspace, overwrite, name)      
     
         if layer.type() == layer.VectorLayer:
             #assign style to created store  
-            publishing = self.catalog.get_layer(layer.name())        
+            publishing = self.catalog.get_layer(name)        
             #FIXME: Should we use the fully qualified typename?
-            publishing.default_style = self.catalog.get_style(layer.name())
+            publishing.default_style = self.catalog.get_style(name)
             self.catalog.save(publishing)
             
     def add_layer_to_project(self, name):

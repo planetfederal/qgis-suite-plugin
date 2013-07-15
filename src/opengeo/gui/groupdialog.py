@@ -40,7 +40,7 @@ class LayerGroupDialog(QtGui.QDialog):
         self.table.setColumnWidth(0,300)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(True)
-        self.table.setHorizontalHeaderLabels(["Path", "Status"])
+        self.table.setHorizontalHeaderLabels(["Layer", "Style"])
         self.table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.selectAllButton = QtGui.QPushButton()
         self.selectAllButton.setText("(de)Select all")

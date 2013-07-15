@@ -1,5 +1,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+import traceback
 
 class ExplorerThread(QThread):
     
@@ -20,5 +21,7 @@ class ExplorerThread(QThread):
             
             self.method(*self.args)
             self.finish.emit()
-        except Exception, e:            
+        except Exception, e:          
+            print traceback.format_exc()  
             self.error.emit(unicode(e))
+            

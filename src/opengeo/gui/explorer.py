@@ -8,8 +8,10 @@ import os
 from opengeo.core import util
 from opengeo.gui.groupdialog import LayerGroupDialog
 from opengeo.gui.workspacedialog import DefineWorkspaceDialog
-from opengeo.gui.styledialog import StyleFromLayerDialog, AddStyleToLayerDialog
+from opengeo.gui.styledialog import StyleFromLayerDialog, AddStyleToLayerDialog,\
+    PublishStyleDialog
 from opengeo.gui.explorerthread import ExplorerThread
+from opengeo.gui.layerdialog import PublishLayerDialog, PublishLayersDialog
 
 
 class GeoServerExplorer(QtGui.QDialog):
@@ -32,10 +34,6 @@ class GeoServerExplorer(QtGui.QDialog):
         self.verticalLayout = QtGui.QVBoxLayout(self.splitter)
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setMargin(0)         
-        self.toolbar = QtGui.QToolBar()
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
-        self.toolbar.addAction(icon, "Add Geoserver catalog", self.addGeoServerCatalog)  
-        self.verticalLayout.addWidget(self.toolbar)                         
         self.tree = QtGui.QTreeWidget() 
         self.tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)        
         self.tree.itemClicked.connect(self.treeItemClicked)        
@@ -45,12 +43,17 @@ class GeoServerExplorer(QtGui.QDialog):
         self.tree.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.fillTree()                                                                                  
         self.verticalLayout.addWidget(self.tree)         
-        self.log = QtGui.QTextEdit(self.splitter)                
+        self.log = QtGui.QTextEdit(self.splitter) 
+        self.progress = QtGui.QProgressBar()
+        self.progress.setMinimum(0)
+        self.progress.setMaximum(100)
+        self.progress.setValue(0)                       
         self.layout = QtGui.QVBoxLayout()
         self.layout.setSpacing(2)
         self.layout.setMargin(0)
         self.setLayout(self.layout)
-        self.layout.addWidget(self.splitter)       
+        self.layout.addWidget(self.splitter)
+        self.layout.addWidget(self.progress)       
 
     
     def treeItemClicked(self, item, column):
@@ -106,32 +109,7 @@ class GeoServerExplorer(QtGui.QDialog):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:    
             geoserverItem = GsCatalogItem(cat, name)
-            workspacesItem = GsWorkspacesItem()   
-            defaultWorkspace = cat.get_default_workspace()
-            defaultWorkspace.fetch()
-            defaultName = defaultWorkspace.dom.find('name').text             
-            workspaces = cat.get_workspaces()
-            for workspace in workspaces:
-                workspaceItem = GsWorkspaceItem(workspace, workspace.name == defaultName)
-                workspacesItem.addChild(workspaceItem)
-                stores = cat.get_stores(workspace)
-                for store in stores:
-                    storeItem = GsStoreItem(store)
-                    workspaceItem.addChild(storeItem)
-                    resources = cat.get_resources(store, workspace)
-                    for resource in resources:
-                        resourceItem = GsResourceItem(resource)                        
-                        storeItem.addChild(resourceItem)
-            geoserverItem.addChild(workspacesItem)  
-            layersItem = GsLayersItem()                                      
-            geoserverItem.addChild(layersItem)
-            layersItem.populate()
-            groupsItem = GsGroupsItem()                                    
-            geoserverItem.addChild(groupsItem)
-            groupsItem.populate()
-            stylesItem = GsStylesItem()                        
-            geoserverItem.addChild(stylesItem)
-            stylesItem.populate()
+            geoserverItem.populate()
             QtGui.QApplication.restoreOverrideCursor()
             self.setInfo("Catalog '" + name + "' correctly created")
             return geoserverItem
@@ -176,44 +154,72 @@ class GeoServerExplorer(QtGui.QDialog):
 
     def getSelectionTypes(self):
         items = self.tree.selectedItems()
-        return set([type(item) for item in items])            
-      
+        return set([type(item) for item in items])  
+
     def showTreePopupMenu(self,point):
-        allTypes = self.getSelectionTypes()
-        print str(allTypes)
+        allTypes = self.getSelectionTypes()                
         if len(allTypes) != 1:
             return 
-        self.currentItem = self.tree.itemAt(point)                
-        menu = QtGui.QMenu() 
-        point = self.tree.mapToGlobal(point)       
+        items = self.tree.selectedItems()
+        if len(items) > 1:
+            self.showMultipleSelectionPopupMenu(point)
+        else:
+            self.showSingleSelectionPopupMenu(point)
+            
+    def showMultipleSelectionPopupMenu(self, point):        
+        self.currentItem = self.tree.itemAt(point)  
+        point = self.tree.mapToGlobal(point)
+        menu = QtGui.QMenu()             
+        if isinstance(self.currentItem, QgsLayerItem):                                    
+            publishLayersAction = QtGui.QAction("Publish...", None)
+            publishLayersAction.triggered.connect(self.publishLayers)
+            menu.addAction(publishLayersAction)   
+            createStoresFromLayersAction= QtGui.QAction("Create stores from layers...", None)
+            createStoresFromLayersAction.triggered.connect(self.createStoresFromLayers)
+            menu.addAction(createStoresFromLayersAction)  
+            menu.exec_(point)    
+        if isinstance(self.currentItem, GsLayerItem):                                    
+            deleteLayersAction = QtGui.QAction("Delete", None)
+            deleteLayersAction.triggered.connect(self.deleteLayers)
+            menu.addAction(deleteLayersAction)           
+            menu.exec_(point)                         
+                
+    def showSingleSelectionPopupMenu(self, point):        
+        self.currentItem = self.tree.itemAt(point)     
+        menu = QtGui.QMenu()
+        if isinstance(self.currentItem, TreeItem) and hasattr(self.currentItem, 'populate'):            
+            refreshAction = QtGui.QAction("Refresh", None)
+            refreshAction.triggered.connect(self.currentItem.refreshContent)
+            menu.addAction(refreshAction) 
+        point = self.tree.mapToGlobal(point)               
         if isinstance(self.currentItem, QgsLayerItem):                        
-            publishLayerAction = QtGui.QAction("Publish layer", None)
+            publishLayerAction = QtGui.QAction("Publish...", None)
             publishLayerAction.triggered.connect(self.publishLayer)
             menu.addAction(publishLayerAction)   
-            createStoreFromLayerAction= QtGui.QAction("Create store from layer", None)
+            createStoreFromLayerAction= QtGui.QAction("Create store from layer...", None)
             createStoreFromLayerAction.triggered.connect(self.createStoreFromLayer)
             menu.addAction(createStoreFromLayerAction)                              
-            menu.exec_(point)   
+            #menu.exec_(point)   
         elif isinstance(self.currentItem, QgsStyleItem):                     
-            publishStyleAction = QtGui.QAction("Publish style...", None)
+            publishStyleAction = QtGui.QAction("Publish...", None)
             publishStyleAction.triggered.connect(self.publishStyle)
             menu.addAction(publishStyleAction)                                
-            menu.exec_(point)    
+            #menu.exec_(point)    
         elif isinstance(self.currentItem, GsStylesItem):     
             createStyleFromLayerAction = QtGui.QAction("New style from QGIS layer...", None)
             createStyleFromLayerAction.triggered.connect(self.createStyleFromLayer)
             menu.addAction(createStyleFromLayerAction)                                                                
-            menu.exec_(point)
+            #menu.exec_(point)
         elif isinstance(self.currentItem, GsWorkspacesItem):                    
             createWorkspaceAction = QtGui.QAction("New workspace...", None)
             createWorkspaceAction.triggered.connect(self.createWorkspace)
             menu.addAction(createWorkspaceAction)                                                         
-            menu.exec_(point)
+            #menu.exec_(point)
         elif isinstance(self.currentItem, GsGroupsItem):    
             createGroupAction = QtGui.QAction("New group...", None)
             createGroupAction.triggered.connect(self.createGroup)
             menu.addAction(createGroupAction)                                                            
-            menu.exec_(point) 
+            #menu.exec_(point) 
         elif isinstance(self.currentItem, GsLayerItem):
             if isinstance(self.currentItem.parent(), GsGroupItem):
                 layers = self.currentItem.parent().element.layers
@@ -240,16 +246,16 @@ class GeoServerExplorer(QtGui.QDialog):
                 moveLayerToBackInGroupAction.triggered.connect(self.moveLayerToBackInGroup)
                 menu.addAction(moveLayerToBackInGroupAction)
             else:
-                addStyleToLayerAction = QtGui.QAction("Add style to layer", None)
+                addStyleToLayerAction = QtGui.QAction("Add style to layer...", None)
                 addStyleToLayerAction.triggered.connect(self.addStyleToLayer)                    
                 menu.addAction(addStyleToLayerAction)   
                 deleteLayerAction = QtGui.QAction("Delete", None)
-                deleteLayerAction.triggered.connect(self.deleteLayer)
+                deleteLayerAction.triggered.connect(self.deleteLayers)
                 menu.addAction(deleteLayerAction)                                
                 addLayerAction = QtGui.QAction("Add to current QGIS project", None)
                 addLayerAction.triggered.connect(self.addLayerToProject)
                 menu.addAction(addLayerAction)
-            menu.exec_(point)              
+            #menu.exec_(point)              
         elif isinstance(self.currentItem, GsGroupItem):    
             editLayerGroupAction = QtGui.QAction("Edit...", None)
             editLayerGroupAction.triggered.connect(self.editLayerGroup)
@@ -257,12 +263,12 @@ class GeoServerExplorer(QtGui.QDialog):
             deleteLayerGroupAction = QtGui.QAction("Delete", None)
             deleteLayerGroupAction.triggered.connect(self.deleteLayerGroup)
             menu.addAction(deleteLayerGroupAction)                                                                                                                                          
-            menu.exec_(point)     
+            #menu.exec_(point)     
         elif isinstance(self.currentItem, GsCatalogItem):                        
             removeCatalogAction = QtGui.QAction("Remove", None)
             removeCatalogAction.triggered.connect(self.removeCatalog)
             menu.addAction(removeCatalogAction)                                                     
-            menu.exec_(point)
+            #menu.exec_(point)
         elif isinstance(self.currentItem, GsStyleItem):
             if isinstance(self.currentItem.parent(), GsLayerItem):
                 setAsDefaultStyleAction = QtGui.QAction("Set as default style", None)
@@ -279,29 +285,39 @@ class GeoServerExplorer(QtGui.QDialog):
                 menu.addAction(deleteStyleAction)
             menu.exec_(point)  
         elif isinstance(self.currentItem, GsWorkspaceItem):                     
-            setAsDefaultAction = QtGui.QAction("Set as default workspace...", None)
+            setAsDefaultAction = QtGui.QAction("Set as default workspace", None)
             setAsDefaultAction.triggered.connect(self.setAsDefaultWorkspace)
             setAsDefaultAction.setEnabled(not self.currentItem.isDefault)
             menu.addAction(setAsDefaultAction)                                         
             deleteWorkspaceAction = QtGui.QAction("Delete", None)
             deleteWorkspaceAction.triggered.connect(self.deleteWorkspace)
             menu.addAction(deleteWorkspaceAction)                                                
-            menu.exec_(point)
+            #menu.exec_(point)
         elif isinstance(self.currentItem, GsStoreItem):       
             deleteStoreAction = QtGui.QAction("Delete", None)
             deleteStoreAction.triggered.connect(self.deleteStore)
             menu.addAction(deleteStoreAction)        
-            menu.exec_(point) 
+            #menu.exec_(point) 
         elif isinstance(self.currentItem, GsResourceItem):        
-            #===================================================================
-            # publishResourceAction = QtGui.QAction("Publish...", None)
-            # publishResourceAction.triggered.connect(self.publishResource)
-            # menu.addAction(publishResourceAction)
-            #===================================================================
             addResourceAsLayerAction = QtGui.QAction("Add to current QGIS project", None)
             addResourceAsLayerAction.triggered.connect(self.addResourceAsLayer)
-            menu.addAction(addResourceAsLayerAction)        
-            menu.exec_(point)            
+            menu.addAction(addResourceAsLayerAction)                        
+            deleteResourceAction = QtGui.QAction("Delete", None)
+            deleteResourceAction.triggered.connect(self.deleteResource)
+            menu.addAction(deleteResourceAction)        
+            #menu.exec_(point) 
+        
+        if not self.catalogs:
+            for action in menu.actions():
+                action.setEnabled(False)
+            
+        if isinstance(self.currentItem, TreeItem):
+            menu.exec_(point)        
+        elif self.currentItem.text(0) == "GeoServer catalogs":
+            addCatalogAction = QtGui.QAction("Add GeoServer catalog", None)
+            addCatalogAction.triggered.connect(self.addGeoServerCatalog)
+            menu.addAction(addCatalogAction)        
+            menu.exec_(point)
   
             
 ########### ACTIONS#################################
@@ -346,6 +362,12 @@ class GeoServerExplorer(QtGui.QDialog):
                  [self.currentItem.parent()], 
                  self.currentItem.element) 
         
+    def deleteResource(self):
+        self.run(self.currentItem.parentCatalog().delete,
+                 "Resource '" + self.currentItem.element.name + "' correctly deleted",
+                 [self.currentItem.parent()], 
+                 self.currentItem.element)         
+        
     def deleteWorkspace(self):
         self.run(self.currentItem.parentCatalog().delete,
                  "Workspace '" + self.currentItem.element.name + "' correctly deleted",
@@ -369,11 +391,12 @@ class GeoServerExplorer(QtGui.QDialog):
                 layer)
     
     def setAsDefaultStyle(self):
-        layer = self.currentItem.parent().element
-        default = layer.default_style
+        layer = self.currentItem.parent().element        
         styles = layer.styles
         styles = [style for style in styles if style.name != self.currentItem.element.name]
-        styles.append(default)
+        default = layer.default_style
+        if default is not None:
+            styles.append(default)
         layer.default_style = self.currentItem.element
         layer.styles = styles 
         self.run(self.currentItem.parentCatalog().save, 
@@ -426,15 +449,25 @@ class GeoServerExplorer(QtGui.QDialog):
     def addLayerToProject(self):
         cat = OGCatalog(self.currentItem.parentCatalog())                 
         self.run(cat.add_layer_to_project, 
-                 "Layer '" + self.currentItem.name + "' correctly added to QGIS project", 
+                 "Layer '" + self.currentItem.element.name + "' correctly added to QGIS project", 
                  [],
                  self.currentItem.element.name)
         
-    def deleteLayer(self):
-        self.run(self.currentItem.parentCatalog().delete,
+    def deleteLayers(self):        
+        selected = self.tree.selectedItems()
+        layers = [item.element for item in selected]
+        parents = set(item.parent() for item in selected)                
+        self.progress.setMaximum(len(layers))
+        progress = 0        
+        for layer in layers:
+            self.progress.setValue(progress)                                        
+            self.run(self.currentItem.parentCatalog().delete,
                  "Layer '" + self.currentItem.element.name + "' correctly deleted",
-                 [self.currentItem.parent()], 
-                 self.currentItem.element)   
+                 list(parents), 
+                 layer)  
+            progress += 1
+        self.progress.setValue(progress)
+                
             
     def removeLayerFromGroup(self):
         group = self.currentItem.parent().element
@@ -528,7 +561,7 @@ class GeoServerExplorer(QtGui.QDialog):
         if dlg.layer is not None:
             ogcat = OGCatalog(self.catalogs[dlg.catalog])        
             self.run(ogcat.publish_style, 
-                     "Style correctly created from layer '" + dlg.layer.name() + "'",
+                     "Style correctly created from layer '" + dlg.layer + "'",
                      [self.currentItem],
                      dlg.layer, dlg.name, True)
             
@@ -544,7 +577,7 @@ class GeoServerExplorer(QtGui.QDialog):
     
     
     def createGroup(self):
-        dlg = LayerGroupDialog(self.catalog)
+        dlg = LayerGroupDialog(self.currentItem.parentCatalog())
         dlg.exec_()
         group = dlg.group
         if group is not None:
@@ -553,62 +586,92 @@ class GeoServerExplorer(QtGui.QDialog):
                      [self.currentItem],
                      group)
 
-    
-    def createLayer(self):
-        pass
-    
+
     def createStoreFromLayer(self):
-        cat = self.selectCatalog()
-        if cat is None:
+        dlg = PublishLayerDialog(self.catalogs)
+        dlg.exec_()      
+        if dlg.catalog is None:
             return
+        cat = dlg.catalog  
         ogcat = OGCatalog(cat)
+        catItem = self.findAllItems(cat)[0]
+        toUpdate = [catItem]                    
         self.run(ogcat.create_store,
-                 "Store correctly created from layer '" + self.element.name() + "'",
-                 [], #TODO
-                 self.element, overwrite=True)         
+                 "Store correctly created from layer '" + self.currentItem.element.name() + "'",
+                 toUpdate,
+                 self.currentItem.element, dlg.workspace, True)
+        
+    def createStoresFromLayers(self):
+        pass        
             
     def publishLayer(self):
-        cat = self.selectCatalog()
-        if cat is None:
+        dlg = PublishLayerDialog(self.catalogs)
+        dlg.exec_()      
+        if dlg.catalog is None:
             return
+        cat = dlg.catalog  
         ogcat = OGCatalog(cat)
+        catItem = self.findAllItems(cat)[0]
+        toUpdate = [catItem]                    
         self.run(ogcat.publish_layer,
-                 "Layer correctly published from layer '" + self.element.name() + "'",
-                 [], #TODO
-                 self.element, overwrite=True)
-               
+                 "Layer correctly published from layer '" + self.currentItem.element.name() + "'",
+                 toUpdate,
+                 self.currentItem.element, dlg.workspace, True)
 
-    def selectCatalog(self):
-        if len(self.catalogs) == 1:
-            return self.catalogs.values()[0]
-        else:
-            item, ok = QtGui.QInputDialog.getItem(self,
-                u"Catalog selection",
-                u"Select a destination catalog",
-                self.catalogs.keys(),
-                editable = False)
-            if ok:
-                return self.catalogs[item]
-            else:
-                return None
-
+    def publishLayers(self):
+        selected = self.tree.selectedItems()
+        layers = [item.element for item in selected]        
+        dlg = PublishLayersDialog(self.catalogs, layers)
+        dlg.exec_()     
+        topublish  = dlg.topublish
+        if topublish is None:
+            return
+        self.progress.setMaximum(len(topublish))
+        progress = 0        
+        for layer, catalog, workspace in topublish:
+            self.progress.setValue(progress)            
+            ogcat = OGCatalog(catalog)                 
+            self.run(ogcat.publish_layer,
+                     "Layer correctly published from layer '" + layer.name() + "'",
+                     [],
+                     layer, workspace, True)
+            progress += 1
+        self.progress.setValue(progress)
+            
+        #TODO update changed trees
+                           
 
     def publishStyle(self):
-        cat = self.selectCatalog()
-        if cat is None:
+        dlg = PublishStyleDialog(self.catalogs.keys())
+        dlg.exec_()      
+        if dlg.catalog is None:
             return
-        ogcat = OGCatalog(cat)        
+        cat = self.catalogs[dlg.catalog]  
+        ogcat = OGCatalog(cat)
+        catItem = self.findAllItems(cat)[0]
+        toUpdate = []
+        for idx in range(catItem.childCount()):
+            subitem = catItem.child(idx)
+            if isinstance(subitem, GsStylesItem):
+                toUpdate.append(subitem)
+                break                
         self.run(ogcat.publish_style,
-                 "Style correctly published from layer '" + self.element.name() + "'",
-                 [], #TODO
-                self.element, overwrite = True)
+                 "Style correctly published from layer '" + self.currentItem.element.name() + "'",
+                 toUpdate,
+                 self.currentItem.element, dlg.name, True)
          
             
     def addResourceAsLayer(self):
-        pass
-                   
-    def publishResource(self):
-        pass
+        cat = OGCatalog(self.currentItem.parentCatalog())                 
+        self.run(cat.add_layer_to_project, 
+                 "Layer '" + self.currentItem.element.name + "' correctly added to QGIS project from resource", 
+                 [self.currentItem.element],
+                 self.currentItem.element.name)
+    #===========================================================================
+    #               
+    # def publishResource(self):
+    #    pass
+    #===========================================================================
             
 ################################################################
 
@@ -676,6 +739,17 @@ class GsWorkspacesItem(TreeItem):
     def __init__(self): 
         #icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         TreeItem.__init__(self, None, None, "Workspaces") 
+    
+    def populate(self):
+        cat = self.parentCatalog()
+        defaultWorkspace = cat.get_default_workspace()
+        defaultWorkspace.fetch()
+        defaultName = defaultWorkspace.dom.find('name').text             
+        workspaces = cat.get_workspaces()
+        for workspace in workspaces:
+            workspaceItem = GsWorkspaceItem(workspace, workspace.name == defaultName)
+            workspaceItem.populate()
+            self.addChild(workspaceItem) 
 
 class GsStylesItem(TreeItem): 
     def __init__(self ): 
@@ -691,7 +765,22 @@ class GsStylesItem(TreeItem):
 class GsCatalogItem(TreeItem): 
     def __init__(self, catalog, name): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
-        TreeItem.__init__(self, catalog, icon, name)       
+        TreeItem.__init__(self, catalog, icon, name) 
+        
+    def populate(self):
+        #cat = self.element
+        workspacesItem = GsWorkspacesItem()                              
+        self.addChild(workspacesItem)  
+        workspacesItem.populate()
+        layersItem = GsLayersItem()                                      
+        self.addChild(layersItem)
+        layersItem.populate()
+        groupsItem = GsGroupsItem()                                    
+        self.addChild(groupsItem)
+        groupsItem.populate()
+        stylesItem = GsStylesItem()                        
+        self.addChild(stylesItem)
+        stylesItem.populate()      
                         
 class GsLayerItem(TreeItem): 
     def __init__(self, layer): 
@@ -732,14 +821,29 @@ class GsWorkspaceItem(TreeItem):
     def __init__(self, workspace, isDefault):                 
         self.isDefault = isDefault        
         name = workspace.name if not isDefault else workspace.name + " [default workspace]"
-        TreeItem.__init__(self, workspace, None, name)           
+        TreeItem.__init__(self, workspace, None, name)  
+        
+    def populate(self):
+        stores = self.element.catalog.get_stores(self.element)
+        for store in stores:
+            storeItem = GsStoreItem(store)
+            storeItem.populate()
+            self.addChild(storeItem)         
                              
 class GsStoreItem(TreeItem): 
     def __init__(self, store):         
         TreeItem.__init__(self, store)
 
+    def populate(self):
+        resources = self.element.get_resources()
+        for resource in resources:
+            resourceItem = GsResourceItem(resource)                        
+            self.addChild(resourceItem)        
+
 class GsResourceItem(TreeItem): 
     def __init__(self, resource):         
         TreeItem.__init__(self, resource)
+        
+
         
                  

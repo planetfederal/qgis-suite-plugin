@@ -177,7 +177,11 @@ class GeoServerExplorer(QtGui.QDialog):
             menu.addAction(publishLayerAction)   
             createStoreFromLayerAction= QtGui.QAction("Create store from layer...", None)
             createStoreFromLayerAction.triggered.connect(self.createStoreFromLayer)
-            menu.addAction(createStoreFromLayerAction)                                          
+            menu.addAction(createStoreFromLayerAction)   
+        if isinstance(self.currentItem, QgsLayerItem):                        
+            publishGroupAction = QtGui.QAction("Publish...", None)
+            publishGroupAction.triggered.connect(self.publishGroup)
+            menu.addAction(publishGroupAction)                                                               
         elif isinstance(self.currentItem, QgsStyleItem):                     
             publishStyleAction = QtGui.QAction("Publish...", None)
             publishStyleAction.triggered.connect(self.publishStyle)
@@ -601,7 +605,44 @@ class GeoServerExplorer(QtGui.QDialog):
                  self.currentItem.element, dlg.workspace, True)
         
     def createStoresFromLayers(self):
-        pass        
+        selected = self.tree.selectedItems()
+        layers = [item.element for item in selected]        
+        dlg = PublishLayersDialog(self.catalogs, layers)
+        dlg.exec_()     
+        toPublish  = dlg.topublish
+        if toPublish is None:
+            return
+        self.progress.setMaximum(len(toPublish))
+        progress = 0        
+        toUpdate = set();
+        for layer, catalog, workspace in toPublish:
+            self.progress.setValue(progress)            
+            ogcat = OGCatalog(catalog)                 
+            self.run(ogcat.create_store,
+                     "Store correctly created from layer '" + layer.name() + "'",
+                     [],
+                     layer, workspace, True)
+            progress += 1
+            toUpdate.add(self.findAllItems(catalog))
+        self.progress.setValue(progress)
+        
+        for item in toUpdate:
+            item.refreshContent()
+        self.progress.setValue(0)    
+    
+    def publishGroup(self):
+        dlg = PublishLayerDialog(self.catalogs)
+        dlg.exec_()      
+        if dlg.catalog is None:
+            return
+        cat = dlg.catalog  
+        ogcat = OGCatalog(cat)
+        catItem = self.findAllItems(cat)[0]
+        toUpdate = [catItem]                    
+        self.run(ogcat.publish_layer,
+                 "Layer correctly published from layer '" + self.currentItem.element.name() + "'",
+                 toUpdate,
+                 self.currentItem.element, dlg.workspace, True)    
             
     def publishLayer(self):
         dlg = PublishLayerDialog(self.catalogs)
@@ -641,8 +682,7 @@ class GeoServerExplorer(QtGui.QDialog):
         
         for item in toUpdate:
             item.refreshContent()
-        self.progress.setValue(0)
-        #TODO update changed trees
+        self.progress.setValue(0)        
                            
 
     def publishStyle(self):

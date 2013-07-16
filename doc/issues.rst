@@ -1,0 +1,2 @@
+- When a postgis featuretype is created, check that the postgis store does not exist, or reuse it if it exists
+- check problem when creating group with white spaces in its name

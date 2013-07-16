@@ -159,7 +159,7 @@ class Catalog(object):
         response = self.http.request(rest_url, obj.save_method, message, headers)
         headers, body = response
         self._cache.clear()
-        if 400 <= int(headers['status']) < 600:
+        if 400 <= int(headers['status']) < 600:            
             raise FailedRequestError(body)
         return response
 
@@ -315,7 +315,6 @@ class Catalog(object):
                 "</connectionParameters>\n"
                 "</dataStore>")
         
-        print xml
         if store is not None:
             ds_url = url(self.service_url,
                          ["workspaces", workspace, "datastores", name], params)
@@ -326,8 +325,7 @@ class Catalog(object):
             headers, response = self.http.request(ds_url, "POST", xml, headers)
 
         self._cache.clear()
-        if headers.status != 201 and headers.status != 200:
-            print headers.status
+        if headers.status != 201 and headers.status != 200:            
             raise UploadError(response)
         
     def create_pg_featuretype(self, name, store, workspace=None):
@@ -562,8 +560,7 @@ class Catalog(object):
             headers, response = self.http.request(style_url, "PUT", data, headers)
         else:
             style_url = url(self.service_url, ["styles"], dict(name=name))
-            headers, response = self.http.request(style_url, "POST", data, headers)
-            print "post"
+            headers, response = self.http.request(style_url, "POST", data, headers)            
 
         self._cache.clear()
         if headers.status < 200 or headers.status > 299: raise UploadError(response)
@@ -601,8 +598,7 @@ class Catalog(object):
         workspace = self.get_workspace(name)
         if workspace is not None:            
             headers = { "Content-Type": "application/xml" }
-            default_workspace_url = self.service_url + "/workspaces/default.xml"
-            print workspace.message()
+            default_workspace_url = self.service_url + "/workspaces/default.xml"            
             headers, response = self.http.request(default_workspace_url, "PUT", workspace.message(), headers)
             assert 200 <= headers.status < 300, "Error setting default workspace: " + str(headers.status) + ": " + response
             self._cache.clear()

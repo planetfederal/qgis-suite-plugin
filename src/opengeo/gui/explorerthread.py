@@ -15,10 +15,7 @@ class ExplorerThread(QThread):
                 
     def run (self):                
         try:
-            #self.message.emit(" ".join(command) + "\n")
-            print self.method
-            print self.args
-            
+            #self.message.emit(" ".join(command) + "\n")           
             self.method(*self.args)
             self.finish.emit()
         except Exception, e:          

@@ -281,8 +281,7 @@ class OGCatalog(object):
                 sld = layer.default_style.sld_body
                 stylefile = utils.temp_filename("sld")
                 with open(stylefile, 'w') as f:
-                    f.write(sld)     
-                print sld                       
+                    f.write(sld)                                     
                 node = QtXml.QDomDocument()
                 node.setContent(sld)
                 qgslayer.readSld(node, "")

@@ -23,9 +23,12 @@ class LayerGroupDialog(QtGui.QDialog):
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setSpacing(30)
         self.horizontalLayout.setMargin(0)        
-        self.nameLabel = QtGui.QLabel("Group name")
+        self.nameLabel = QtGui.QLabel("Group name")        
         self.nameBox = QtGui.QLineEdit()
-        self.nameBox.setText("Layer group")
+        if self.previousgroup:
+            self.nameBox.setText(self.previousgroup.name)
+        else:
+            self.nameBox.setText("Group")
         self.horizontalLayout.addWidget(self.nameLabel)
         self.horizontalLayout.addWidget(self.nameBox)
         self.verticalLayout.addLayout(self.horizontalLayout)        

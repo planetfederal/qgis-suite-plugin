@@ -107,8 +107,8 @@ class LayerGroupDialog(QtGui.QDialog):
             self.group = self.previousgroup
             self.group.dirty.update(layers = layers, styles = styles)
         else:
-            bbox = ("-180","180","-90","90","EPSG:4326")
-            #TODO change this
+            #compute bounds
+            bbox = None
             self.group =  UnsavedLayerGroup(self.catalog, self.name, layers, styles, bbox)
         self.close()
 

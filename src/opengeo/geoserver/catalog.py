@@ -148,8 +148,6 @@ class Catalog(object):
         """
         rest_url = obj.href
         message = obj.message()
-        
-        print message
 
         headers = {
             "Content-type": "application/xml",
@@ -553,14 +551,20 @@ class Catalog(object):
         headers = {
             "Content-type": "application/vnd.ogc.sld+xml",
             "Accept": "application/xml"
-        }
-
+        }                
+        
+        #TODO: this is a quick hack to make geoserver understand the sld.
+        #it should be changed
+        data = data.replace("SvgParameter","CssParameter")
+        data = data.replace("1.1.","1.0.")
+        
         if overwrite and style is not None:
             style_url = url(self.service_url, ["styles", name + ".sld"])
-            headers, response = self.http.request(style_url, "PUT", data, headers)
-        else:
+            headers, response = self.http.request(style_url, "PUT", data, headers)           
+        else:            
             style_url = url(self.service_url, ["styles"], dict(name=name))
-            headers, response = self.http.request(style_url, "POST", data, headers)            
+            headers, response = self.http.request(style_url, "POST", data, headers)
+            if headers.status < 200 or headers.status > 299: raise UploadError(response)                                
 
         self._cache.clear()
         if headers.status < 200 or headers.status > 299: raise UploadError(response)

@@ -41,7 +41,7 @@ class OGCatalog(object):
         
         if isinstance(layer, basestring):
             layer = layers.resolve_layer(layer)         
-        sld = self.get_style_as_sld(layer)
+        sld = self.get_style_as_sld(layer)        
         name = name if name is not None else layer.name()
         self.catalog.create_style(name, sld, overwrite)
        
@@ -278,12 +278,8 @@ class OGCatalog(object):
             url =  self.catalog.gs_base_url + "wfs?" + urllib.urlencode(params)              
             qgslayer = QgsVectorLayer(url, layer.name, "WFS") 
             try:
-                sld = layer.default_style.sld_body
-                stylefile = utils.temp_filename("sld")
-                with open(stylefile, 'w') as f:
-                    f.write(sld)                                     
-                node = QtXml.QDomDocument()
-                node.setContent(sld)
+                sld = layer.default_style.sld_body                
+                node = QtXml.QDomDocument()                
                 qgslayer.readSld(node, "")
                 QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             except Exception, e:        

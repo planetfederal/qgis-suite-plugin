@@ -1,7 +1,5 @@
 from PyQt4.QtCore import *
-from PyQt4 import QtCore
 from qgis.core import *
-from opengeo.qgis import layers as qgislayers
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.catalogdialog import DefineCatalogDialog
 from opengeo.gui.groupdialog import LayerGroupDialog
@@ -11,12 +9,12 @@ from opengeo.gui.styledialog import StyleFromLayerDialog, AddStyleToLayerDialog,
 from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.layerdialog import PublishLayerDialog, PublishLayersDialog
 from opengeo.gui.exploreritems import *
-from opengeo.core.resource import Coverage, FeatureType
+from opengeo.core.resource import FeatureType
 from opengeo.core.layer import Layer
 from opengeo.core.style import Style
 
 
-class GeoServerExplorer(QtGui.QDialog):
+class GeoServerExplorer(QtGui.QDockWidget):
     
     gsIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
     layerIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
@@ -28,11 +26,12 @@ class GeoServerExplorer(QtGui.QDialog):
         self.catalogs = {}
         self.initGui()
         
-    def initGui(self):      
-        self.resize(400, 600) 
+    def initGui(self):    
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)  
+        self.dockWidgetContents = QtGui.QWidget()
         self.setWindowTitle('GeoServer explorer')
         self.splitter = QtGui.QSplitter()
-        self.splitter.setOrientation(QtCore.Qt.Vertical)
+        self.splitter.setOrientation(Qt.Vertical)
         self.verticalLayout = QtGui.QVBoxLayout(self.splitter)
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setMargin(0)         
@@ -40,7 +39,7 @@ class GeoServerExplorer(QtGui.QDialog):
         self.tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)                    
         self.tree.setColumnCount(1)            
         self.tree.header().hide()
-        self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.fillTree()                                                                                  
         self.verticalLayout.addWidget(self.tree)         
@@ -51,10 +50,11 @@ class GeoServerExplorer(QtGui.QDialog):
         self.progress.setValue(0)                       
         self.layout = QtGui.QVBoxLayout()
         self.layout.setSpacing(2)
-        self.layout.setMargin(0)
-        self.setLayout(self.layout)
+        self.layout.setMargin(0)        
         self.layout.addWidget(self.splitter)
-        self.layout.addWidget(self.progress)       
+        self.layout.addWidget(self.progress)
+        self.dockWidgetContents.setLayout(self.layout)
+        self.setWidget(self.dockWidgetContents)       
     
     def addGeoServerCatalog(self):         
         dlg = DefineCatalogDialog()
@@ -94,41 +94,11 @@ class GeoServerExplorer(QtGui.QDialog):
             return geoserverItem
         except Exception, e:
             QtGui.QApplication.restoreOverrideCursor()
-            self.setInfo("Could not create catalog:" + str(e), True)
-            #raise        
+            self.setInfo("Could not create catalog:" + str(e), True)                
         
     def addQGisProjectToTree(self):        
-        qgisItem = QtGui.QTreeWidgetItem()
-        qgisItem.setText(0, "QGIS project") 
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
-        qgisItem.setIcon(0, icon)
-        layersItem = QtGui.QTreeWidgetItem()
-        layersItem.setText(0, "Layers")
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        layersItem.setIcon(0, icon)
-        layers = qgislayers.get_all_layers()
-        for layer in layers:
-            layerItem = QgsLayerItem(layer)            
-            layersItem.addChild(layerItem)
-        qgisItem.addChild(layersItem)
-        groupsItem = QtGui.QTreeWidgetItem()
-        groupsItem.setText(0, "Groups")
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        groupsItem.setIcon(0, icon)
-        groups = qgislayers.get_groups()
-        for group in groups:
-            groupItem = QgsGroupItem(group)                        
-            groupsItem.addChild(groupItem)
-        qgisItem.addChild(groupsItem)
-        stylesItem = QtGui.QTreeWidgetItem()
-        stylesItem.setText(0, "Styles")
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        stylesItem.setIcon(0, icon)
-        styles = qgislayers.get_vector_layers()
-        for style in styles:
-            styleItem = QgsStyleItem(style)            
-            stylesItem.addChild(styleItem)
-        qgisItem.addChild(stylesItem)
+        qgisItem = QgsProjectItem()                
+        qgisItem.populate()
         self.tree.addTopLevelItem(qgisItem)
 
     def getSelectionTypes(self):
@@ -166,7 +136,7 @@ class GeoServerExplorer(QtGui.QDialog):
     def showSingleSelectionPopupMenu(self, point):        
         self.currentItem = self.tree.itemAt(point)     
         menu = QtGui.QMenu()
-        if isinstance(self.currentItem, TreeItem) and hasattr(self.currentItem, 'populate'):            
+        if (isinstance(self.currentItem, TreeItem) and hasattr(self.currentItem, 'populate')):            
             refreshAction = QtGui.QAction("Refresh", None)
             refreshAction.triggered.connect(self.currentItem.refreshContent)
             menu.addAction(refreshAction) 
@@ -178,7 +148,7 @@ class GeoServerExplorer(QtGui.QDialog):
             createStoreFromLayerAction= QtGui.QAction("Create store from layer...", None)
             createStoreFromLayerAction.triggered.connect(self.createStoreFromLayer)
             menu.addAction(createStoreFromLayerAction)   
-        if isinstance(self.currentItem, QgsLayerItem):                        
+        if isinstance(self.currentItem, QgsGroupItem):                        
             publishGroupAction = QtGui.QAction("Publish...", None)
             publishGroupAction.triggered.connect(self.publishGroup)
             menu.addAction(publishGroupAction)                                                               
@@ -391,11 +361,10 @@ class GeoServerExplorer(QtGui.QDialog):
         
             
     def addLayerToProject(self):
-        cat = OGCatalog(self.currentItem.parentCatalog())                 
-        self.run(cat.add_layer_to_project, 
-                 "Layer '" + self.currentItem.element.name + "' correctly added to QGIS project", 
-                 [],
-                 self.currentItem.element.name)
+        #Using threads here freezes the QGIS GUI
+        cat = OGCatalog(self.currentItem.parentCatalog()) 
+        cat.add_layer_to_project(self.currentItem.element.name) 
+        self.setInfo("Layer '" + self.currentItem.element.name + "' correctly added to QGIS project")                
         
     def deleteElement(self):        
         selected = self.tree.selectedItems()
@@ -433,7 +402,7 @@ class GeoServerExplorer(QtGui.QDialog):
             self.run(element.catalog.delete,
                  element.__class__.__name__ + " '" + element.name + "' correctly deleted",
                  [], 
-                 element)  
+                 element, isinstance(element, Style))  
             progress += 1
         self.progress.setValue(progress)
         for item in toUpdate:
@@ -631,18 +600,48 @@ class GeoServerExplorer(QtGui.QDialog):
         self.progress.setValue(0)    
     
     def publishGroup(self):
-        dlg = PublishLayerDialog(self.catalogs)
-        dlg.exec_()      
-        if dlg.catalog is None:
+        groupname = self.currentItem.element
+        groups = qgislayers.get_groups()   
+        group = groups[groupname]     
+        item, ok = QtGui.QInputDialog.getItem(self,
+                "Catalog selection",
+                "Select a destination catalog",
+                self.catalogs.keys(),
+                editable = False)
+        if not ok:
             return
-        cat = dlg.catalog  
-        ogcat = OGCatalog(cat)
-        catItem = self.findAllItems(cat)[0]
-        toUpdate = [catItem]                    
-        self.run(ogcat.publish_layer,
-                 "Layer correctly published from layer '" + self.currentItem.element.name() + "'",
-                 toUpdate,
-                 self.currentItem.element, dlg.workspace, True)    
+        cat = self.catalogs[item]                        
+        gslayers= [layer.name for layer in cat.get_layers()]
+        missing = []         
+        for layer in group:            
+            if layer.name() not in gslayers:
+                missing.append(layer) 
+        toUpdate = set();
+        toUpdate.add(self.findAllItems(cat)[0])
+        if missing:
+            dlg = PublishLayersDialog(self.catalogs, missing)
+            dlg.exec_()     
+            toPublish  = dlg.topublish
+            if toPublish is None:
+                return
+            self.progress.setMaximum(len(toPublish))
+            progress = 0                    
+            for layer, catalog, workspace in toPublish:
+                self.progress.setValue(progress)            
+                ogcat = OGCatalog(catalog)                 
+                self.run(ogcat.publish_layer,
+                         "Layer correctly published from layer '" + layer.name() + "'",
+                         [],
+                         layer, workspace, True)
+                progress += 1                
+            self.progress.setValue(progress)  
+        names = [layer.name() for layer in group]      
+        layergroup = cat.create_layergroup(groupname, names, names)
+        self.run(cat.save, "Layer group correctly created from group '" + groupname + "'", 
+                 [], layergroup)        
+        for item in toUpdate:
+            item.refreshContent()
+        self.progress.setValue(0) 
             
     def publishLayer(self):
         dlg = PublishLayerDialog(self.catalogs)
@@ -677,7 +676,7 @@ class GeoServerExplorer(QtGui.QDialog):
                      [],
                      layer, workspace, True)
             progress += 1
-            toUpdate.add(self.findAllItems(catalog))
+            toUpdate.add(self.findAllItems(catalog)[0])
         self.progress.setValue(progress)
         
         for item in toUpdate:
@@ -706,12 +705,10 @@ class GeoServerExplorer(QtGui.QDialog):
          
             
     def addResourceAsLayer(self):
-        cat = OGCatalog(self.currentItem.parentCatalog())                 
-        self.run(cat.add_layer_to_project, 
-                 "Layer '" + self.currentItem.element.name + "' correctly added to QGIS project from resource", 
-                 [self.currentItem.element],
-                 self.currentItem.element.name)
-
+        cat = OGCatalog(self.currentItem.parentCatalog())
+        cat.add_layer_to_project(self.currentItem.element.name)
+        self.setInfo("Layer '" + self.currentItem.element.name + "' correctly added to QGIS project from resource")                  
+        
 
         
                  

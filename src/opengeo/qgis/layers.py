@@ -1,15 +1,11 @@
-# -*- coding: utf-8 -*-
-
 from qgis.core import *
 from opengeo import config
 import opengeo.config
 
 ALL_TYPES = -1
 
-
 class WrongLayerNameException(BaseException) :
     pass
-
 
 def resolve_layer(name):
     layers = get_all_layers()    
@@ -48,17 +44,13 @@ def get_all_layers():
 
 
 def get_groups():
-
-    layers = get_all_layers()
-    names = [layer.name() for layer in layers]
     groups = {}    
-    rels = opengeo.config.iface.legendInterface().groupLayerRelationship()    
+    rels = opengeo.config.iface.legendInterface().groupLayerRelationship()
     for rel in rels:
         groupName = rel[0] 
         if groupName != '':
             groupLayers = rel[1]            
-            groups[groupName] = [layer for layer in groupLayers if layer in names]
-            
+            groups[groupName] = [QgsMapLayerRegistry.instance().mapLayer(layerid) for layerid in groupLayers]
     return groups
 
 

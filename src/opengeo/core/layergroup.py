@@ -77,6 +77,7 @@ class UnsavedLayerGroup(LayerGroup):
     save_method = "POST"
     def __init__(self, catalog, name, layers, styles, bounds):
         super(UnsavedLayerGroup, self).__init__(catalog, name)
+        bounds = bounds if bounds is not None else ("-180","180","-90","90","EPSG:4326")
         self.dirty.update(name = name, layers = layers, styles = styles, bounds = bounds)
 
     @property

@@ -1,6 +1,9 @@
-from PyQt4 import QtGui
 import os
+from PyQt4 import QtGui
+from opengeo.qgis import layers as qgislayers
 from opengeo.core import util
+from opengeo.core.store import DataStore
+from opengeo.core.resource import Coverage
 
 class TreeItem(QtGui.QTreeWidgetItem): 
     def __init__(self, element, icon = None, text = None): 
@@ -23,6 +26,42 @@ class TreeItem(QtGui.QTreeWidgetItem):
             item = item.parent()            
         return None              
     
+class QgsProjectItem(TreeItem): 
+    def __init__(self): 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
+        TreeItem.__init__(self, None, icon, "QGIS project")        
+         
+        
+    def populate(self):            
+        layersItem = QtGui.QTreeWidgetItem()
+        layersItem.setText(0, "Layers")
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
+        layersItem.setIcon(0, icon)
+        layers = qgislayers.get_all_layers()
+        for layer in layers:
+            layerItem = QgsLayerItem(layer)            
+            layersItem.addChild(layerItem)
+        self.addChild(layersItem)
+        groupsItem = QtGui.QTreeWidgetItem()
+        groupsItem.setText(0, "Groups")
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
+        groupsItem.setIcon(0, icon)
+        groups = qgislayers.get_groups()
+        for group in groups:
+            groupItem = QgsGroupItem(group)                                
+            groupsItem.addChild(groupItem)
+            groupItem.populate()
+        self.addChild(groupsItem)
+        stylesItem = QtGui.QTreeWidgetItem()
+        stylesItem.setText(0, "Styles")
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
+        stylesItem.setIcon(0, icon)
+        styles = qgislayers.get_vector_layers()
+        for style in styles:
+            styleItem = QgsStyleItem(style)            
+            stylesItem.addChild(styleItem)
+        self.addChild(stylesItem)        
+            
 class QgsLayerItem(TreeItem): 
     def __init__(self, layer ): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
@@ -31,8 +70,15 @@ class QgsLayerItem(TreeItem):
 class QgsGroupItem(TreeItem): 
     def __init__(self, group): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        TreeItem.__init__(self, group , icon)         
-
+        TreeItem.__init__(self, group , icon)   
+        
+    def populate(self):
+        #layers = {layer.name() : layer for layer in qgislayers.get_all_layers()}         
+        grouplayers = qgislayers.get_groups()[self.element]
+        for layer in grouplayers:
+            layerItem = QgsLayerItem(layer)                                
+            self.addChild(layerItem)
+               
 class QgsStyleItem(TreeItem): 
     def __init__(self, layer): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
@@ -64,8 +110,8 @@ class GsGroupsItem(TreeItem):
 
 class GsWorkspacesItem(TreeItem): 
     def __init__(self): 
-        #icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        TreeItem.__init__(self, None, None, "Workspaces") 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
+        TreeItem.__init__(self, None, icon, "Workspaces") 
     
     def populate(self):
         cat = self.parentCatalog()
@@ -148,10 +194,11 @@ class GsStyleItem(TreeItem):
         self.isDefault = isDefault           
           
 class GsWorkspaceItem(TreeItem): 
-    def __init__(self, workspace, isDefault):                 
+    def __init__(self, workspace, isDefault):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")                 
         self.isDefault = isDefault        
         name = workspace.name if not isDefault else workspace.name + " [default workspace]"
-        TreeItem.__init__(self, workspace, None, name)  
+        TreeItem.__init__(self, workspace, icon, name)  
         
     def populate(self):
         stores = self.element.catalog.get_stores(self.element)
@@ -161,15 +208,24 @@ class GsWorkspaceItem(TreeItem):
             self.addChild(storeItem)         
                              
 class GsStoreItem(TreeItem): 
-    def __init__(self, store):         
-        TreeItem.__init__(self, store)
+    def __init__(self, store):
+        if isinstance(store, DataStore):
+            icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
+        else:
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/grid.jpg") 
+            
+        TreeItem.__init__(self, store, icon)
 
-    def populate(self):
+    def populate(self):        
         resources = self.element.get_resources()
         for resource in resources:
             resourceItem = GsResourceItem(resource)                        
             self.addChild(resourceItem)        
 
 class GsResourceItem(TreeItem): 
-    def __init__(self, resource):         
-        TreeItem.__init__(self, resource)
+    def __init__(self, resource):  
+        if isinstance(resource, Coverage):
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/grid.jpg")
+        else:
+            icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
+        TreeItem.__init__(self, resource, icon)

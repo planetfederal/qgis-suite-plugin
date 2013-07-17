@@ -30,9 +30,11 @@ Of course, the content will depend on the content of your GeoServer catalog. Eac
 
 All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation between deleting.
 
-QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog)
+QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog).
 
-Information about each command run is shown in the text box in the lower part of the explorer dialog.
+The QGIS branch is not aware of changes introduced in your current QGIS project, so you should refresh it if you have added/removed layers after having opened the GeoServer explorer.
+
+Information about each command that you execute is shown in the text box in the lower part of the explorer dialog.
 
 Here is a list of the other commands available depending on the type of element you click onto.
 

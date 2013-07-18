@@ -32,45 +32,59 @@ class OGCatalog(object):
     def __init__(self, catalog):
         self.catalog = catalog
     
-    def publish_style(self, layer, overwrite = False, name = None):
-     
+    def publishStyle(self, layer, overwrite = False, name = None):
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
         it will overwrite a style with that name in case it exists
         '''
         
         if isinstance(layer, basestring):
-            layer = layers.resolve_layer(layer)         
-        sld = self.get_style_as_sld(layer)        
-        name = name if name is not None else layer.name()
-        self.catalog.create_style(name, sld, overwrite)
+            layer = layers.resolveLayer(layer)         
+        sld = self.getStyleAsSld(layer) 
+        if sld:       
+            name = name if name is not None else layer.name()
+            self.catalog.create_style(name, sld, overwrite)
+        return sld
        
-    def get_style_as_sld(self, layer):
+    def getStyleAsSld(self, layer):        
+        if layer.type() == layer.VectorLayer:  
+            document = QDomDocument()
+            header = document.createProcessingInstruction( "xml", "version=\"1.0\" encoding=\"UTF-8\"" )
+            document.appendChild( header )
+                
+            root = document.createElementNS( "http://www.opengis.net/sld", "StyledLayerDescriptor" )
+            root.setAttribute( "version", "1.1.0" )
+            root.setAttribute( "xsi:schemaLocation", "http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" )
+            root.setAttribute( "xmlns:ogc", "http://www.opengis.net/ogc" )
+            root.setAttribute( "xmlns:se", "http://www.opengis.net/se" )
+            root.setAttribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" )
+            root.setAttribute( "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance" )
+            document.appendChild( root )
         
-        document = QDomDocument()
-        header = document.createProcessingInstruction( "xml", "version=\"1.0\" encoding=\"UTF-8\"" )
-        document.appendChild( header )
+            namedLayerNode = document.createElement( "NamedLayer" )
+            root.appendChild( namedLayerNode )
+                    
+            errorMsg = ""
+                    
+            layer.writeSld(namedLayerNode, document, errorMsg)
             
-        root = document.createElementNS( "http://www.opengis.net/sld", "StyledLayerDescriptor" )
-        root.setAttribute( "version", "1.1.0" )
-        root.setAttribute( "xsi:schemaLocation", "http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" )
-        root.setAttribute( "xmlns:ogc", "http://www.opengis.net/ogc" )
-        root.setAttribute( "xmlns:se", "http://www.opengis.net/se" )
-        root.setAttribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" )
-        root.setAttribute( "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance" )
-        document.appendChild( root )
-    
-        namedLayerNode = document.createElement( "NamedLayer" )
-        root.appendChild( namedLayerNode )
-                
-        errorMsg = ""
-                
-        layer.writeSld(namedLayerNode, document, errorMsg)
-        
-        return unicode(document.toString(4))
+            return unicode(document.toString(4))
+        elif layer.type() == layer.RasterLayer: 
+            #QGIS does not support SLD for raster layers, so we have this workaround
+            sldpath = os.path.join(os.path.dirname(__file__), "..", "resources")
+            if layer.bandCount() == 1:
+                sldfile = os.path.join(sldpath, "grayscale.sld")
+            else:
+                sldfile = os.path.join(sldpath, "rgb.sld")                
+            with open(sldfile, 'r') as f:
+                sld = f.read()
+            return sld
+        else:
+            return None
+            
     
     
-    def get_data_from_layer(self, layer):
+    def getDataFromLayer(self, layer):
         '''
         Returns the data corresponding to a given layer, ready to be passed to the
         method in the Catalog class for uploading to the server.
@@ -79,9 +93,9 @@ class OGCatalog(object):
         will point to the exported copy of the data, not the original data source
         '''
         if layer.type() == layer.RasterLayer:
-            data = exporter.export_raster_layer(layer)                              
+            data = exporter.exportRasterLayer(layer)                              
         else:      
-            filename = exporter.export_vector_layer(layer)        
+            filename = exporter.exportVectorLayer(layer)        
             basename, extension = os.path.splitext(filename)        
             data = {
                 'shp': basename + '.shp',
@@ -92,38 +106,28 @@ class OGCatalog(object):
         return data
     
     
-    def get_db_connection_params(self, layer):
-        tags = re.findall("*.?=*.? ", unicode(layer.source()))
-        params = {}
-        for tag in tags:            
-            k, v = tag.replace('"', "").replace("'","").split("=")
-            params[k] = v
-        keys = [u'port', u'dbname', u'schema', u'host']
-        params = {key: value for (key, value) in params if k in keys}
-    
-    def create_store(self, layer, workspace=None, overwrite=False, name=None,
-                           abstract=None, permissions=None, keywords=()):
-        
-        '''Creates a datastore for the specified layer'''
-        
+    def createStore(self, layer, workspace=None, overwrite=True, name=None,
+                           abstract=None, permissions=None, keywords=()):        
+        '''Creates a datastore for the specified layer'''  
+              
         if isinstance(layer, basestring):
-            layer = layers.resolve_layer(layer)     
+            layer = layers.resolveLayer(layer)     
             
         name = name if name is not None else layer.name()
                     
         try:
             if layer.type() == layer.RasterLayer:
-                data = self.get_data_from_layer(layer)
+                data = self.getDataFromLayer(layer)
                 self.catalog.create_coveragestore(name,
                                            data,
                                            workspace=workspace,
                                            overwrite=overwrite)      
             elif layer.type() == layer.VectorLayer:
                 provider = layer.dataProvider()
-                if provider.name() == 'postgres':                    
-                    uri = QgsDataSourceURI(provider.dataSourceUri())
-                    #TODO: check that a PostGIS store with those params does not exist                    
-                    self.catalog.create_pg_featurestore("postgis_store",                                           
+                if provider.name() == 'postgres':                                        
+                    connName = self.getConnectionNameFromLayer(layer)
+                    uri = QgsDataSourceURI(provider.dataSourceUri())                                                                     
+                    self.catalog.create_pg_featurestore(connName,                                           
                                            workspace = workspace,
                                            overwrite = overwrite,
                                            host = uri.host(),
@@ -132,9 +136,9 @@ class OGCatalog(object):
                                            port = uri.port(),
                                            user = uri.username(),
                                            passwd = uri.password())  
-                    self.catalog.create_pg_featuretype(uri.table(),"postgis_store")
+                    self.catalog.create_pg_featuretype(uri.table(), connName, workspace)
                 else:                             
-                    data = self.get_data_from_layer(layer)
+                    data = self.getDataFromLayer(layer)
                     self.catalog.create_shp_featurestore(name,
                                            data,
                                            workspace=workspace,
@@ -180,7 +184,26 @@ class OGCatalog(object):
                        'the layer.')
                 raise Exception(msg % layer.name())
             
-    def publish_group(self, name, workspace=None, overwrite=False, overwriteLayers = False):
+    def getConnectionNameFromLayer(self, layer):
+        connName = "postgis_store"
+        uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())                
+        host = uri.host()
+        database = uri.database()
+        port = uri.port()                
+        settings = QSettings()
+        settings.beginGroup(u'/PostgreSQL/connections')
+        for name in settings.childGroups():
+            settings.beginGroup(name)
+            host2 = str(settings.value('host'))
+            database2 = str(settings.value('database'))
+            port2 = str(settings.value('port'))
+            settings.endGroup()
+            if port == port2 and database == database2 and host == host2:
+                connName = name + "_" + str(uri.schema()) 
+        settings.endGroup()
+        return connName  
+              
+    def publishGroup(self, name, workspace=None, overwrite=False, overwriteLayers = False):
         
         ''' 
         Publishes a group in the given catalog
@@ -199,7 +222,7 @@ class OGCatalog(object):
         exist in the workspace
         '''
         
-        groups = layers.get_groups()
+        groups = layers.getGroups()
         if name not in groups:
             raise Exception("the specified group does not exist")
         
@@ -208,12 +231,12 @@ class OGCatalog(object):
         for layer in group:
             layer = self.catalog.get_layer(layer)
             if layer is None:
-                self.publish_layer(layer, self.catalog, workspace, None, overwrite)
+                self.publishLayer(layer, self.catalog, workspace, None, overwrite)
                 
         layergroup = self.catalog.create_layergroup(name, group, group)
         self.catalog.save(layergroup)
         
-    def publish_layer (self, layer, workspace=None, overwrite=True, name=None,
+    def publishLayer (self, layer, workspace=None, overwrite=True, name=None,
                            abstract=None, permissions=None, keywords=()):
         '''
         Publishes a QGIS layer. 
@@ -236,25 +259,21 @@ class OGCatalog(object):
         '''
         
         if isinstance(layer, basestring):
-            layer = layers.resolve_layer(layer)          
+            layer = layers.resolveLayer(layer)          
         
         name = name if name is not None else layer.name()
           
-        if layer.type() == layer.VectorLayer:  
-            #publish style
-            self.publish_style(layer, overwrite, name)
-                        
-        #create store
-        self.create_store(layer, workspace, overwrite, name)      
+        sld = self.publishStyle(layer, overwrite, name)
+            
+        self.createStore(layer, workspace, overwrite, name)      
     
-        if layer.type() == layer.VectorLayer:
+        if sld:
             #assign style to created store  
             publishing = self.catalog.get_layer(name)        
-            #FIXME: Should we use the fully qualified typename?
             publishing.default_style = self.catalog.get_style(name)
             self.catalog.save(publishing)
             
-    def add_layer_to_project(self, name):
+    def addLayerToProject(self, name):
         '''
         Adds a new layer to the current project based on a layer in a GeoServer catalog
         It will create a new layer with a WFS or WCS connection, pointing to the specified GeoServer
@@ -279,7 +298,8 @@ class OGCatalog(object):
             qgslayer = QgsVectorLayer(url, layer.name, "WFS") 
             try:
                 sld = layer.default_style.sld_body                
-                node = QtXml.QDomDocument()                
+                node = QtXml.QDomDocument()  
+                node.setContent(sld)              
                 qgslayer.readSld(node, "")
                 QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             except Exception, e:        

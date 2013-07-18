@@ -21,7 +21,7 @@ class StyleFromLayerDialog(QtGui.QDialog):
         horizontalLayout.setMargin(0)        
         layerLabel = QtGui.QLabel('Layer')
         self.layerBox = QtGui.QComboBox()
-        self.alllayers = [layer.name() for layer in layers.get_all_layers()]
+        self.alllayers = [layer.name() for layer in layers.getAllLayers()]
         self.layerBox.addItems(self.alllayers)
         horizontalLayout.addWidget(layerLabel)
         horizontalLayout.addWidget(self.layerBox)

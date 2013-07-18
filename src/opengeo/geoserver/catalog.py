@@ -279,15 +279,22 @@ class Catalog(object):
         except FailedRequestError:
             store = None
             
-        if not overwrite:
-            if store is not None:                
+        if store is not None:              
+            if overwrite:
+                #if the existing store is the same we are trying to add, we do nothing
+                params = store.connection_parameters
+                print params
+                print (port, database, host, user, passwd)
+                if (str(params['port']) == str(port) and params['database'] == database and params['host'] == host
+                        and params['user'] == user):
+                    print "db connection already exists"
+                    return
+            else:                          
                 msg = "There is already a store named " + name
                 if workspace:
                     msg += " in " + str(workspace)
                 raise ConflictingDataError(msg)            
-
-        if workspace is None:
-            workspace = self.get_default_workspace()
+            
         workspace = util.name(workspace)
         params = dict()
         
@@ -352,6 +359,9 @@ class Catalog(object):
         "</featureType>")
                 
         headers, response = self.http.request(ds_url, "POST", xml, headers)
+        
+        if headers.status != 201 and headers.status != 200:            
+            raise UploadError(response)
 
 
         

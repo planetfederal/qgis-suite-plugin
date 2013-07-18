@@ -12,6 +12,7 @@ from opengeo.gui.exploreritems import *
 from opengeo.core.resource import FeatureType
 from opengeo.core.layer import Layer
 from opengeo.core.style import Style
+from opengeo.gui.catalogselector import selectCatalog
 
 
 class GeoServerExplorer(QtGui.QDockWidget):
@@ -356,7 +357,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         dlg.exec_()
         group = dlg.group
         if group is not None:
-            self.run(cat.save, "Layer group '" + self.currentItem.element.name + "' correctly edited", group)   
+            self.run(cat.save, "Layer group '" + self.currentItem.element.name + "' correctly edited", [self.currentItem], group)   
     
         
             
@@ -568,7 +569,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         ogcat = OGCatalog(cat)
         catItem = self.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        self.run(ogcat.create_store,
+        self.run(ogcat.createStore,
                  "Store correctly created from layer '" + self.currentItem.element.name() + "'",
                  toUpdate,
                  self.currentItem.element, dlg.workspace, True)
@@ -587,7 +588,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         for layer, catalog, workspace in toPublish:
             self.progress.setValue(progress)            
             ogcat = OGCatalog(catalog)                 
-            self.run(ogcat.create_store,
+            self.run(ogcat.createStore,
                      "Store correctly created from layer '" + layer.name() + "'",
                      [],
                      layer, workspace, True)
@@ -603,14 +604,9 @@ class GeoServerExplorer(QtGui.QDockWidget):
         groupname = self.currentItem.element
         groups = qgislayers.get_groups()   
         group = groups[groupname]     
-        item, ok = QtGui.QInputDialog.getItem(self,
-                "Catalog selection",
-                "Select a destination catalog",
-                self.catalogs.keys(),
-                editable = False)
-        if not ok:
-            return
-        cat = self.catalogs[item]                        
+        cat = selectCatalog(self.catalogs)
+        if cat is None:
+            return                            
         gslayers= [layer.name for layer in cat.get_layers()]
         missing = []         
         for layer in group:            
@@ -619,7 +615,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         toUpdate = set();
         toUpdate.add(self.findAllItems(cat)[0])
         if missing:
-            dlg = PublishLayersDialog(self.catalogs, missing)
+            dlg = PublishLayersDialog([cat], missing)
             dlg.exec_()     
             toPublish  = dlg.topublish
             if toPublish is None:
@@ -629,7 +625,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             for layer, catalog, workspace in toPublish:
                 self.progress.setValue(progress)            
                 ogcat = OGCatalog(catalog)                 
-                self.run(ogcat.publish_layer,
+                self.run(ogcat.publishLayer,
                          "Layer correctly published from layer '" + layer.name() + "'",
                          [],
                          layer, workspace, True)
@@ -652,7 +648,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         ogcat = OGCatalog(cat)
         catItem = self.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        self.run(ogcat.publish_layer,
+        self.run(ogcat.publishLayer,
                  "Layer correctly published from layer '" + self.currentItem.element.name() + "'",
                  toUpdate,
                  self.currentItem.element, dlg.workspace, True)
@@ -671,7 +667,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         for layer, catalog, workspace in toPublish:
             self.progress.setValue(progress)            
             ogcat = OGCatalog(catalog)                 
-            self.run(ogcat.publish_layer,
+            self.run(ogcat.publishLayer,
                      "Layer correctly published from layer '" + layer.name() + "'",
                      [],
                      layer, workspace, True)
@@ -698,7 +694,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             if isinstance(subitem, GsStylesItem):
                 toUpdate.append(subitem)
                 break                
-        self.run(ogcat.publish_style,
+        self.run(ogcat.publishStyle,
                  "Style correctly published from layer '" + self.currentItem.element.name() + "'",
                  toUpdate,
                  self.currentItem.element, True, dlg.name)
@@ -706,7 +702,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             
     def addResourceAsLayer(self):
         cat = OGCatalog(self.currentItem.parentCatalog())
-        cat.add_layer_to_project(self.currentItem.element.name)
+        cat.addLayerToProject(self.currentItem.element.name)
         self.setInfo("Layer '" + self.currentItem.element.name + "' correctly added to QGIS project from resource")                  
         
 

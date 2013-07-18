@@ -3,22 +3,21 @@ import uuid
 import time
 from PyQt4.QtCore import *
 
-
-def temp_folder():
+def tempFolder():
     tempDir = os.path.join(unicode(QDir.tempPath()), "suiteplugin")
     if not QDir(tempDir).exists():
         QDir().mkpath(tempDir)
     return unicode(os.path.abspath(tempDir))
 
-def temp_filename(ext):
-    path = temp_folder()
+def tempFilename(ext):
+    path = tempFolder()
     ext = "" if ext is None else ext
     filename = path + os.sep + str(time.time())  + "." + ext
     return filename
 
-def temp_filename_in_temp_folder(basename):
+def tempFilenameInTempFolder(basename):
     '''returns a temporary filename for a given file, putting it into a temp folder but not changing its basename'''
-    path = temp_folder()
+    path = tempFolder()
     folder = os.path.join(path, str(uuid.uuid4()).replace("-",""))
     mkdir(folder)
     filename =  os.path.join(folder, basename)

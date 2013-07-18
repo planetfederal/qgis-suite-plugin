@@ -107,7 +107,7 @@ class LayerGroupDialog(QtGui.QDialog):
             self.group = self.previousgroup
             self.group.dirty.update(layers = layers, styles = styles)
         else:
-            #compute bounds
+            #TODO compute bounds
             bbox = None
             self.group =  UnsavedLayerGroup(self.catalog, self.name, layers, styles, bbox)
         self.close()

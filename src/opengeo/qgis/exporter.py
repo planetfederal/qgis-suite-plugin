@@ -12,14 +12,12 @@ from PyQt4.QtGui import *
 from opengeo.qgis import utils
     
 
-def export_vector_layer(layer):
-
+def exportVectorLayer(layer):
     settings = QSettings()
     systemEncoding = settings.value( "/UI/encoding", "System" )
 
-
     filename = str(layer.name())
-    output = utils.temp_filename_in_temp_folder(filename + ".shp")
+    output = utils.tempFilenameInTempFolder(filename + ".shp")
     provider = layer.dataProvider()
     
     if (not unicode(layer.source()).lower().endswith("shp") ):
@@ -33,10 +31,10 @@ def export_vector_layer(layer):
 
 
 
-def export_raster_layer(layer): 
+def exportRasterLayer(layer): 
     if (not unicode(layer.source()).lower().endswith("tif") ):        
         filename = str(layer.name())
-        output = utils.temp_filename_in_temp_folder(filename + ".tif")
+        output = utils.tempFilenameInTempFolder(filename + ".tif")
         writer = QgsRasterFileWriter(output)    
         writer.setOutputFormat("GTiff");
         writer.writeRaster(layer.pipe(), layer.width(), layer.height(), layer.extent(), layer.crs())

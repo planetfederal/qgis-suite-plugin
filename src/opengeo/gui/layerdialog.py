@@ -38,20 +38,7 @@ class PublishLayerDialog(QtGui.QDialog):
         horizontalLayout.addWidget(workspaceLabel)
         horizontalLayout.addWidget(self.workspaceBox)
         layout.addLayout(horizontalLayout)
-        
-        #=======================================================================
-        # horizontalLayout = QtGui.QHBoxLayout()
-        # horizontalLayout.setSpacing(30)
-        # horizontalLayout.setMargin(0)        
-        # nameLabel = QtGui.QLabel('Name')
-        # self.nameBox = QtGui.QLineEdit()
-        # self.nameBox.setText('')
-        # self.nameBox.setPlaceholderText("[Use layer name]")
-        # horizontalLayout.addWidget(nameLabel)
-        # horizontalLayout.addWidget(self.nameBox)
-        # layout.addLayout(horizontalLayout)
-        #=======================================================================
-               
+                      
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 

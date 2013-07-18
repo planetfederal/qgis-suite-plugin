@@ -30,13 +30,15 @@ Of course, the content will depend on the content of your GeoServer catalog. Eac
 
 All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation between deleting.
 
-QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog).
+.. image:: confirm_deletion.png
+
+QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog, so it makes no sense to use the if there is no catalog configured).
 
 The QGIS branch is not aware of changes introduced in your current QGIS project, so you should refresh it if you have added/removed layers after having opened the GeoServer explorer.
 
 Information about each command that you execute is shown in the text box in the lower part of the explorer dialog.
 
-Here is a list of the other commands available depending on the type of element you click onto.
+Below is a list of the commands available depending on the type of element you click onto.
 
 - GeoServer Feature type/Coverage item.
 
@@ -56,7 +58,7 @@ Here is a list of the other commands available depending on the type of element 
 
 	.. image:: add_style.png
 
-	If the layer is under a layer group item, the available commands can be used to re-order layers in the group or remove them.
+	If the layer is under a layer group item, the available commands can be used to re--order layers in the group or remove them.
 
 	.. image:: order_in_group.png
 
@@ -81,14 +83,20 @@ Here is a list of the other commands available depending on the type of element 
 
 	When publishing a layer this way, you do not have to worry about the layer origin. The plugin code will take care of converting your data to a suitable format to be uploaded to GeoServer. If the current format of the layer is not supported, an intermediate Shapefile will be created, and then used to create the corresponding datastore from which the layer will then be published.
 
-	If you try to publish a QGIS layer that is based on a PostGIS connection, a PostGIS datastore will be created, instead of a file--based one. 
+	The name of the layer in the QGIS TOC will be used as name for the resource, layer and corresponding. If elements exist with those names, they will be overwritten
 
-	- *Create store from layer*. Like the command above, but it does not publish or use the styling. In the case of raster layers, it has the same behaviour as the *Publish...* command
+	If you try to publish a QGIS layer that is based on a PostGIS connection, a PostGIS datastore will be created, instead of a file--based one. A feature type corresponding to the layer to publish will be created for that datastore. If a PostGIS datastore with the same name and connection parameters already exist, no new datastore is created, and the featuretype will be directly created under it. This allows to publish several layer based on a single PostGIS connection. The name of the datastore will be the name of the corresponding QGIS PostGIS connection, and the name of the featuretype will be the name of the layer.
+
+	The current symbology is used to create a style that is layer used from the published the layer. In the case of raster layers, since QGIS does not support SLD styling of raster layers, the symbology is not used. A default style is used instead. In the case of 3--band images, a RGB style is used. In the case of single--band layers, a grayscale style is used.
+
+	- *Create store from layer*. Like the command above, but it does not publish or use the styling. 
 
 
 - QGIS group item
 
-	- *Publish*. Publishes the selected group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGI layers will not be used. Otherwise, layer belonging to the QGIS group to publish will be published as well.
+	- *Publish*. Publishes the selected group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGIS layers will not be used. Otherwise, layers belonging to the QGIS group to publish will be published as well.
+
+	The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created.
 
 - QGIS style item
 
@@ -99,6 +107,7 @@ You can select multiple elements of the same type (i.e. multiple QGIS layers), t
 
 .. image:: multi_publish.png
 
+This is the same dialog that appears in case of publishing a group, as it was already described.
 
 Configure the catalog and workspace you want to upload each layer to, and a multiple upload will be executed.
 

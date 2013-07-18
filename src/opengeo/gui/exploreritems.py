@@ -37,7 +37,7 @@ class QgsProjectItem(TreeItem):
         layersItem.setText(0, "Layers")
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         layersItem.setIcon(0, icon)
-        layers = qgislayers.get_all_layers()
+        layers = qgislayers.getAllLayers()
         for layer in layers:
             layerItem = QgsLayerItem(layer)            
             layersItem.addChild(layerItem)
@@ -46,7 +46,7 @@ class QgsProjectItem(TreeItem):
         groupsItem.setText(0, "Groups")
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
         groupsItem.setIcon(0, icon)
-        groups = qgislayers.get_groups()
+        groups = qgislayers.getGroups()
         for group in groups:
             groupItem = QgsGroupItem(group)                                
             groupsItem.addChild(groupItem)
@@ -56,7 +56,7 @@ class QgsProjectItem(TreeItem):
         stylesItem.setText(0, "Styles")
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
         stylesItem.setIcon(0, icon)
-        styles = qgislayers.get_vector_layers()
+        styles = qgislayers.getVectorLayers()
         for style in styles:
             styleItem = QgsStyleItem(style)            
             stylesItem.addChild(styleItem)
@@ -74,7 +74,7 @@ class QgsGroupItem(TreeItem):
         
     def populate(self):
         #layers = {layer.name() : layer for layer in qgislayers.get_all_layers()}         
-        grouplayers = qgislayers.get_groups()[self.element]
+        grouplayers = qgislayers.getGroups()[self.element]
         for layer in grouplayers:
             layerItem = QgsLayerItem(layer)                                
             self.addChild(layerItem)

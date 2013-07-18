@@ -7,14 +7,14 @@ ALL_TYPES = -1
 class WrongLayerNameException(BaseException) :
     pass
 
-def resolve_layer(name):
-    layers = get_all_layers()    
+def resolveLayer(name):
+    layers = getAllLayers()    
     for layer in layers:
         if layer.name() == name:
             return layer
     raise WrongLayerNameException()       
 
-def get_raster_layers():    
+def getRasterLayers():    
     layers = config.iface.legendInterface().layers()
     raster = list()
 
@@ -25,7 +25,7 @@ def get_raster_layers():
     return raster
 
 
-def get_vector_layers(shapetype=-1):
+def getVectorLayers(shapetype=-1):
     layers = config.iface.legendInterface().layers()
     vector = list()
     for layer in layers:
@@ -36,14 +36,14 @@ def get_vector_layers(shapetype=-1):
                     vector.append(layer)
     return vector
 
-def get_all_layers():
+def getAllLayers():
     layers = []
-    layers += get_raster_layers();
-    layers += get_vector_layers();
+    layers += getRasterLayers();
+    layers += getVectorLayers();
     return layers
 
 
-def get_groups():
+def getGroups():
     groups = {}    
     rels = opengeo.config.iface.legendInterface().groupLayerRelationship()
     for rel in rels:

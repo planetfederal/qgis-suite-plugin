@@ -6,7 +6,7 @@ A plugin to configure and OpenGeo suite (mostly its GeoServer component) from QG
 Installation
 --------------
 
-This plugin needs QGIS 2.0 to run (v2.0 hasn't been officialy released yet, so you should use the current development version, also known as QGIS-dev or QGIS-master)
+This plugin needs QGIS 2.0 to run. v2.0 hasn't been officialy released yet, so you should use the current development version, also known as QGIS-dev or QGIS-master. It doesn't have to be the very latest version, but at least it has to contain the SIP API changes (basically, anything more recent than July 2013 should work)
 
 To install the plugin, follow these steps:
 

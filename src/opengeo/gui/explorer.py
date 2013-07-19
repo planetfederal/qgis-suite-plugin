@@ -13,6 +13,7 @@ from opengeo.core.resource import FeatureType
 from opengeo.core.layer import Layer
 from opengeo.core.style import Style
 from opengeo.gui.catalogselector import selectCatalog
+from opengeo.core.layergroup import UnsavedLayerGroup
 
 
 class GeoServerExplorer(QtGui.QDockWidget):
@@ -23,7 +24,8 @@ class GeoServerExplorer(QtGui.QDockWidget):
     styleIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
     
     def __init__(self, parent = None):
-        super(GeoServerExplorer, self).__init__()        
+        super(GeoServerExplorer, self).__init__()
+        self.qgisItem = None        
         self.catalogs = {}
         self.initGui()
         
@@ -36,12 +38,15 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.verticalLayout = QtGui.QVBoxLayout(self.splitter)
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setMargin(0)         
-        self.tree = QtGui.QTreeWidget() 
+        self.tree = ExplorerTreeWidget(self) 
         self.tree.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)                    
         self.tree.setColumnCount(1)            
         self.tree.header().hide()
         self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.showTreePopupMenu)
+        self.tree.setDragDropMode(QtGui.QTreeWidget.DragDrop)                
+        self.tree.setAcceptDrops(True)
+        self.tree.setDropIndicatorShown(True)
         self.fillTree()                                                                                  
         self.verticalLayout.addWidget(self.tree)         
         self.log = QtGui.QTextEdit(self.splitter) 
@@ -76,6 +81,10 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.addGeoServerCatalogsToTree()
         self.addQGisProjectToTree()
         
+    def updateContent(self):
+        if self.qgisItem is not None:
+            self.qgisItem.refreshContent()
+        
     def addGeoServerCatalogsToTree(self):
         catalogsItem = QtGui.QTreeWidgetItem()
         catalogsItem.setText(0, "GeoServer catalogs")
@@ -98,9 +107,9 @@ class GeoServerExplorer(QtGui.QDockWidget):
             self.setInfo("Could not create catalog:" + str(e), True)                
         
     def addQGisProjectToTree(self):        
-        qgisItem = QgsProjectItem()                
-        qgisItem.populate()
-        self.tree.addTopLevelItem(qgisItem)
+        self.qgisItem = QgsProjectItem()                
+        self.qgisItem.populate()
+        self.tree.addTopLevelItem(self.qgisItem)
 
     def getSelectionTypes(self):
         items = self.tree.selectedItems()
@@ -115,7 +124,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             self.showMultipleSelectionPopupMenu(point)
         else:
             self.showSingleSelectionPopupMenu(point)
-            
+                
     def showMultipleSelectionPopupMenu(self, point):        
         self.currentItem = self.tree.itemAt(point)  
         point = self.tree.mapToGlobal(point)
@@ -128,11 +137,16 @@ class GeoServerExplorer(QtGui.QDockWidget):
             createStoresFromLayersAction.triggered.connect(self.createStoresFromLayers)
             menu.addAction(createStoresFromLayersAction)  
             menu.exec_(point)    
-        if isinstance(self.currentItem, (GsLayerItem, GsStyleItem, GsGroupItem, GsStoreItem)):                                    
+        elif isinstance(self.currentItem, (GsLayerItem, GsStyleItem, GsGroupItem, GsStoreItem)):                                    
             deleteLayersAction = QtGui.QAction("Delete", None)
             deleteLayersAction.triggered.connect(self.deleteElement)
-            menu.addAction(deleteLayersAction)           
-            menu.exec_(point)                            
+            menu.addAction(deleteLayersAction)                       
+            if isinstance(self.currentItem, GsLayerItem):
+                createGroupAction = QtGui.QAction("Create group...", None)
+                createGroupAction.triggered.connect(self.createGroupFromLayers)
+                menu.addAction(createGroupAction)
+            menu.exec_(point) 
+                                           
                 
     def showSingleSelectionPopupMenu(self, point):        
         self.currentItem = self.tree.itemAt(point)     
@@ -247,7 +261,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             menu.addAction(addResourceAsLayerAction)                        
             deleteResourceAction = QtGui.QAction("Delete", None)
             deleteResourceAction.triggered.connect(self.deleteElement)
-            menu.addAction(deleteResourceAction)                    
+            menu.addAction(deleteResourceAction)         
         
         if not self.catalogs:
             for action in menu.actions():
@@ -286,21 +300,6 @@ class GeoServerExplorer(QtGui.QDockWidget):
         else:
             self.log.append('<ul><li><span style="color:blue">INFO: ' + msg + '</span></li></ul>')
             
-    def findAllItems(self, element):
-        allItems = []
-        iterator = QtGui.QTreeWidgetItemIterator(self.tree)
-        value = iterator.value()
-        while value:
-            if hasattr(value, 'element'):
-                if hasattr(value.element, 'name') and hasattr(element, 'name'):
-                    if  value.element.name == element.name and value.element.__class__ == element.__class__:
-                        allItems.append(value)
-                elif value.element == element:
-                    allItems.append(value)                
-            iterator += 1
-            value = iterator.value()
-        return allItems      
-    
     def setAsDefaultWorkspace(self):
         self.run(self.currentItem.parentCatalog().set_default_workspace, 
                  "Workspace '" + self.currentItem.element.name + "' set as default workspace",
@@ -314,7 +313,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         layer.styles = styles 
         self.run(self.currentItem.parentCatalog().save, 
                 "Style '" + self.currentItem.element.name + "' removed from layer '" + layer.name, 
-                self.findAllItems(self.currentItem.parent().element),
+                self.tree.findAllItems(self.currentItem.parent().element),
                 layer)
     
     def setAsDefaultStyle(self):
@@ -328,7 +327,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         layer.styles = styles 
         self.run(self.currentItem.parentCatalog().save, 
                 "Style '" + self.currentItem.element.name + "' set as default style for layer '" + layer.name + "'", 
-                self.findAllItems(self.currentItem.parent().element),
+                self.tree.findAllItems(self.currentItem.parent().element),
                 layer)        
     
     def addStyleToLayer(self):
@@ -336,6 +335,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         dlg = AddStyleToLayerDialog(cat)
         dlg.exec_()
         if dlg.style is not None:
+            print dlg.style
             layer = self.currentItem.element
             styles = layer.styles            
             if dlg.default:
@@ -392,7 +392,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
                 return
             toDelete = set()
             for e in dependent:                
-                items = self.findAllItems(e);                
+                items = self.tree.findAllItems(e);                
                 toUpdate.update(set(item.parent() for item in items))
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
@@ -549,6 +549,25 @@ class GeoServerExplorer(QtGui.QDockWidget):
                     dlg.name, dlg.uri)
     
     
+    def createGroupFromLayers(self):        
+        name, ok = QtGui.QInputDialog.getText(None, "Group name", "Enter the name of the group to create")        
+        if not ok:
+            return
+        catalog = self.currentItem.element.catalog
+        catalogItem = self.tree.findAllItems(catalog)[0]
+        groupsItem = catalogItem.groupsItem
+        layers = [item.element for item in self.tree.selectedItems()]
+        styles = [layer.default_style.name for layer in layers]
+        layerNames = [layer.name for layer in layers]
+        #TODO calculate bounds
+        bbox = None
+        group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
+                
+        self.run(self.currentItem.parentCatalog().save,
+                     "Group '" + name + "' correctly created",
+                     [groupsItem],
+                     group)
+            
     def createGroup(self):
         dlg = LayerGroupDialog(self.currentItem.parentCatalog())
         dlg.exec_()
@@ -567,7 +586,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             return
         cat = dlg.catalog  
         ogcat = OGCatalog(cat)
-        catItem = self.findAllItems(cat)[0]
+        catItem = self.tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
         self.run(ogcat.createStore,
                  "Store correctly created from layer '" + self.currentItem.element.name() + "'",
@@ -593,7 +612,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
                      [],
                      layer, workspace, True)
             progress += 1
-            toUpdate.add(self.findAllItems(catalog))
+            toUpdate.add(self.tree.findAllItems(catalog))
         self.progress.setValue(progress)
         
         for item in toUpdate:
@@ -602,7 +621,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
     
     def publishGroup(self):
         groupname = self.currentItem.element
-        groups = qgislayers.get_groups()   
+        groups = qgislayers.getGroups()   
         group = groups[groupname]     
         cat = selectCatalog(self.catalogs)
         if cat is None:
@@ -613,9 +632,10 @@ class GeoServerExplorer(QtGui.QDockWidget):
             if layer.name() not in gslayers:
                 missing.append(layer) 
         toUpdate = set();
-        toUpdate.add(self.findAllItems(cat)[0])
+        toUpdate.add(self.tree.findAllItems(cat)[0])
         if missing:
-            dlg = PublishLayersDialog([cat], missing)
+            catalogs = {k :v for k, v in self.explorer.catalogs.iteritems() if v == cat}
+            dlg = PublishLayersDialog(catalogs, missing)
             dlg.exec_()     
             toPublish  = dlg.topublish
             if toPublish is None:
@@ -646,7 +666,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             return
         cat = dlg.catalog  
         ogcat = OGCatalog(cat)
-        catItem = self.findAllItems(cat)[0]
+        catItem = self.tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
         self.run(ogcat.publishLayer,
                  "Layer correctly published from layer '" + self.currentItem.element.name() + "'",
@@ -672,7 +692,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
                      [],
                      layer, workspace, True)
             progress += 1
-            toUpdate.add(self.findAllItems(catalog)[0])
+            toUpdate.add(self.tree.findAllItems(catalog)[0])
         self.progress.setValue(progress)
         
         for item in toUpdate:
@@ -687,7 +707,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
             return
         cat = self.catalogs[dlg.catalog]  
         ogcat = OGCatalog(cat)
-        catItem = self.findAllItems(cat)[0]
+        catItem = self.tree.findAllItems(cat)[0]
         toUpdate = []
         for idx in range(catItem.childCount()):
             subitem = catItem.child(idx)
@@ -707,4 +727,172 @@ class GeoServerExplorer(QtGui.QDockWidget):
         
 
         
+class ExplorerTreeWidget(QtGui.QTreeWidget):
+    
+    def __init__(self, explorer):         
+        self.explorer = explorer
+        QtGui.QTreeWidget.__init__(self, None) 
+        
+    def dropEvent(self, event):
+        destinationItem=self.itemAt(event.pos())
+        draggedTypes = {item.__class__ for item in self.selectedItems()}
+        if len(draggedTypes) > 1:
+            return
+        draggedType = draggedTypes.pop()
+        print "Dragging objects of type '" + str(draggedType) +"' into object of type '" + str(destinationItem.__class__) + "'"
+        
+        selected = self.selectedItems()
+        self.explorer.progress.setMaximum(len(selected))
+        i = 0
+        toUpdate = set()
+        for item in selected:            
+            if isinstance(item, QgsLayerItem):
+                if isinstance(destinationItem, GsWorkspaceItem):
+                    self.publishLayer(item.element, destinationItem.element)
+                    toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])
+                elif isinstance(destinationItem, (GsResourceItem, GsStoreItem)):
+                    self.publishLayer(item.element, destinationItem.element.workspace)
+                    toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])
+            if isinstance(item, QgsGroupItem):
+                if isinstance(destinationItem, GsCatalogItem):
+                    self.publishGroup(item, destinationItem.element)
+                    toUpdate.add(destinationItem)
+                elif isinstance(destinationItem, (GsResourceItem, GsStoreItem, GsWorkspaceItem)):
+                    self.publishGroup(item, destinationItem.element.catalog)
+                    toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])                    
+            elif isinstance(item, GsLayerItem):                    
+                if isinstance(destinationItem, GsGroupItem):
+                    self.addLayerToGroup(item.element, destinationItem)
+                    toUpdate.add(destinationItem)                            
+                if isinstance(destinationItem, GsLayerItem):
+                    if isinstance(destinationItem.parent(), GsGroupItem):
+                        destinationItem = destinationItem.parent()
+                        self.addLayerToGroup(item.element, destinationItem)
+                        toUpdate.add(destinationItem)
+            elif isinstance(item, (GsStyleItem,QgsStyleItem)):
+                if isinstance(destinationItem, GsLayerItem):                                            
+                    self.addStyleToLayer(item, destinationItem)
+                    toUpdate.add(destinationItem)                
+                elif isinstance(destinationItem, GsStyleItem):
+                    if isinstance(destinationItem.parent(), GsLayerItem):
+                        destinationItem = destinationItem.parent()
+                        self.addStyleToLayer(item, destinationItem)
+                        toUpdate.add(destinationItem)
+                    elif isinstance(destinationItem.parent(), GsStylesItem) and isinstance(item, QgsStyleItem):
+                        self.publishStyle(item.element.name(), destinationItem.parent())                                                   
+                elif isinstance(destinationItem, GsCatalogItem) and isinstance(item, QgsStyleItem):                    
+                    self.publishStyle(item.element.name(), destinationItem)                           
+            else:
+                continue                                        
+            i += 1
+            self.explorer.progress.setValue(i)
+        
+        for item in toUpdate:
+            item.refreshContent()        
+        self.explorer.progress.setValue(0)
+        event.acceptProposedAction()
+        
+    def publishGroup(self, groupItem, catalog):        
+        groupName = groupItem.element
+        groups = qgislayers.getGroups()   
+        group = groups[groupName]           
+        gslayers= [layer.name for layer in catalog.get_layers()]
+        missing = []         
+        for layer in group:            
+            if layer.name() not in gslayers:
+                missing.append(layer)         
+        if missing:
+            catalogs = {k :v for k, v in self.explorer.catalogs.iteritems() if v == catalog}
+            dlg = PublishLayersDialog(catalogs, missing)
+            dlg.exec_()     
+            toPublish  = dlg.topublish
+            if toPublish is None:
+                return
+            self.explorer.progress.setMaximum(len(toPublish))
+            progress = 0                    
+            for layer, catalog, workspace in toPublish:
+                self.explorer.progress.setValue(progress)            
+                ogcat = OGCatalog(catalog)                 
+                self.explorer.run(ogcat.publishLayer,
+                         "Layer correctly published from layer '" + layer.name() + "'",
+                         [],
+                         layer, workspace, True)
+                progress += 1                
+            self.explorer.progress.setValue(progress)  
+        names = [layer.name() for layer in group]      
+        layergroup = catalog.create_layergroup(groupName, names, names)
+        self.explorer.run(catalog.save, "Layer group correctly created from group '" + groupName + "'", 
+                 [], layergroup)               
+        
+    def publishStyle(self, layerName, catalogItem):
+        ogcat = OGCatalog(catalogItem.element)
+        toUpdate = []
+        for idx in range(catalogItem.childCount()):
+            subitem = catalogItem.child(idx)
+            if isinstance(subitem, GsStylesItem):
+                toUpdate.append(subitem)
+                break                
+        self.explorer.run(ogcat.publishStyle,
+                 "Style correctly published from layer '" + layerName + "'",
+                 toUpdate,
+                 layerName, True, layerName)
+
+    def publishLayer(self, layer, workspace):
+        cat = workspace.catalog  
+        ogcat = OGCatalog(cat)                                
+        self.explorer.run(ogcat.publishLayer,
+                 "Layer correctly published from layer '" + layer.name() + "'",
+                 [],
+                 layer, workspace, True)
+        
+    def addLayerToGroup(self, layer, groupItem):
+        print "adding"
+        group = groupItem.element
+        styles = group.styles
+        layers = group.layers
+        if layer.name not in layers:
+            layers.append(layer.name)
+            styles.append(layer.default_style.name)
+        group.dirty.update(layers = layers, styles = styles)
+        self.explorer.run(layer.catalog.save,
+                     "Group '" + group.name + "' correctly updated",
+                     [groupItem],
+                     group)
+        
+    def addStyleToLayer(self, styleItem, layerItem):
+        catalog = layerItem.element.catalog  
+        if isinstance(styleItem, QgsStyleItem):
+            styleName = styleItem.element.name()
+                       
+            catalogItem = self.findAllItems(catalog)[0]
+            self.publishStyle(styleName, catalogItem)     
+            style = catalog.get_style(styleName)
+        else:         
+            style = styleItem.element            
+        layer = layerItem.element
+        styles = layer.styles                            
+        styles.append(style)
+        layer.styles = styles                        
+        self.explorer.run(catalog.save, 
+                 "Style '" + style.name + "' correctly added to layer '" + layer.name + "'",
+                 [layerItem],
+                 layer)                      
+            
+    def findAllItems(self, element):
+        allItems = []
+        iterator = QtGui.QTreeWidgetItemIterator(self)
+        value = iterator.value()
+        while value:
+            if hasattr(value, 'element'):
+                if hasattr(value.element, 'name') and hasattr(element, 'name'):
+                    if  value.element.name == element.name and value.element.__class__ == element.__class__:
+                        allItems.append(value)
+                elif value.element == element:
+                    allItems.append(value)                
+            iterator += 1
+            value = iterator.value()
+        return allItems      
+                     
+
+
                  

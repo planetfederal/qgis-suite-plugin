@@ -63,7 +63,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
         self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
         
-        self.resize(400,300)
+        self.resize(400,200)
             
     
     def getCatalog(self):        

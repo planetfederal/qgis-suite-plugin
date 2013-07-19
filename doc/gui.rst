@@ -111,6 +111,23 @@ This is the same dialog that appears in case of publishing a group, as it was al
 
 Configure the catalog and workspace you want to upload each layer to, and a multiple upload will be executed.
 
+Another task than can be done with a multiple selection is craeting a new group. Just select a set of layers, right--click on them and select *Create group...*. A new group will be created with those layers, using the default style of each of them.
+
+The tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of a catalog. 
+
+.. image:: dragdrop.png
+
+Below you can find more information about the operations that can be performed this way.
+
+- Dragging a QGIS layer item onto a Workspace/Resource/Store element. It will publish the layer on the workspace where the item was dropped, or on the parent workspace if the destination element is of type Resource/Store
+- Dragging a GeoServer layer item onto a GeoServer group element. It adds the layer to the group, using its default style.
+- Dragging a GeoServer or QGIS style item onto a GeoServer layer. It adds the style to the list of alternative styles of the layer.
+- Dragging a QGIS style into the *Styles* element of a catalog or a catalog item itself. It adds the style to that catalog.
+- Dragging a QGIS style into a GeoServer layer element. It publishes the style to the catalog the layer belongs to, and then adds the style to the list of alternative styles of the layer.
+
+Multiple elements can be selected and dragged, as long as they are of the same type.
+
+
 
 
 

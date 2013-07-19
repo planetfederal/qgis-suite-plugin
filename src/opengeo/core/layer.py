@@ -66,15 +66,10 @@ class Layer(ResourceInfo):
 
     resource_type = "layer"
     save_method = "PUT"
-
-    @property
-    def typename(self):
-        typename = self.name if self.workspace is None else self.workspace.name + ":" + self.name
-        return typename
-    
+   
     @property
     def href(self):
-        return url(self.catalog.service_url, ["layers", self.typename + ".xml"])
+        return url(self.catalog.service_url, ["layers", self.name + ".xml"])
 
     @property
     def resource(self):

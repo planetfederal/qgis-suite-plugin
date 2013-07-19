@@ -77,7 +77,7 @@ class PublishLayersDialog(QtGui.QDialog):
         
         
     def initGui(self):
-        self.resize(800, 500)                         
+        self.resize(500, 300)                         
         layout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         self.setWindowTitle('Publish layers')         

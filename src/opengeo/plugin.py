@@ -30,21 +30,14 @@ class OpenGeoPlugin:
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         self.explorer.hide()        
 
-        self.explorerAction = self.explorer.toggleViewAction()
-        self.explorerAction.setIcon(QIcon("/images/geoserver.png"))
-        self.explorerAction.setText("GeoServer explorer")
+        icon = QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
+        self.explorerAction = QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
+        self.explorerAction.triggered.connect(self.openExplorer)
         self.menu.addAction(self.explorerAction)
-
-        #=======================================================================
-        # icon = QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
-        # self.explorerAction = QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
-        # self.explorerAction.triggered.connect(self.openExplorer)
-        # self.menu.addAction(self.explorerAction)
-        #=======================================================================
 
         menuBar = self.iface.mainWindow().menuBar()
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)
         
     def openExplorer(self):
-        dlg = GeoServerExplorer(catalog.createGeoServerCatalog())
-        dlg.exec_()        
+        self.explorer.updateContent()
+        self.explorer.show()        

@@ -28,9 +28,9 @@ Enter the connection parameters for you GeoServer endpoint (the default values a
 
 Of course, the content will depend on the content of your GeoServer catalog. Each catalog contains 4 entries: *Workspaces, Layers, Layer groups* and *Styles*. The workspaces in the *Workspaces* node contain themselves other elements, like the stores and also the resources (Feature types and coverages) in each store. By right--clicking on these elements, you will get to the functionality related to each of them.
 
-All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation between deleting.
+All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation before deleting.
 
-.. image:: confirm_deletion.png
+.. image:: confirm_delete.png
 
 QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog, so it makes no sense to use the if there is no catalog configured).
 

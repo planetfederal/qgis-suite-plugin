@@ -1,5 +1,5 @@
-suite-qgis-plugin
-=================
+OpenGeo Suite QGIS Plugin
+============================
 
 A plugin to configure and OpenGeo suite (mostly its GeoServer component) from QGIS
 

@@ -20,4 +20,4 @@ To install the plugin, follow these steps:
 Usage
 ------
 
-The plugin functionality is accessed through the GeoServer Eplorer, which is documented `here <./blob/master/doc/gui.rst>`_
+The plugin functionality is accessed through the GeoServer Eplorer, which is documented `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/gui.rst>`_

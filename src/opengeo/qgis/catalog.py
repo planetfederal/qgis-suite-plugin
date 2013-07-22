@@ -10,11 +10,10 @@ import os
 from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
-from opengeo.qgis import layers, exporter, utils
+from opengeo.qgis import layers, exporter
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 import urllib
-import re
 from opengeo import httplib2
 from PyQt4 import QtXml
     
@@ -293,17 +292,17 @@ class OGCatalog(object):
                 'request': 'GetFeature',
                 'typename': name,
                 'srsname': resource.projection
-            }            
-            url =  self.catalog.gs_base_url + "wfs?" + urllib.urlencode(params)              
+            }                        
+            url =  self.catalog.gs_base_url + "wfs?" + urllib.unquote(urllib.urlencode(params))                        
             qgslayer = QgsVectorLayer(url, layer.name, "WFS") 
             try:
-                sld = layer.default_style.sld_body                
-                node = QtXml.QDomDocument()  
-                node.setContent(sld)              
-                qgslayer.readSld(node, "")
-                QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+               sld = layer.default_style.sld_body                
+               node = QtXml.QDomDocument()  
+               node.setContent(sld)              
+               qgslayer.readSld(node, "")
+               QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             except Exception, e:        
-                raise e        
+               raise e        
         elif resource.resource_type == "coverage":
                 from lxml import etree
                 client = httplib2.Http()
@@ -325,7 +324,7 @@ class OGCatalog(object):
                 bbox_string = ",".join([bbox[0], bbox[2], bbox[1], bbox[3]])
                 
         
-                url = self.catalog.gs_base_url + "wcs?" + urllib.urlencode({
+                url = self.catalog.gs_base_url + "wcs?" +  urllib.unquote(urllib.urlencode({
                         "service": "WCS",
                         "version": "1.0.0",
                         "request": "GetCoverage",

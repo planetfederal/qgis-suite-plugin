@@ -112,7 +112,8 @@ class GsGroupsItem(TreeItem):
 class GsWorkspacesItem(TreeItem): 
     def __init__(self): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
-        TreeItem.__init__(self, None, icon, "Workspaces")         
+        TreeItem.__init__(self, None, icon, "Workspaces")  
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)        
     
     def populate(self):
         cat = self.parentCatalog()
@@ -144,6 +145,7 @@ class GsCatalogItem(TreeItem):
     def __init__(self, catalog, name): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
         TreeItem.__init__(self, catalog, icon, name) 
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled) 
         
     def populate(self):        
         self.workspacesItem = GsWorkspacesItem()                              

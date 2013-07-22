@@ -31,20 +31,19 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                     self.publishLayer(item.element, destinationItem.element.workspace)
                     toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])
                 elif isinstance(destinationItem, (GsWorkspacesItem, GsLayersItem, GsLayerItem, GsCatalogItem)):
-                    workspace = self.getDefaultWorkspace(destinationItem.element.catalog)
+                    catalog = destinationItem.parentCatalog()
+                    workspace = self.getDefaultWorkspace(catalog)
                     if workspace is not None:
                         self.publishLayer(item.element, workspace)
-                        toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])                    
+                        toUpdate.add(self.findAllItems(catalog)[0])                    
             if isinstance(item, QgsGroupItem):
-                if isinstance(destinationItem, GsCatalogItem):
-                    self.publishGroup(item, destinationItem.element)
-                    toUpdate.add(destinationItem)
-                elif isinstance(destinationItem, (GsResourceItem, GsStoreItem, GsWorkspaceItem)):
+                if isinstance(destinationItem, (GsResourceItem, GsStoreItem, GsWorkspaceItem)):
                     self.publishGroup(item, destinationItem.element.catalog)
                     toUpdate.add(self.findAllItems(destinationItem.element.catalog)[0])                     
-                elif isinstance(destinationItem, (GsGroupsItem, GsGroupItem)):
-                    catalog = destinationItem.element.catalog
-                    self.publishGroup(item, destinationItem.element.catalog, self.getDefaultWorkspace(catalog))
+                elif isinstance(destinationItem, (GsGroupsItem, GsGroupItem, GsCatalogItem)):
+                    catalog = destinationItem.parentCatalog()
+                    workspace = self.getDefaultWorkspace(catalog)
+                    self.publishGroup(item, catalog, workspace)
                     toUpdate.add(self.findAllItems(catalog)[0])                    
             elif isinstance(item, GsLayerItem):                    
                 if isinstance(destinationItem, GsGroupItem):
@@ -84,8 +83,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             return catalog.get_default_workspace()
         else:
             return None
-        
-        
+            
     def publishGroup(self, groupItem, catalog, workspace = None):        
         groupName = groupItem.element
         groups = qgislayers.getGroups()   

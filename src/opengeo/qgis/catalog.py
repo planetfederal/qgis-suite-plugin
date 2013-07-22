@@ -14,7 +14,7 @@ from opengeo.qgis import layers, exporter
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 import urllib
-from opengeo import httplib2
+from opengeo import httplib2, config
 from PyQt4 import QtXml
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
@@ -296,50 +296,21 @@ class OGCatalog(object):
             url =  self.catalog.gs_base_url + "wfs?" + urllib.unquote(urllib.urlencode(params))                        
             qgslayer = QgsVectorLayer(url, layer.name, "WFS") 
             try:
-               sld = layer.default_style.sld_body                
-               node = QtXml.QDomDocument()  
-               node.setContent(sld)              
-               qgslayer.readSld(node, "")
-               QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+                sld = layer.default_style.sld_body                
+                node = QtXml.QDomDocument()  
+                node.setContent(sld)              
+                qgslayer.readSld(node, "")
+                QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             except Exception, e:        
                raise e        
-        elif resource.resource_type == "coverage":
-                from lxml import etree
-                client = httplib2.Http()
-                description_url = self.catalog.gs_base_url + "wcs?" + urllib.urlencode({
-                        "service": "WCS",
-                        "version": "1.0.0",
-                        "request": "DescribeCoverage",
-                        "coverage": self.typename
-                    })
-                content = client.request(description_url)[1]
-                doc = etree.fromstring(content)
-                extent = doc.find(".//%(gml)slimits/%(gml)sGridEnvelope" % {"gml": "{http://www.opengis.net/gml}"})
-                low = extent.find("{http://www.opengis.net/gml}low").text.split()
-                high = extent.find("{http://www.opengis.net/gml}high").text.split()
-                w, h = [int(h) - int(l) for (h, l) in zip(high, low)]
+        elif resource.resource_type == "coverage":            
+            uri = QgsDataSourceURI()
+            url = self.catalog.gs_base_url + "wcs"            
+            uri.setParam ("url", self.catalog.gs_base_url + "wcs")
+            identifier = layer.resource.workspace.name + ":" + layer.resource.name
+            print identifier
+            uri.setParam ( "identifier", identifier)
+            qgslayer = QgsRasterLayer( str(uri.encodedUri()), name, "wcs" )            
+            QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
-                bbox = self.resource.latlon_bbox
-                crs = 'EPSG:4326'  if bbox[4] is None else bbox[4]
-                bbox_string = ",".join([bbox[0], bbox[2], bbox[1], bbox[3]])
-                
-        
-                url = self.catalog.gs_base_url + "wcs?" +  urllib.unquote(urllib.urlencode({
-                        "service": "WCS",
-                        "version": "1.0.0",
-                        "request": "GetCoverage",
-                        "CRS": crs,
-                        "height": h,
-                        "width": w,
-                        "coverage": self.typename,
-                        "bbox": bbox_string,
-                        "format": "geotiff"
-                    })
-
-
-    
-
-    
-
-
-     
+                        

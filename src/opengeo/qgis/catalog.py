@@ -10,11 +10,10 @@ import os
 from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
-from opengeo.qgis import layers, exporter
+from opengeo.qgis import layers, exporter, utils
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 import urllib
-from opengeo import httplib2, config
 from PyQt4 import QtXml
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
@@ -284,17 +283,9 @@ class OGCatalog(object):
             raise Exception ("A layer with the name '" + name + "' was not found in the catalog")
             
         resource = layer.resource        
-        
-        if resource.resource_type == "featureType":
-            params = {
-                'service': 'WFS',
-                'version': '1.0.0',
-                'request': 'GetFeature',
-                'typename': name,
-                'srsname': resource.projection
-            }                        
-            url =  self.catalog.gs_base_url + "wfs?" + urllib.unquote(urllib.urlencode(params))                        
-            qgslayer = QgsVectorLayer(url, layer.name, "WFS") 
+        uri = utils.layerUri(layer)                        
+        if resource.resource_type == "featureType":                    
+            qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
             try:
                 sld = layer.default_style.sld_body                
                 node = QtXml.QDomDocument()  
@@ -303,14 +294,8 @@ class OGCatalog(object):
                 QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             except Exception, e:        
                raise e        
-        elif resource.resource_type == "coverage":            
-            uri = QgsDataSourceURI()
-            url = self.catalog.gs_base_url + "wcs"            
-            uri.setParam ("url", self.catalog.gs_base_url + "wcs")
-            identifier = layer.resource.workspace.name + ":" + layer.resource.name
-            print identifier
-            uri.setParam ( "identifier", identifier)
-            qgslayer = QgsRasterLayer( str(uri.encodedUri()), name, "wcs" )            
+        elif resource.resource_type == "coverage":                        
+            qgslayer = QgsRasterLayer(uri, name, "wcs" )            
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
                         

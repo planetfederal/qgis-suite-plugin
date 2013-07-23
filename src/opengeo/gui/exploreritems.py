@@ -25,7 +25,15 @@ class TreeItem(QtGui.QTreeWidgetItem):
             if isinstance(item, GsCatalogItem):
                 return item.element                           
             item = item.parent()            
-        return None              
+        return None    
+    
+    def parentWorkspace(self):        
+        item  = self            
+        while item is not None:                    
+            if isinstance(item, GsWorkspaceItem):
+                return item.element                           
+            item = item.parent()            
+        return None                 
     
 class QgsProjectItem(TreeItem): 
     def __init__(self): 
@@ -188,7 +196,10 @@ class GsGroupItem(TreeItem):
     def populate(self):
         layers = self.element.catalog.get_layers()
         layersDict = {layer.name : layer for layer in layers}
-        for layer in self.element.layers:
+        groupLayers = self.element.layers
+        if groupLayers is None:
+            return
+        for layer in groupLayers:
             layerItem = GsLayerItem(layersDict[layer])                    
             self.addChild(layerItem)
             #layerItem.populate()
@@ -225,7 +236,7 @@ class GsStoreItem(TreeItem):
         TreeItem.__init__(self, store, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)  
 
-    def populate(self):        
+    def populate(self):      
         resources = self.element.get_resources()
         for resource in resources:
             resourceItem = GsResourceItem(resource)                        
@@ -239,3 +250,29 @@ class GsResourceItem(TreeItem):
             icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
         TreeItem.__init__(self, resource, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)  
+        
+class PgConnectionItem(TreeItem): 
+    def __init__(self, conn):          
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")        
+        TreeItem.__init__(self, conn, icon)
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)          
+        
+    def populate(self):
+        stores = self.element.catalog.get_stores(self.element)
+        for store in stores:
+            storeItem = GsStoreItem(store)
+            storeItem.populate()
+            self.addChild(storeItem)
+                
+class PgSchemaItem(TreeItem): 
+    def __init__(self, schema):          
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")        
+        TreeItem.__init__(self, schema, icon)
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
+        
+class PgTableItem(TreeItem): 
+    def __init__(self, table):          
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")        
+        TreeItem.__init__(self, table, icon)
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+                                          

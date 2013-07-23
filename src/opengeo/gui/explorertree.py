@@ -357,16 +357,23 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
     def deleteElement(self):        
         selected = self.selectedItems()
         elements = []
+        unused = []
         for item in selected:
             elements.append(item.element)
             if isinstance(item, GsStoreItem):
                 for idx in range(item.childCount()):
                     subitem = item.child(idx)
-                    elements.insert(0, subitem.element)        
+                    elements.insert(0, subitem.element)
+            elif isinstance(item, GsLayerItem):
+                uniqueStyles = self.uniqueStyles(item.element)
+                for style in uniqueStyles:
+                    if style.name == item.element.name:
+                        unused.append(style)      
         toUpdate = set(item.parent() for item in selected)                
         self.explorer.progress.setMaximum(len(elements))
         progress = 0        
         dependent = self.getDependentElements(elements)
+                
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
             for e in dependent:
@@ -384,7 +391,15 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
         
-        elements[0:0] = dependent        
+                
+        unusedToUpdate = set() 
+        for e in unused:                
+            items = self.findAllItems(e); 
+            unusedToUpdate.add(item.parent())                       
+        toUpdate.update(unusedToUpdate)
+        
+        elements[0:0] = dependent 
+        elements.extend(unused)      
         for element in elements:
             self.explorer.progress.setValue(progress)                                        
             self.explorer.run(element.catalog.delete,
@@ -396,7 +411,26 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         for item in toUpdate:
             item.refreshContent()
         self.explorer.progress.setValue(0)
-        
+    
+    def uniqueStyles(self, layer):
+        '''returns the styles used by a layer that are not used by any other layer'''
+        unique = []
+        allUsedStyles = set()
+        catalog = layer.catalog
+        layers = catalog.get_layers()
+        for lyr in layers:
+            if lyr.name == layer.name:
+                continue
+            for style in lyr.styles:
+                allUsedStyles.add(style.name)
+            allUsedStyles.add(lyr.default_style.name)
+        for style in layer.styles:
+            if style.name not in allUsedStyles:
+                unique.append(style)
+        if layer.default_style not in allUsedStyles:
+            unique.append(layer.default_style)
+        return unique
+            
     def getDependentElements(self, elements):
         dependent = []
         for element in elements:

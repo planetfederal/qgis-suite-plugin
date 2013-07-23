@@ -28,9 +28,13 @@ Enter the connection parameters for you GeoServer endpoint (the default values a
 
 Of course, the content will depend on the content of your GeoServer catalog. Each catalog contains 4 entries: *Workspaces, Layers, Layer groups* and *Styles*. The workspaces in the *Workspaces* node contain themselves other elements, like the stores and also the resources (Feature types and coverages) in each store. By right--clicking on these elements, you will get to the functionality related to each of them.
 
-All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation before deleting.
+All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. 
+
+When deleting an element with dependencies (i.e. a resource that is used in a layer), dependencies will also be deleted, and the user will be prompted to confirm the operation before deleting.
 
 .. image:: confirm_delete.png
+
+If a layer GeoServer layer is deleted and it uses a style with the same name a the layer, the style itself will also be deleted if it is not used by any other layer.
 
 QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog, so it makes no sense to use the if there is no catalog configured).
 
@@ -102,6 +106,9 @@ Below is a list of the commands available depending on the type of element you c
 
 	- *Publish*. Publishes the selected style. Since only vector layers suport SLD in QGIS, raster layers are not listed in this group.
 
+- QGIS project item
+
+	- *Publish*. Publishes all the layers in the project and then creates a group with all of them.
 
 You can select multiple elements of the same type (i.e. multiple QGIS layers), to automate operations. For instance, let's say that you have several layers in your current project. Select them all (click while pressing the Ctrl or Shift keys) and then right--click and select *Publish...*. You will get see to a dialog like the following one.
 
@@ -127,6 +134,8 @@ Below you can find more information about the operations that can be performed t
 - Draggin a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
+
+GeoServer layers can be dragged onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described.
 
 
 

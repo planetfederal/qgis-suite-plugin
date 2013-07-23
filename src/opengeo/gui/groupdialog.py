@@ -8,7 +8,8 @@ class LayerGroupDialog(QtGui.QDialog):
         self.previousgroup = previousgroup
         self.catalog = catalog        
         QtGui.QDialog.__init__(self)
-        self.layers = [layer.name for layer in catalog.get_layers()]
+        self.layers = catalog.get_layers()
+        self.layernames = [layer.name for layer in self.layers]
         self.styles = [style.name for style in catalog.get_styles()]
         self.setModal(True)
         self.setupUi()
@@ -59,7 +60,7 @@ class LayerGroupDialog(QtGui.QDialog):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def setTableContent(self):
-        self.table.setRowCount(len(self.layers))
+        self.table.setRowCount(len(self.layernames))
         previouslayers = self.previousgroup.layers if self.previousgroup is not None else []
         previousstyles = self.previousgroup.styles if self.previousgroup is not None else []
         i = 0
@@ -78,12 +79,17 @@ class LayerGroupDialog(QtGui.QDialog):
             self.table.setCellWidget(i,1, item)
             i += 1        
         for layer in self.layers:
-            if layer not in previouslayers:
+            if layer.name not in previouslayers:
                 item = QtGui.QCheckBox()
-                item.setText(layer)
+                item.setText(layer.name)
                 self.table.setCellWidget(i,0, item)
                 item = QtGui.QComboBox()
                 item.addItems(self.styles)
+                try:
+                    idx = self.styles.index(layer.default_style.name)
+                    item.setCurrentIndex(idx)
+                except ValueError:
+                    pass 
                 self.table.setCellWidget(i,1, item)
                 i += 1
 
@@ -94,13 +100,13 @@ class LayerGroupDialog(QtGui.QDialog):
             #TODO show alert
         layers = []
         styles = []
-        for i in range(len(self.layers)):
+        for i in range(len(self.layernames)):
             widget = self.table.cellWidget(i, 0)
             if widget.isChecked():
                 layers.append(widget.text())
                 styleWidget = self.table.cellWidget(i, 1)
                 styles.append(styleWidget.currentText())
-        if len(self.layers) == 0:
+        if len(self.layernames) == 0:
             return
             #TODO show alert
         if self.previousgroup is not None:
@@ -118,12 +124,12 @@ class LayerGroupDialog(QtGui.QDialog):
 
     def selectAll(self):
         checked = False
-        for i in range(len(self.layers)):
+        for i in range(len(self.layernames)):
             widget = self.table.cellWidget(i, 0)
             if not widget.isChecked():
                 checked = True
                 break
-        for i in range(len(self.layers)):
+        for i in range(len(self.layernames)):
             widget = self.table.cellWidget(i, 0)
             widget.setChecked(checked)
             

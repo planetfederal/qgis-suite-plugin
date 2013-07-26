@@ -46,7 +46,8 @@ def layerUri(layer):
             'typename': layer.name,
             'srsname': resource.projection
         }                        
-        uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))                                                               
+        uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))
+        return uri                                                            
     else:        
         uri = QgsDataSourceURI()                    
         uri.setParam ("url", layer.catalog.gs_base_url + "wcs")

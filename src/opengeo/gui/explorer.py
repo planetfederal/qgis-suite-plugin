@@ -1,6 +1,5 @@
 from PyQt4.QtCore import *
 from qgis.core import *
-from opengeo.gui.catalogdialog import DefineCatalogDialog
 from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
 
@@ -50,7 +49,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
                 item.refreshContent()
             self.setInfo(okmsg)
         def error(msg):
-            QtGui.QApplication.restoreOverrideCursor()
+            QtGui.QApplication.restoreOverrideCursor()            
             self.setInfo(msg, True)   
             error = True         
         thread.finish.connect(finish)

@@ -1,5 +1,8 @@
 eclipse.preferences.version=1
 encoding//opengeo/__init__.py=utf-8
+encoding//opengeo/gui/extentpanel.py=utf-8
+encoding//opengeo/gui/rectangletool.py=utf-8
+encoding//opengeo/gui/ui_gwclayer.py=utf-8
 encoding//opengeo/httplib2/__init__.py=utf-8
 encoding//opengeo/plugin.py=utf-8
 encoding//opengeo/postgis/postgis_utils.py=utf-8

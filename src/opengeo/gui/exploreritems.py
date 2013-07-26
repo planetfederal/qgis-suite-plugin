@@ -4,6 +4,7 @@ from opengeo.qgis import layers as qgislayers
 from opengeo.core import util
 from opengeo.core.store import DataStore
 from opengeo.core.resource import Coverage
+from opengeo.geoserver.gwc import Gwc, GwcLayer
 
 class TreeItem(QtGui.QTreeWidgetItem): 
     def __init__(self, element, icon = None, text = None): 
@@ -168,6 +169,9 @@ class GsCatalogItem(TreeItem):
         self.stylesItem = GsStylesItem()                        
         self.addChild(self.stylesItem)
         self.stylesItem.populate()      
+        self.gwcItem = GwcLayersItem()                        
+        self.addChild(self.gwcItem)
+        self.gwcItem.populate()
                         
 class GsLayerItem(TreeItem): 
     def __init__(self, layer): 
@@ -250,6 +254,41 @@ class GsResourceItem(TreeItem):
             icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
         TreeItem.__init__(self, resource, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)  
+        
+#### GWC ####
+
+class GwcLayersItem(TreeItem): 
+    def __init__(self):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/gwc.png")
+        TreeItem.__init__(self, None, icon, "GeoWebCache layers")                                    
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
+
+    def populate(self):
+        catalog = self.parentCatalog()
+        self.element = Gwc(catalog)        
+        layers = self.element.layers()
+        for layer in layers:
+            item = GwcLayerItem(layer)
+            self.addChild(item)
+        
+class GwcLayerItem(TreeItem): 
+    def __init__(self, layer):          
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")        
+        TreeItem.__init__(self, layer, icon)
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+### PostGIS #####
         
 class PgConnectionItem(TreeItem): 
     def __init__(self, conn):          

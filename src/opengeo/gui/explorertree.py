@@ -16,6 +16,8 @@ from opengeo.gui.catalogdialog import DefineCatalogDialog
 from opengeo.postgis.connection import PgConnection
 from opengeo.qgis import utils
 from opengeo.gui.projectdialog import PublishProjectDialog
+import traceback
+from opengeo.gui.gwclayer import EditGwcLayerDialog, SeedGwcLayerDialog
 
 class ExplorerTreeWidget(QtGui.QTreeWidget):
             
@@ -49,9 +51,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 name = dlg.getName() + "_" + str(i)
                 i += 1                                 
             item = self.getGeoServerCatalogItem(cat, name)
-            catalogsItem = self.topLevelItem(0)
-            catalogsItem.addChild(item)
-            self.catalogs[name] = cat
+            if item is not None:
+                catalogsItem = self.topLevelItem(0)
+                catalogsItem.addChild(item)
+                self.catalogs[name] = cat
         
     def fillTree(self):
         self.addGeoServerCatalogs()
@@ -96,6 +99,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             self.explorer.setInfo("Catalog '" + name + "' correctly created")
             return geoserverItem
         except Exception, e:
+            print traceback.format_exc()
             QtGui.QApplication.restoreOverrideCursor()
             self.explorer.setInfo("Could not create catalog:" + str(e), True)                
         
@@ -274,7 +278,24 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         elif isinstance(self.currentItem, PgSchemaItem):        
             publishPgSchemaAction = QtGui.QAction("Publish all tables...", None)
             publishPgSchemaAction.triggered.connect(self.publishPgSchema)
-            menu.addAction(publishPgSchemaAction)                                    
+            menu.addAction(publishPgSchemaAction)       
+        elif isinstance(self.currentItem, GwcLayersItem):        
+            addGwcLayerAction = QtGui.QAction("Add new GWC layer...", None)
+            addGwcLayerAction.triggered.connect(self.publishPgSchema)
+            menu.addAction(addGwcLayerAction)        
+        elif isinstance(self.currentItem, GwcLayerItem):        
+            editGwcLayerAction = QtGui.QAction("Edit...", None)
+            editGwcLayerAction.triggered.connect(self.editGwcLayer)
+            menu.addAction(editGwcLayerAction)   
+            seedGwcLayerAction = QtGui.QAction("Seed...", None)
+            seedGwcLayerAction.triggered.connect(self.seedGwcLayer)
+            menu.addAction(seedGwcLayerAction)
+            emptyGwcLayerAction = QtGui.QAction("Empty", None)
+            emptyGwcLayerAction.triggered.connect(self.emptyGwcLayer)
+            menu.addAction(emptyGwcLayerAction)
+            deleteGwcLayerAction = QtGui.QAction("Delete", None)
+            deleteGwcLayerAction.triggered.connect(self.deleteElement)
+            menu.addAction(deleteGwcLayerAction)        
         
         if not self.catalogs:
             for action in menu.actions():
@@ -287,6 +308,34 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             addCatalogAction.triggered.connect(self.addGeoServerCatalog)
             menu.addAction(addCatalogAction)        
             menu.exec_(point)
+            
+    def emptyGwcLayer(self):
+        layer = self.currentItem.element   
+        #TODO: confirmation dialog??    
+        self.explorer.run(layer.truncate,
+                          "GWC layer '" + layer.name + "' correctly truncated",
+                          [],
+                          )            
+    def seedGwcLayer(self):
+        layer = self.currentItem.element   
+        dlg = SeedGwcLayerDialog(layer)
+        dlg.show()
+        dlg.exec_()
+        if dlg.format is not None:
+            self.explorer.run(layer.seed,
+                              "GWC layer '" + layer.name + "' correctly seeded",
+                              [],
+                              dlg.operation, dlg.format, dlg.gridset, dlg.minzoom, dlg.maxzoom, dlg.extent)
+    
+    def editGwcLayer(self):
+        layer = self.currentItem.element   
+        dlg = EditGwcLayerDialog(layer)
+        dlg.exec_()
+        if dlg.gridsets is not None:
+            self.explorer.run(layer.update,
+                              "GWC layer '" + layer.name + "' correctly updated",
+                              [],
+                              dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
             
     def setAsDefaultWorkspace(self):
         self.explorer.run(self.currentItem.parentCatalog().set_default_workspace, 
@@ -401,11 +450,16 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         elements[0:0] = dependent 
         elements.extend(unused)      
         for element in elements:
-            self.explorer.progress.setValue(progress)                                        
-            self.explorer.run(element.catalog.delete,
-                 element.__class__.__name__ + " '" + element.name + "' correctly deleted",
-                 [], 
-                 element, isinstance(element, Style))  
+            self.explorer.progress.setValue(progress)    
+            if isinstance(element, GwcLayer):
+                self.explorer.run(element.delete,
+                     element.__class__.__name__ + " '" + element.name + "' correctly deleted",
+                     [])                      
+            else:                                     
+                self.explorer.run(element.catalog.delete,
+                     element.__class__.__name__ + " '" + element.name + "' correctly deleted",
+                     [], 
+                     element, isinstance(element, Style))  
             progress += 1
         self.explorer.progress.setValue(progress)
         for item in toUpdate:
@@ -853,11 +907,13 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                     workspace = self.getDefaultWorkspace(catalog)
                 self.publishDraggedGroup(item, catalog, workspace)
                 toUpdate.add(self.findAllItems(catalog)[0])                                                  
-            elif isinstance(item, GsLayerItem):                    
-                if isinstance(destinationItem, GsGroupItem):
+            elif isinstance(item, GsLayerItem): 
+                if isinstance(destinationItem, GwcLayersItem):
+                    self.createGwcLayer(item.element)
+                elif isinstance(destinationItem, GsGroupItem):
                     self.addDraggedLayerToGroup(item.element, destinationItem)
                     toUpdate.add(destinationItem)                            
-                if isinstance(destinationItem, GsLayerItem):
+                elif isinstance(destinationItem, GsLayerItem):
                     if isinstance(destinationItem.parent(), GsGroupItem):
                         destinationItem = destinationItem.parent()
                         self.addDraggedLayerToGroup(item.element, destinationItem)
@@ -886,7 +942,17 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         event.acceptProposedAction()
         
 
-            
+    def createGwcLayer(self, layer):        
+        dlg = EditGwcLayerDialog()
+        dlg.exec_()        
+        if dlg.gridsets is not None:
+            gwc = Gwc(layer.catalog)
+            gwclayer= GwcLayer(gwc, layer.name, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
+            self.explorer.run(gwc.addLayer,
+                              "GWC layer '" + layer.name + "' correctly created",
+                              [],
+                              gwclayer)        
+                    
     def publishDraggedGroup(self, groupItem, catalog, workspace):        
         groupName = groupItem.element
         groups = qgislayers.getGroups()   

@@ -5,9 +5,9 @@ class PgConnection(object):
     
     def __init__(self, name, host, port, database, username, password):
         self.name = name
-        self.conn = GeoDB(host, port, database, username, password)
+        self.geodb = GeoDB(host, port, database, username, password)
         
     def schemas(self):
-        schemas = self.conn.list_schemas()
-        return [Schema(self.conn, name) for oid, name, owner, perms in schemas]        
+        schemas = self.geodb.list_schemas()
+        return [Schema(self, name) for oid, name, owner, perms in schemas]        
         

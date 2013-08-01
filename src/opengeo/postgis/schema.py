@@ -1,13 +1,13 @@
-from opengeo.postgis.postgis_utils import GeoDB
+from opengeo.postgis.table import Table
 
 class Schema(object):
     
-    def __init__(self, name, host, port, database, username, password):
+    def __init__(self, conn, name):
         self.name = name
-        self.conn = GeoDB(host, port, database, username, password)
+        self.conn = conn
         
-    def table(self):
-        schemas = self.conn.list_geotables()
-        print schemas
-        #return [Table(self.conn, name) for oid, name, owner, perms in schemas]
+    def tables(self):
+        tables = self.conn.geodb.list_geotables(self.name)   
+        print tables     
+        return [Table(self.conn, self.name, table[0], table[2], table[7]) for table in tables]
     

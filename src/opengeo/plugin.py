@@ -4,10 +4,8 @@ import os, sys
 import inspect
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-#from qgis.core import *
 from opengeo import config
-from opengeo.gui.explorer import GeoServerExplorer
-from opengeo.qgis import catalog
+from opengeo.gui.explorer import OpenGeoExplorer
 
 cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
 if cmd_folder not in sys.path:
@@ -26,12 +24,12 @@ class OpenGeoPlugin:
         self.menu = QMenu(self.iface.mainWindow())
         self.menu.setTitle("OpenGeo")
         
-        self.explorer = GeoServerExplorer()
+        self.explorer = OpenGeoExplorer()
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         self.explorer.hide()        
 
-        icon = QIcon(os.path.dirname(__file__) + "/images/geoserver.png")
-        self.explorerAction = QAction(icon, "GeoServer Explorer", self.iface.mainWindow())
+        icon = QIcon(os.path.dirname(__file__) + "/images/opengeo.png")
+        self.explorerAction = QAction(icon, "OpenGeo Explorer", self.iface.mainWindow())
         self.explorerAction.triggered.connect(self.openExplorer)
         self.menu.addAction(self.explorerAction)
 

@@ -5,25 +5,35 @@ from opengeo.gui.extentpanel import ExtentSelectionPanel
 
 class EditGwcLayerDialog(QDialog, Ui_EditGwcLayerDialog):
     
-    def __init__(self, layer = None):
-        QDialog.__init__(self)
+    def __init__(self, layers, gwclayer = None):
+        QDialog.__init__(self)        
         self.setupUi(self)
-        if layer is not None:
-            self.spinBoxHeight.setValue(layer.metaHeight)
-            self.spinBoxWidth.setValue(layer.metaWidth)
+        self.setWindowTitle('Define cache layer')
+        self.layers = layers
+        self.layerBox.addItems([lyr.name for lyr in layers])
+        if gwclayer is not None:
+            self.layerBox.setEditText(gwclayer.name)
+            self.spinBoxHeight.setValue(gwclayer.metaHeight)
+            self.spinBoxWidth.setValue(gwclayer.metaWidth)
             checkboxes = [self.checkBox4326, self.checkBox900913, self.checkBoxGlobalPixel, self.checkBoxGlobalScale, self.checkBoxGoogle]
             for checkbox in checkboxes:                
-                checkbox.setChecked(checkbox.text() in layer.gridsets)             
+                checkbox.setChecked(checkbox.text() in gwclayer.gridsets)             
             checkboxes = [self.checkBoxGif, self.checkBoxJpg, self.checkBoxPng, self.checkBoxPng8]
             for checkbox in checkboxes:                
-                checkbox.setChecked('image/' + checkbox.text() in layer.mimetypes)
+                checkbox.setChecked('image/' + checkbox.text() in gwclayer.mimetypes)
         else:
             self.spinBoxHeight.setValue(4)
             self.spinBoxWidth.setValue(4)
             self.checkBox4326.setChecked(True)
             self.checkBoxPng.setChecked(True)
+        self.layername = None
+        self.formats = None
+        self.gridsets = None
+        self.metaWidth = None
+        self.metaHeight = None
 
     def accept(self):
+        self.layer = self.layers[self.layerBox.currentIndex()]
         self.metaWidth = self.spinBoxWidth.value()
         self.metaHeight = self.spinBoxHeight.value()
         checkboxes = [self.checkBox4326, self.checkBox900913, self.checkBoxGlobalPixel, self.checkBoxGlobalScale, self.checkBoxGoogle]
@@ -33,6 +43,7 @@ class EditGwcLayerDialog(QDialog, Ui_EditGwcLayerDialog):
         QDialog.accept(self)        
         
     def reject(self):
+        self.layername = None
         self.formats = None
         self.gridsets = None
         self.metaWidth = None
@@ -99,8 +110,8 @@ class SeedGwcLayerDialog(QDialog):
         horizontalLayout.setMargin(0)        
         minZoomLabel = QLabel('Min zoom')
         self.minZoomBox = QComboBox()      
-        levels = [str(i) for i in range(21)]  
-        self.minZoomBox.addItems(levels)
+        levels = [str(i) for i in range(31)]  
+        self.minZoomBox.addItems(levels)        
         horizontalLayout.addWidget(minZoomLabel)
         horizontalLayout.addWidget(self.minZoomBox)
         layout.addLayout(horizontalLayout)    
@@ -110,8 +121,9 @@ class SeedGwcLayerDialog(QDialog):
         horizontalLayout.setMargin(0)        
         maxZoomLabel = QLabel('Max zoom')
         self.maxZoomBox = QComboBox()      
-        levels = [str(i) for i in range(21)]  
+        levels = [str(i) for i in range(31)]        
         self.maxZoomBox.addItems(levels)
+        self.maxZoomBox.setCurrentIndex(15)
         horizontalLayout.addWidget(maxZoomLabel)
         horizontalLayout.addWidget(self.maxZoomBox)
         layout.addLayout(horizontalLayout)    
@@ -135,12 +147,16 @@ class SeedGwcLayerDialog(QDialog):
             
     
     def okPressed(self):
+        operations = ["seed", "reseed", "truncate"]
         self.minzoom = int(self.minZoomBox.currentText())
         self.maxzoom = int(self.maxZoomBox.currentText())
         self.gridset = self.gridsetBox.currentText()
         self.format = self.formatBox.currentText()
-        self.operation = self.operationBox.currentIndex() 
-        self.extent = None
+        self.operation = operations[self.operationBox.currentIndex()] 
+        try:
+            self.extent =self.extentPanel.getValue()
+        except:
+            self.extentPanel.text.setStyleSheet("QLineEdit{background: yellow}")
         self.close()
 
     def cancelPressed(self):
@@ -149,8 +165,5 @@ class SeedGwcLayerDialog(QDialog):
         self.gridset = None
         self.format = None
         self.operation = None 
-        try:
-            self.extent =self.extentPanel.getValue()
-        except:
-            self.extentPanel.text.setStyleSheet("QLineEdit{background: yellow}") 
+        self.extent = None 
         self.close() 

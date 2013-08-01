@@ -16,6 +16,7 @@
 *                                                                         *
 ***************************************************************************
 """
+from opengeo.postgis.table import Table
 
 __author__ = 'Martin Dobias'
 __date__ = 'November 2012'
@@ -36,9 +37,9 @@ System information functions:
 http://www.postgresql.org/docs/8.0/static/functions-info.html
 """
 
-import psycopg2
 import psycopg2.extensions # for isolation levels
 import re
+from qgis.core import *
 
 # use unicode!
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
@@ -633,36 +634,15 @@ class GeoDB:
 			return u"%s.%s" % (self._quote(schema), self._quote(table))
 
 
-# for debugging / testing
-if __name__ == '__main__':
-
-	db = GeoDB(host='localhost',dbname='gis',user='gisak',passwd='g')
-
-	print db.list_schemas()
-	print '=========='
-
-	for row in db.list_geotables():
-		print row
-
-	print '=========='
-
-	for row in db.get_table_indexes('trencin'):
-		print row
-
-	print '=========='
-
-	for row in db.get_table_constraints('trencin'):
-		print row
-
-	print '=========='
-
-	print db.get_table_rows('trencin')
-
-	#for fld in db.get_table_metadata('trencin'):
-	#	print fld
-
-	#try:
-	#	db.create_table('trrrr', [('id','serial'), ('test','text')])
-	#except DbError, e:
-	#	print e.message, e.query
+def tableUri(table):
+        geodb = table.conn.geodb
+        uri = QgsDataSourceURI()    
+        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)    
+        uri.setDataSource(table.schema, table.name, "geom") #TODO: do not hardcode geometry column
+        return uri.uri()
+             
+def mimeUri(table):
+    if isinstance(table, Table):        
+        uri = tableUri(table)                             
+        return ':'.join(["vector", "postgres", table.name, uri])
 

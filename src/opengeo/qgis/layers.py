@@ -1,6 +1,5 @@
 from qgis.core import *
 from opengeo import config
-import opengeo.config
 
 ALL_TYPES = -1
 
@@ -45,7 +44,7 @@ def getAllLayers():
 
 def getGroups():
     groups = {}    
-    rels = opengeo.config.iface.legendInterface().groupLayerRelationship()
+    rels = config.iface.legendInterface().groupLayerRelationship()
     for rel in rels:
         groupName = rel[0] 
         if groupName != '':

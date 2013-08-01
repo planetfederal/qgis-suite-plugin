@@ -1,24 +1,39 @@
-Configuring a GeoServer instance from the QGIS GeoServer Explorer
+Configuring/Using the OpenGeo Suite from QGIS
 ===================================================================
 
 
-The GeoServer explorer is used to configure a GeoServer instance from QGIS. You can edit the current elements in the server, and also upload new ones from your current QGIS project. This allows you to easily prepare your data and its stylying with the usual QGIS tools, and then publish it directly from QGIS.
+Introduction
+*************
 
-The GeoServer Explorer is launched from the *OpenGeo* menu has the following appearance
+The OpenGeo Suite explorer is used to configure the components of the OpenGeoSuite from QGIS. You can edit, add or delete elements, and make them interact with the elements in the current QGIS project. This allows you to easily configure your OpenGeo Suite, for instance preparing your data and its stylying with the usual QGIS tools, and then publishing it directly from QGIS.
 
+The explorer is launched from the *OpenGeo* menu and it looks like this.
 
 .. image:: explorer.png
 
+It has the following main branches, each of which deals with a different component
 
-It contains a tree with two main branches: *Geoserver catalogs* and  *QGIS project*. 
+- GeoServer catalogs
+- PostGIS
+- GeoGit
+- QGIS project
 
-The first of the contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
+A GeoWebCache branch is found under the *Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer
 
-The second branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in the QGIS. This way, it is easy to understand the relation between both the QGIS project and the GeoserverCatalogs
+The *GeoServer catalogs* branch contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
 
-Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above
+The *QGIS Project* branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in GeoServer. This way, it is easy to understand the relation between both the QGIS project and the GeoServer Catalogs
 
-Let's add a connection to a local GeoServer instance (make sure you have a local GeoServer running before doing it). Right--click on the *GeoServer catalogs* item and select *Add new catalog...*. You will see the following screen.
+The *PostGIS databases* contains a list of all available PostGIS connections in QGIS. It's funcitonality resembles that of the QGIS built--in DB Manager.
+
+The *GeoGit repositories* branch contains the available GeoGit repositories that have been defined. Like the branch corresponding to GeoServer catalogs, it's empty when you launch the explorer, and you can add as many repositories as needed.
+
+Using the explorer
+******************
+
+Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above.
+
+Let's do some work with the GeoServer branch, to start getting familiar with the interface and behaviour of the OpenGeo Suite explorer. First, let's add a connection to a local GeoServer instance (make sure you have a local GeoServer running before doing it). Right--click on the *GeoServer catalogs* item and select *Add new catalog...*. You will see the following screen.
 
  .. image:: add_catalog.png
 
@@ -38,18 +53,41 @@ If a layer GeoServer layer is deleted and it uses a style with the same name a t
 
 QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog, so it makes no sense to use the if there is no catalog configured).
 
-The QGIS branch is not aware of changes introduced in your current QGIS project, so you should refresh it if you have added/removed layers after having opened the GeoServer explorer.
+The QGIS branch is not aware of changes introduced in your current QGIS project, so you should refresh it if you have added/removed layers after having opened the  explorer.
 
-Information about each command that you execute is shown in the text box in the lower part of the explorer dialog.
 
-Below is a list of the commands available depending on the type of element you click onto.
+At the botton of the explorer you can find a box with two information tabs: *Description* and *Log*.
+
+The *Description* tab shows information about the currently selected element. In most cases, it is just static information shown as text, but it might also be a table that allows some interaction as well.
+
+
+.. image:: description.png
+
+The *Log* tab shows a log of all tasks performed by the explorer, including information related to errors that might appear.
+
+.. image:: info.png
+
+
+Available commands and actions
+*******************************
+
+Below you can find information about commands available depending on the type of element you click onto, and how to use them
+
+
+GeoServer
+----------
+
 
 - GeoServer Feature type/Coverage item.
 
 	- *Add to QGIS project*: Creates a new layer based on the resource. It will create a layer in the current QGIS project which is connected to the GeoServer layer, and will set it with the default QGIS rendering style for the corresponding data type.
 
 	If the layer that is created in the QGIS project is a vector layer, it will be connected to the GeoServer resource using the WFS endpoint. If is is a raster layer it will be a WCS layer. In all cases, no data is downloaded, but a connection is created instead. 
-	
+
+- GeoServer workspace item.
+
+	- *New workspace...*. Adds a new workspace.
+
 - GeoServer workspace item.
 
 	- *Set as default workspace*. Sets this workspace as the default one.
@@ -78,6 +116,59 @@ Below is a list of the commands available depending on the type of element you c
 
 	- *Add style to layer*. A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer
 
+
+GeoWebCache
+------------
+
+- GeoWebCache layers
+
+	- *New GWC layer...*. Adds a new GWC layer from an existing layer in the GeoServer catalog. The properties of the cached layer are defined in a dialog like the one shown below.
+
+	.. image:: define_gwc.png
+
+- GeoWebCache layer.
+
+	- *Delete*. Removes the cached layer
+
+	- *Edit...*. Allows to change the properties of the GWC layer, by opening the same dialog used to define them when creating the layer.
+
+	- *Seed...*. Launches a seeding operation for the cached layer. The operation is defined through the following dialog.
+
+	..image:: seed.png
+
+	The area to seed has to be entered in the box in the bottom part of the dialog, with a string of 4 comma-separated values (xmin, xmax, ymin, ymax). If no values are entered, the full extent of the layer to seed is used.
+
+	Another way of setting the seeding region is to click on the *Define on canvas* button on the right--hand side of the extent box. This will cause the dialog to temporarily this appear and show the QGIS canvas. Just click and drag on the canvas to define the desired seeding region, and the dialog will show up again, containing the coordinates of the region.
+
+	..image:: extent_drag.png
+
+
+	- *Empty*. Deletes (truncates) all cached data for a given layer.
+
+PostGIS
+--------
+
+The functionality in the PostGIS branch is similar to that of the QGIS DB Manager, but with some additional operations and integrated with the other elements that can be managed from the OpenGeo explorer
+
+- PostGIS connections item
+
+	[To be written]
+
+- PostGIS connections item
+
+	[To be written]
+
+- PostGIS schema item
+
+	[To be written]
+
+- PostGIS table item
+
+	[To be written]
+
+
+QGIS project
+-------------
 
 - QGIS layer item
 
@@ -110,15 +201,23 @@ Below is a list of the commands available depending on the type of element you c
 
 	- *Publish*. Publishes all the layers in the project and then creates a group with all of them.
 
+
+
+Multiple selection
+*******************
+
 You can select multiple elements of the same type (i.e. multiple QGIS layers), to automate operations. For instance, let's say that you have several layers in your current project. Select them all (click while pressing the Ctrl or Shift keys) and then right--click and select *Publish...*. You will get see to a dialog like the following one.
 
 .. image:: multi_publish.png
 
-This is the same dialog that appears in case of publishing a group, as it was already described.
+This is the same dialog that appears in case of publishing a group to a GeoServer catalog, as it was already described.
 
 Configure the catalog and workspace you want to upload each layer to, and a multiple upload will be executed.
 
 Another task than can be done with a multiple selection is creating a new group. Just select a set of layers, right--click on them and select *Create group...*. A new group will be created with those layers, using the default style of each of them.
+
+Drag & drop operations
+***********************
 
 The tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of a catalog. 
 
@@ -131,7 +230,8 @@ Below you can find more information about the operations that can be performed t
 - Dragging a GeoServer or QGIS style item onto a GeoServer layer. It adds the style to the list of alternative styles of the layer.
 - Dragging a QGIS style into the *Styles* element of a catalog or a catalog item itself. It adds the style to that catalog.
 - Dragging a QGIS style into a GeoServer layer element. It publishes the style to the catalog the layer belongs to, and then adds the style to the list of alternative styles of the layer.
-- Draggin a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
+- Dragging a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
+- Dragging a GeoServer layer item onto the *GeoWebCache layers* item of the same catalog. It will add the corresponding cached layer for the dragged layer.
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 

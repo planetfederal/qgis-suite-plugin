@@ -353,12 +353,16 @@ class Catalog(object):
         "<metadata />\n" 
         "<keywords><string>KEYWORD</string></keywords>\n" 
         "<projectionPolicy>REPROJECT_TO_DECLARED</projectionPolicy>\n" 
-        "<title>stand_manual</title>\n" 
+        "<title>" + name + "</title>\n" 
         "<name>" + name +"</name>\n"         
         "<srs>EPSG:32632</srs>" 
         "</featureType>")
                 
         headers, response = self.http.request(ds_url, "POST", xml, headers)
+        
+        print xml
+        print headers
+        print response
         
         if headers.status != 201 and headers.status != 200:            
             raise UploadError(response)

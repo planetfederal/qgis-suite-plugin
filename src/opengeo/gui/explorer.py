@@ -4,25 +4,38 @@ from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
 
 from opengeo.gui.explorertree import ExplorerTreeWidget
+import os
 
-class GeoServerExplorer(QtGui.QDockWidget):
+INFO = 0
+ERROR = 1
+CONSOLE_OUTPUT = 2   
     
+class OpenGeoExplorer(QtGui.QDockWidget):
+    
+ 
+        
     def __init__(self, parent = None):
-        super(GeoServerExplorer, self).__init__()        
+        super(OpenGeoExplorer, self).__init__()        
         self.initGui()
         
     def initGui(self):    
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)  
         self.dockWidgetContents = QtGui.QWidget()
-        self.setWindowTitle('GeoServer explorer')
+        self.setWindowTitle('OpenGeo explorer')
         self.splitter = QtGui.QSplitter()
         self.splitter.setOrientation(Qt.Vertical)
-        self.verticalLayout = QtGui.QVBoxLayout(self.splitter)
-        self.verticalLayout.setSpacing(2)
-        self.verticalLayout.setMargin(0)         
-        self.tree = ExplorerTreeWidget(self)                                                                                             
-        self.verticalLayout.addWidget(self.tree)         
-        self.log = QtGui.QTextEdit(self.splitter) 
+        self.subwidget = QtGui.QWidget()               
+        self.tree = ExplorerTreeWidget(self)
+        self.toolbar = QtGui.QToolBar()
+        self.toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.setToolbarActions([])
+        self.splitter.addWidget(self.tree)         
+        self.tabbedPanel = QtGui.QTabWidget()                      
+        self.log = QtGui.QTextEdit()        
+        self.tabbedPanel.addTab(QtGui.QWidget(), "Description")
+        self.tabbedPanel.addTab(self.log, "Log")
+        self.splitter.addWidget(self.tabbedPanel);
+        self.tabbedPanel.setVisible(True)
         self.progress = QtGui.QProgressBar()
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
@@ -30,12 +43,40 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.layout = QtGui.QVBoxLayout()
         self.layout.setSpacing(2)
         self.layout.setMargin(0)        
+                                             
+        self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.splitter)
         self.layout.addWidget(self.progress)
+        self.setLayout(self.layout)
         self.dockWidgetContents.setLayout(self.layout)
-        self.setWidget(self.dockWidgetContents)       
-    
+        self.setWidget(self.dockWidgetContents)  
+        
+        self.topLevelChanged.connect(self.dockStateChanged)
+        
+    def dockStateChanged(self, floating):        
+        if floating:
+            self.resize(800, 450)
+            #self.move((self.parent().width() - self.width() / 2), (self.parent().height() - self.height() / 2))
+            self.splitter.setOrientation(Qt.Horizontal)
+        else:
+            self.splitter.setOrientation(Qt.Vertical)                
 
+    def setToolbarActions(self, actions):        
+        icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
+        self.toolbar.clear()        
+        if len(actions) == 0:
+            refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")                         
+            refreshAction = QtGui.QAction(refreshIcon, "Refresh", self)
+            refreshAction.triggered.connect(self.tree.updateContent)
+            self.toolbar.addAction(refreshAction)
+             
+        for action in actions:
+            #action.setIcon(icon)
+                                        
+            self.toolbar.addAction(action)
+        self.toolbar.update()
+        
+            
     def updateContent(self):
         self.tree.updateContent()
             
@@ -50,18 +91,32 @@ class GeoServerExplorer(QtGui.QDockWidget):
             self.setInfo(okmsg)
         def error(msg):
             QtGui.QApplication.restoreOverrideCursor()            
-            self.setInfo(msg, True)   
+            self.setInfo(msg, ERROR)   
             error = True         
         thread.finish.connect(finish)
         thread.error.connect(error)                                         
         thread.start()
         thread.wait()
+        self.refreshDescription()
         return error
         
-    def setInfo(self, msg, error = False):
-        if error:
-            self.log.append('<ul><li><span style="color:red">ERROR: ' + msg + '</span></li></ul>')
+    def setInfo(self, msg, msgtype = INFO):
+        if msgtype == ERROR:
+            self.log.append('<span style="color:red">ERROR: ' + msg + '</span>')
+            self.tabbedPanel.setCurrentIndex(1)
+        elif msgtype == INFO:
+            self.log.append('<span style="color:blue">INFO: ' + msg + '</span>')
         else:
-            self.log.append('<ul><li><span style="color:blue">INFO: ' + msg + '</span></li></ul>')
+            self.log.append('<span style="color:grey">INFO: ' + msg + '</span>')
             
+    def setDescriptionWidget(self, widget):
+        self.tabbedPanel.removeTab(0)
+        self.tabbedPanel.insertTab(0, widget, "Description")
+        self.tabbedPanel.setCurrentIndex(0)
+        
+
+    def refreshDescription(self):
+        item = self.tree.currentItem()
+        if item is not None:        
+            self.tree.treeItemClicked(item, 0)
     

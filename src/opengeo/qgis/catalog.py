@@ -10,11 +10,11 @@ import os
 from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
-from opengeo.qgis import layers, exporter, utils
+from opengeo.qgis import layers, exporter
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
-import urllib
 from PyQt4 import QtXml
+from opengeo.geoserver import utils
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):

@@ -2,7 +2,7 @@ from PyQt4 import QtGui
 
 def selectCatalog(catalogs):
     if len(catalogs) == 1:
-        return catalogs.values[0]
+        return catalogs.values()[0]
     elif len(catalogs) == 0:
         return None
     else:

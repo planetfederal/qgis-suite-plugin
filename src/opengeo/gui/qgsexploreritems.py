@@ -40,43 +40,42 @@ class QgsProjectItem(TreeItem):
             stylesItem.addChild(styleItem)
         self.addChild(stylesItem)        
             
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer 
+    def contextMenuActions(self, tree, explorer):        
         publishProjectAction = QtGui.QAction("Publish...", explorer)
-        publishProjectAction.triggered.connect(self.publishProject)
-        publishProjectAction.setEnabled(len(self.explorer.tree.gsItem.catalogs())>0)        
+        publishProjectAction.triggered.connect(lambda: self.publishProject(tree, explorer))
+        publishProjectAction.setEnabled(len(tree.gsItem.catalogs())>0)        
         return [publishProjectAction]
                        
         
-    def publishProject(self):        
+    def publishProject(self, tree, explorer):        
         layers = qgislayers.getAllLayers()                
-        dlg = PublishProjectDialog(self.explorer.tree.gsItem.catalogs())
+        dlg = PublishProjectDialog(tree.gsItem.catalogs())
         dlg.exec_()     
         catalog  = dlg.catalog
         if catalog is None:
             return
         workspace = dlg.workspace
         groupName = dlg.groupName
-        self.explorer.progress.setMaximum(len(layers))
+        explorer.progress.setMaximum(len(layers))
         progress = 0                    
         for layer in layers:
-            self.explorer.progress.setValue(progress)            
+            explorer.progress.setValue(progress)            
             ogcat = OGCatalog(catalog)                 
-            if not self.explorer.run(ogcat.publishLayer,
+            if not explorer.run(ogcat.publishLayer,
                      "Layer correctly published from layer '" + layer.name() + "'",
                      [],
                      layer, workspace, True):
-                self.explorer.progress.setValue(0)
+                explorer.progress.setValue(0)
                 return
             progress += 1                
-        self.explorer.progress.setValue(progress)  
+        explorer.progress.setValue(progress)  
         
         names = [layer.name() for layer in layers]      
         layergroup = catalog.create_layergroup(groupName, names, names)
-        self.explorer.run(catalog.save, "Layer group correctly created from project", 
+        explorer.run(catalog.save, "Layer group correctly created from project", 
                  [], layergroup)                
-        self.explorer.tree.findAllItems(catalog)[0].refreshContent()
-        self.explorer.progress.setValue(0)                                                 
+        tree.findAllItems(catalog)[0].refreshContent()
+        explorer.progress.setValue(0)                                                 
                     
 class QgsLayerItem(TreeItem): 
     def __init__(self, layer ): 
@@ -84,27 +83,27 @@ class QgsLayerItem(TreeItem):
         TreeItem.__init__(self, layer, icon)   
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)      
      
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer 
         publishLayerAction = QtGui.QAction("Publish...", explorer)
-        publishLayerAction.triggered.connect(self.publishLayer) 
-        publishLayerAction.setEnabled(len(self.explorer.tree.gsItem.catalogs())>0)       
+        publishLayerAction.triggered.connect(lambda: self.publishLayer(tree, explorer)) 
+        publishLayerAction.setEnabled(len(tree.gsItem.catalogs())>0)       
         createStoreFromLayerAction= QtGui.QAction("Create store from layer...", explorer)
-        createStoreFromLayerAction.triggered.connect(self.createStoreFromLayer)
-        createStoreFromLayerAction.setEnabled(len(self.explorer.tree.gsItem.catalogs())>0)
+        createStoreFromLayerAction.triggered.connect(lambda: self.createStoreFromLayer(tree, explorer))
+        createStoreFromLayerAction.setEnabled(len(tree.gsItem.catalogs())>0)
         return [publishLayerAction, createStoreFromLayerAction]   
     
-    def multipleSelectionContextMenuActions(self, explorer, selected):
-        self.explorer = explorer        
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
         publishLayersAction = QtGui.QAction("Publish...", explorer)
-        publishLayersAction.triggered.connect(lambda: self.publishLayers(selected))        
+        publishLayersAction.triggered.connect(lambda: self.publishLayers(tree, explorer, selected))        
         createStoresFromLayersAction= QtGui.QAction("Create stores from layers...", explorer)
-        createStoresFromLayersAction.triggered.connect(lambda: self.createStoresFromLayers(selected))
+        createStoresFromLayersAction.triggered.connect(lambda: self.createStoresFromLayers(tree, explorer, selected))
         return [publishLayersAction, createStoresFromLayersAction] 
     
-    def publishLayers(self, selected):        
-        layers = [item.element for item in selected]        
-        dlg = PublishLayersDialog(self.explorer.tree.gsItem.catalogs(), layers)
+    def publishLayers(self, tree, explorer, selected):        
+        layers = [item.element for item in selected]
+        #TODO: better way of accessing catalogs        
+        dlg = PublishLayersDialog(tree.gsItem.catalogs(), layers)
         dlg.exec_()     
         toPublish  = dlg.topublish
         if toPublish is None:
@@ -113,25 +112,25 @@ class QgsLayerItem(TreeItem):
         progress = 0        
         toUpdate = set();
         for layer, catalog, workspace in toPublish:
-            self.explorer.progress.setValue(progress)            
+            explorer.progress.setValue(progress)            
             ogcat = OGCatalog(catalog)                 
-            self.explorer.run(ogcat.publishLayer,
+            explorer.run(ogcat.publishLayer,
                      "Layer correctly published from layer '" + layer.name() + "'",
                      [],
                      layer, workspace, True)
             progress += 1
-            toUpdate.add(self.explorer.tree.findAllItems(catalog)[0])
-        self.explorer.progress.setValue(progress)
+            toUpdate.add(tree.findAllItems(catalog)[0])
+        explorer.progress.setValue(progress)
         
         for item in toUpdate:
             item.refreshContent()
-        self.explorer.progress.setValue(0)        
+        explorer.progress.setValue(0)        
                            
 
         
-    def createStoresFromLayers(self, selected):        
+    def createStoresFromLayers(self, tree, explorer, selected):        
         layers = [item.element for item in selected]        
-        dlg = PublishLayersDialog(self.explorer.tree.gsItem.catalogs(), layers)
+        dlg = PublishLayersDialog(tree.gsItem.catalogs(), layers)
         dlg.exec_()     
         toPublish  = dlg.topublish
         if toPublish is None:
@@ -142,42 +141,42 @@ class QgsLayerItem(TreeItem):
         for layer, catalog, workspace in toPublish:
             self.explorer.progress.setValue(progress)            
             ogcat = OGCatalog(catalog)                 
-            self.explorer.run(ogcat.createStore,
+            explorer.run(ogcat.createStore,
                      "Store correctly created from layer '" + layer.name() + "'",
                      [],
                      layer, workspace, True)
             progress += 1
-            toUpdate.add(self.explorer.tree.findAllItems(catalog))
-        self.explorer.progress.setValue(progress)
+            toUpdate.add(tree.findAllItems(catalog))
+        explorer.progress.setValue(progress)
         
         for item in toUpdate:
             item.refreshContent()
-        self.explorer.progress.setValue(0)
+        explorer.progress.setValue(0)
         
-    def createStoreFromLayer(self):
-        dlg = PublishLayerDialog(self.explorer.tree.gsItem.catalogs())
+    def createStoreFromLayer(self, tree, explorer):
+        dlg = PublishLayerDialog(tree.gsItem.catalogs())
         dlg.exec_()      
         if dlg.catalog is None:
             return
         cat = dlg.catalog  
         ogcat = OGCatalog(cat)
-        catItem = self.explorer.tree.findAllItems(cat)[0]
+        catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        self.explorer.run(ogcat.createStore,
+        explorer.run(ogcat.createStore,
                  "Store correctly created from layer '" + self.element.name() + "'",
                  toUpdate,
                  self.element, dlg.workspace, True)
                     
-    def publishLayer(self):
-        dlg = PublishLayerDialog(self.explorer.tree.gsItem.catalogs())
+    def publishLayer(self, tree, explorer):
+        dlg = PublishLayerDialog(tree.gsItem.catalogs())
         dlg.exec_()      
         if dlg.catalog is None:
             return
         cat = dlg.catalog  
         ogcat = OGCatalog(cat)
-        catItem = self.explorer.tree.findAllItems(cat)[0]
+        catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        self.explorer.run(ogcat.publishLayer,
+        explorer.run(ogcat.publishLayer,
                  "Layer correctly published from layer '" + self.element.name() + "'",
                  toUpdate,
                  self.element, dlg.workspace, True)
@@ -195,18 +194,17 @@ class QgsGroupItem(TreeItem):
             layerItem = QgsLayerItem(layer)                                
             self.addChild(layerItem)
 
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer            
+    def contextMenuActions(self, tree, explorer):                 
         publishGroupAction = QtGui.QAction("Publish...", explorer)
-        publishGroupAction.triggered.connect(self.publishGroup)
-        publishGroupAction.setEnabled(len(self.explorer.tree.gsItem.catalogs())>0)
+        publishGroupAction.triggered.connect(lambda: self.publishGroup(tree, explorer))
+        publishGroupAction.setEnabled(len(tree.gsItem.catalogs())>0)
         return[publishGroupAction]  
         
-    def publishGroup(self):
+    def publishGroup(self, tree, explorer):
         groupname = self.element
         groups = qgislayers.getGroups()   
         group = groups[groupname]     
-        cat = selectCatalog(self.explorer.tree.gsItem.catalogs())
+        cat = selectCatalog(tree.gsItem.catalogs())
         if cat is None:
             return                            
         gslayers= [layer.name for layer in cat.get_layers()]
@@ -215,9 +213,9 @@ class QgsGroupItem(TreeItem):
             if layer.name() not in gslayers:
                 missing.append(layer) 
         toUpdate = set();
-        toUpdate.add(self.explorer.tree.findAllItems(cat)[0])
+        toUpdate.add(tree.findAllItems(cat)[0])
         if missing:
-            catalogs = {k :v for k, v in self.explorer.tree.gsItem.catalogs().iteritems() if v == cat}
+            catalogs = {k :v for k, v in tree.gsItem.catalogs().iteritems() if v == cat}
             dlg = PublishLayersDialog(catalogs, missing)
             dlg.exec_()     
             toPublish  = dlg.topublish
@@ -226,23 +224,23 @@ class QgsGroupItem(TreeItem):
             self.explorer.progress.setMaximum(len(toPublish))
             progress = 0                    
             for layer, catalog, workspace in toPublish:
-                self.explorer.progress.setValue(progress)            
+                explorer.progress.setValue(progress)            
                 ogcat = OGCatalog(catalog)                 
-                if not self.explorer.run(ogcat.publishLayer,
+                if not explorer.run(ogcat.publishLayer,
                          "Layer correctly published from layer '" + layer.name() + "'",
                          [],
                          layer, workspace, True):
-                    self.explorer.progress.setValue(0)
+                    explorer.progress.setValue(0)
                     return
                 progress += 1                
-            self.explorer.progress.setValue(progress)  
+            explorer.progress.setValue(progress)  
         names = [layer.name() for layer in group]      
         layergroup = cat.create_layergroup(groupname, names, names)
-        self.explorer.run(cat.save, "Layer group correctly created from group '" + groupname + "'", 
+        explorer.run(cat.save, "Layer group correctly created from group '" + groupname + "'", 
                  [], layergroup)        
         for item in toUpdate:
             item.refreshContent()
-        self.explorer.progress.setValue(0)                       
+        explorer.progress.setValue(0)                       
                
 class QgsStyleItem(TreeItem): 
     def __init__(self, layer): 
@@ -250,23 +248,23 @@ class QgsStyleItem(TreeItem):
         TreeItem.__init__(self, layer, icon, "Style of layer '" + layer.name() + "'") 
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
         
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer  
         publishStyleAction = QtGui.QAction("Publish...", explorer)
-        publishStyleAction.triggered.connect(self.publishStyle)
+        publishStyleAction.triggered.connect(lambda: self.publishStyle(tree, explorer))
         publishStyleAction.setEnabled(self.explorer.tree.gsItem.catalogs())
         return [publishStyleAction]    
         
-    def publishStyle(self):
+    def publishStyle(self, tree, explorer):
         dlg = PublishStyleDialog(self.explorer.tree.gsItem.catalogs().keys())
         dlg.exec_()      
         if dlg.catalog is None:
             return
-        cat = self.explorer.tree.gsItem.catalogs()[dlg.catalog]  
+        cat = tree.gsItem.catalogs()[dlg.catalog]  
         ogcat = OGCatalog(cat)
-        catItem = self.explorer.tree.findAllItems(cat)[0]
+        catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem.stylesItem]                        
-        self.explorer.run(ogcat.publishStyle,
+        explorer.run(ogcat.publishStyle,
                  "Style correctly published from layer '" + self.element.name() + "'",
                  toUpdate,
                  self.element, True, dlg.name)              

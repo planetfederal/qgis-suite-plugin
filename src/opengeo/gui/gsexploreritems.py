@@ -53,7 +53,7 @@ class GsTreeItem(TreeItem):
         else:
             return None  
         
-    def deleteElements(self, selected):                
+    def deleteElements(self, selected, tree, explorer):                
         elements = []
         unused = []
         for item in selected:
@@ -68,7 +68,7 @@ class GsTreeItem(TreeItem):
                     if style.name == item.element.name:
                         unused.append(style)      
         toUpdate = set(item.parent() for item in selected)                
-        self.explorer.progress.setMaximum(len(elements))
+        explorer.progress.setMaximum(len(elements))
         progress = 0        
         dependent = self.getDependentElements(elements)
                 
@@ -84,7 +84,7 @@ class GsTreeItem(TreeItem):
                 return
             toDelete = set()
             for e in dependent:                
-                items = self.explorer.tree.findAllItems(e);                
+                items = tree.findAllItems(e);                
                 toUpdate.update(set(item.parent() for item in items))
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
@@ -92,16 +92,16 @@ class GsTreeItem(TreeItem):
                 
         unusedToUpdate = set() 
         for e in unused:                
-            items = self.explorer.tree.findAllItems(e); 
+            items = self.tree.findAllItems(e); 
             unusedToUpdate.add(item.parent())                       
         toUpdate.update(unusedToUpdate)
         
         elements[0:0] = dependent 
         elements.extend(unused)      
         for element in elements:
-            self.explorer.progress.setValue(progress)    
+            explorer.progress.setValue(progress)    
             if isinstance(element, GwcLayer):
-                self.explorer.run(element.delete,
+                explorer.run(element.delete,
                      element.__class__.__name__ + " '" + element.name + "' correctly deleted",
                      [])                      
             else:                                     
@@ -110,10 +110,10 @@ class GsTreeItem(TreeItem):
                      [], 
                      element, isinstance(element, Style))  
             progress += 1
-        self.explorer.progress.setValue(progress)
+        explorer.progress.setValue(progress)
         for item in toUpdate:
             item.refreshContent()
-        self.explorer.progress.setValue(0)
+        explorer.progress.setValue(0)
     
     def uniqueStyles(self, layer):
         '''returns the styles used by a layer that are not used by any other layer'''
@@ -178,13 +178,12 @@ class GsCatalogsItem(GsTreeItem):
             item = self.getGeoServerCatalogItem(catalog, name)
             self.addChild(item)
 
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         createCatalogAction = QtGui.QAction("New catalog...", explorer)
-        createCatalogAction.triggered.connect(self.addGeoServerCatalog)
+        createCatalogAction.triggered.connect(lambda: self.addGeoServerCatalog(explorer))
         return [createCatalogAction]
                     
-    def addGeoServerCatalog(self):         
+    def addGeoServerCatalog(self, explorer):         
         dlg = DefineCatalogDialog()
         dlg.exec_()
         cat = dlg.getCatalog()        
@@ -194,23 +193,24 @@ class GsCatalogsItem(GsTreeItem):
             while name in self._catalogs.keys():
                 name = dlg.getName() + "_" + str(i)
                 i += 1                                 
-            item = self.getGeoServerCatalogItem(cat, name)
+            item = self.getGeoServerCatalogItem(cat, name, explorer)
             if item is not None:
                 self._catalogs[name] = cat
                 self.addChild(item)
+                self.setExpanded(True)
         
         
-    def getGeoServerCatalogItem(self, cat, name):    
+    def getGeoServerCatalogItem(self, cat, name, explorer):    
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:    
             geoserverItem = GsCatalogItem(cat, name)
             geoserverItem.populate()
             QtGui.QApplication.restoreOverrideCursor()
-            self.explorer.setInfo("Catalog '" + name + "' correctly created")
+            explorer.setInfo("Catalog '" + name + "' correctly created")
             return geoserverItem
         except Exception, e:            
             QtGui.QApplication.restoreOverrideCursor()
-            self.explorer.setInfo("Could not create catalog:" + str(e), 1)   
+            explorer.setInfo("Could not create catalog:" + str(e), 1)   
      
             
 class GsLayersItem(GsTreeItem): 
@@ -277,18 +277,18 @@ class GsGroupsItem(GsTreeItem):
             publishDraggedGroup(explorer, item, catalog, workspace)
             return explorer.tree.findAllItems(catalog)       
     
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer                
         createGroupAction = QtGui.QAction("New group...", explorer)
-        createGroupAction.triggered.connect(self.createGroup)
+        createGroupAction.triggered.connect(lambda: self.createGroup(explorer))
         return [createGroupAction]
     
-    def createGroup(self):
+    def createGroup(self, explorer):
         dlg = LayerGroupDialog(self.parentCatalog())
         dlg.exec_()
         group = dlg.group
         if group is not None:
-            self.explorer.run(self.parentCatalog().save,
+            explorer.run(self.parentCatalog().save,
                      "Group '" + group.name + "' correctly created",
                      [self],
                      group)
@@ -339,17 +339,16 @@ class GsWorkspacesItem(GsTreeItem):
                 toUpdate.append(explorer.tree.findAllItems(catalog)[0])  
             return toUpdate        
                             
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         createWorkspaceAction = QtGui.QAction("New workspace...", explorer)
-        createWorkspaceAction.triggered.connect(self.createWorkspace)
+        createWorkspaceAction.triggered.connect(lambda: self.createWorkspace(explorer))
         return [createWorkspaceAction]
     
-    def createWorkspace(self):
+    def createWorkspace(self, explorer):
         dlg = DefineWorkspaceDialog() 
         dlg.exec_()            
         if dlg.name is not None:
-            self.explorer.run(self.parentCatalog().create_workspace, 
+            explorer.run(self.parentCatalog().create_workspace, 
                     "Workspace '" + dlg.name + "' correctly created",
                     [self],
                     dlg.name, dlg.uri)
@@ -376,19 +375,18 @@ class GsStylesItem(GsTreeItem):
                 toUpdate.append(explorer.tree.findAllItems(catalog)[0])  
             return toUpdate  
         
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         createStyleFromLayerAction = QtGui.QAction("New style from QGIS layer...", explorer)
-        createStyleFromLayerAction.triggered.connect(self.createStyleFromLayer)
+        createStyleFromLayerAction.triggered.connect(lambda: self.createStyleFromLayer(explorer))
         return [createStyleFromLayerAction] 
            
     
-    def createStyleFromLayer(self):  
+    def createStyleFromLayer(self, explorer):  
         dlg = StyleFromLayerDialog(self.catalogs().keys())
         dlg.exec_()      
         if dlg.layer is not None:
             ogcat = OGCatalog(self.catalogs()[dlg.catalog])        
-            self.explorer.run(ogcat.publish_style, 
+            explorer.run(ogcat.publish_style, 
                      "Style correctly created from layer '" + dlg.layer + "'",
                      [self],
                      dlg.layer, dlg.name, True)
@@ -432,8 +430,7 @@ class GsCatalogItem(GsTreeItem):
             publishDraggedLayer(explorer, item.element, workspace)            
             return [self]
         
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         removeCatalogAction = QtGui.QAction("Remove", explorer)
         removeCatalogAction.triggered.connect(self.removeCatalog)
         return[removeCatalogAction] 
@@ -482,8 +479,7 @@ class GsLayerItem(GsTreeItem):
                 toUpdate.append(explorer.tree.findAllItems(catalog)[0])  
             return toUpdate  
                 
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         actions = []
         if isinstance(self.parent(), GsGroupItem):
             layers = self.parent().element.layers
@@ -495,48 +491,47 @@ class GsLayerItem(GsTreeItem):
             actions.append(removeLayerFromGroupAction)                                                
             moveLayerUpInGroupAction = QtGui.QAction("Move up", explorer)            
             moveLayerUpInGroupAction.setEnabled(count > 1 and idx > 0)
-            moveLayerUpInGroupAction.triggered.connect(self.moveLayerUpInGroup)
+            moveLayerUpInGroupAction.triggered.connect(lambda: self.moveLayerUpInGroup(explorer))
             actions.append(moveLayerUpInGroupAction)
             moveLayerDownInGroupAction = QtGui.QAction("Move down", explorer)            
             moveLayerDownInGroupAction.setEnabled(count > 1 and idx < count - 1)
-            moveLayerDownInGroupAction.triggered.connect(self.moveLayerDownInGroup)
+            moveLayerDownInGroupAction.triggered.connect(lambda: self.moveLayerDownInGroup(explorer))
             actions.append(moveLayerDownInGroupAction)
             moveLayerToFrontInGroupAction = QtGui.QAction("Move to front", explorer)            
             moveLayerToFrontInGroupAction.setEnabled(count > 1 and idx > 0)
-            moveLayerToFrontInGroupAction.triggered.connect(self.moveLayerToFrontInGroup)
+            moveLayerToFrontInGroupAction.triggered.connect(lambda: self.moveLayerToFrontInGroup(explorer))
             actions.append(moveLayerToFrontInGroupAction)
             moveLayerToBackInGroupAction = QtGui.QAction("Move to back", explorer)            
             moveLayerToBackInGroupAction.setEnabled(count > 1 and idx < count - 1)
-            moveLayerToBackInGroupAction.triggered.connect(self.moveLayerToBackInGroup)
+            moveLayerToBackInGroupAction.triggered.connect(lambda: self.moveLayerToBackInGroup(explorer))
             actions.append(moveLayerToBackInGroupAction)
         else:
             addStyleToLayerAction = QtGui.QAction("Add style to layer...", explorer)
-            addStyleToLayerAction.triggered.connect(self.addStyleToLayer)                    
+            addStyleToLayerAction.triggered.connect(lambda: self.addStyleToLayer(explorer))                    
             actions.append(addStyleToLayerAction)   
             deleteLayerAction = QtGui.QAction("Delete", None)
-            deleteLayerAction.triggered.connect(self.deleteLayer)
+            deleteLayerAction.triggered.connect(lambda: self.deleteLayer(explorer))
             actions.append(deleteLayerAction)                                
             addLayerAction = QtGui.QAction("Add to current QGIS project", explorer)
-            addLayerAction.triggered.connect(self.addLayerToProject)
+            addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
             actions.append(addLayerAction)    
             
         return actions
     
-    def multipleSelectionContextMenuActions(self, explorer, selected):
-        self.explorer = explorer
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         createGroupAction = QtGui.QAction("Create group...", explorer)
-        createGroupAction.triggered.connect(lambda: self.createGroupFromLayers(selected))        
+        createGroupAction.triggered.connect(lambda: self.createGroupFromLayers(selected, tree, explorer))        
         return [deleteSelectedAction, createGroupAction]
                  
             
-    def createGroupFromLayers(self, selected):        
+    def createGroupFromLayers(self, selected, tree, explorer):        
         name, ok = QtGui.QInputDialog.getText(None, "Group name", "Enter the name of the group to create")        
         if not ok:
             return
         catalog = self.element.catalog
-        catalogItem = self.explorer.tree.findAllItems(catalog)[0]
+        catalogItem = tree.findAllItems(catalog)[0]
         groupsItem = catalogItem.groupsItem
         layers = [item.element for item in selected]
         styles = [layer.default_style.name for layer in layers]
@@ -545,7 +540,7 @@ class GsLayerItem(GsTreeItem):
         bbox = None
         group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
                 
-        self.explorer.run(self.parentCatalog().save,
+        explorer.run(self.parentCatalog().save,
                      "Group '" + name + "' correctly created",
                      [groupsItem],
                      group)
@@ -553,7 +548,7 @@ class GsLayerItem(GsTreeItem):
     def deleteLayer(self):
         self.deleteElements([self])
             
-    def removeLayerFromGroup(self):
+    def removeLayerFromGroup(self, explorer):
         group = self.parent().element
         layers = group.layers
         styles = group.styles
@@ -561,12 +556,12 @@ class GsLayerItem(GsTreeItem):
         del layers[idx]
         del styles[idx]
         group.dirty.update(layers = layers, styles = styles)
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                  "Layer '" + self.element.name + "' correctly removed from group '" + group.name +"'",
                  [self.parent()],
                  group)
 
-    def moveLayerDownInGroup(self):
+    def moveLayerDownInGroup(self, explorer):
         group = self.parent().element
         layers = group.layers
         styles = group.styles
@@ -578,12 +573,12 @@ class GsLayerItem(GsTreeItem):
         styles[idx + 1] = styles[idx]
         styles[idx] = tmp          
         group.dirty.update(layers = layers, styles = styles)
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                  "Layer '" + self.element.name + "' correctly moved down in group '" + group.name +"'",
                  [self.parent()],
                  group)        
     
-    def moveLayerToFrontInGroup(self):
+    def moveLayerToFrontInGroup(self, explorer):
         group = self.parent().element
         layers = group.layers
         styles = group.styles
@@ -595,12 +590,12 @@ class GsLayerItem(GsTreeItem):
         del styles[idx]
         styles.insert(0, tmp)          
         group.dirty.update(layers = layers, styles = styles)
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                  "Layer '" + self.element.name + "' correctly moved to front in group '" + group.name +"'",
                  [self.parent()],
                  group)
     
-    def moveLayerToBackInGroup(self):
+    def moveLayerToBackInGroup(self, explorer):
         group = self.parent().element
         layers = group.layers
         styles = group.styles
@@ -612,12 +607,12 @@ class GsLayerItem(GsTreeItem):
         del styles[idx]
         styles.append(tmp)          
         group.dirty.update(layers = layers, styles = styles)
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                  "Layer '" + self.element.name + "' correctly moved to back in group '" + group.name +"'",
                  [self.parent()],
                  group)
                      
-    def moveLayerUpInGroup(self):
+    def moveLayerUpInGroup(self, explorer):
         group = self.parent().element
         layers = group.layers
         styles = group.styles
@@ -629,13 +624,13 @@ class GsLayerItem(GsTreeItem):
         styles[idx - 1] = styles[idx]
         styles[idx] = tmp          
         group.dirty.update(layers = layers, styles = styles)
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                  "Layer '" + self.element.name + "' correctly moved up in group '" + group.name +"'",
                  [self.parent()],
                  group)    
         
             
-    def addStyleToLayer(self):
+    def addStyleToLayer(self, explorer):
         cat = self.parentCatalog()
         dlg = AddStyleToLayerDialog(cat)
         dlg.exec_()
@@ -650,16 +645,16 @@ class GsLayerItem(GsTreeItem):
             else:
                 styles.append(dlg.style)
                 layer.styles = styles 
-            self.explorer.run(cat.save, 
+            explorer.run(cat.save, 
                      "Style '" + dlg.style.name + "' correctly added to layer '" + layer.name + "'",
                      [self],
                      layer)  
             
-    def addLayerToProject(self):
+    def addLayerToProject(self, explorer):
         #Using threads here freezes the QGIS GUI
         cat = OGCatalog(self.parentCatalog()) 
         cat.addLayerToProject(self.element.name) 
-        self.explorer.setInfo("Layer '" + self.element.name + "' correctly added to QGIS project")                        
+        explorer.setInfo("Layer '" + self.element.name + "' correctly added to QGIS project")                        
 
 class GsGroupItem(GsTreeItem): 
     def __init__(self, group): 
@@ -684,30 +679,28 @@ class GsGroupItem(GsTreeItem):
             addDraggedLayerToGroup(explorer, item.element, self)
             return [self]            
             
-    def contextMenuActions(self, explorer):
-        explorer = explorer
+    def contextMenuActions(self, tree, explorer):
         editLayerGroupAction = QtGui.QAction("Edit...", explorer)
-        editLayerGroupAction.triggered.connect(self.editLayerGroup)             
+        editLayerGroupAction.triggered.connect(lambda: self.editLayerGroup(explorer))             
         deleteLayerGroupAction = QtGui.QAction("Delete", explorer)
-        deleteLayerGroupAction.triggered.connect(self.deleteLayerGroup)
+        deleteLayerGroupAction.triggered.connect(lambda: self.deleteLayerGroup(explorer))
         return [editLayerGroupAction, deleteLayerGroupAction]
        
-    def multipleSelectionContextMenuActions(self, explorer, selected):
-        self.explorer = explorer
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
     def deleteLayerGroup(self):
         self.deleteElements([self]);
         
-    def editLayerGroup(self):
+    def editLayerGroup(self, explorer):
         cat = self.parentCatalog()        
         dlg = LayerGroupDialog(cat, self.element)
         dlg.exec_()
         group = dlg.group
         if group is not None:
-            self.explorer.run(cat.save, "Layer group '" + self.element.name + "' correctly edited", 
+            explorer.run(cat.save, "Layer group '" + self.element.name + "' correctly edited", 
                               [self], 
                               group)   
     
@@ -722,21 +715,21 @@ class GsStyleItem(GsTreeItem):
         self.isDefault = isDefault     
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)        
         
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer    
         actions = []
         if isinstance(self.parent(), GsLayerItem):
             setAsDefaultStyleAction = QtGui.QAction("Set as default style", explorer)
-            setAsDefaultStyleAction.triggered.connect(self.setAsDefaultStyle)
+            setAsDefaultStyleAction.triggered.connect(lambda: self.setAsDefaultStyle(tree, explorer))
             setAsDefaultStyleAction.setEnabled(not self.isDefault)
             actions.append(setAsDefaultStyleAction)  
             removeStyleFromLayerAction = QtGui.QAction("Remove style from layer", explorer)
-            removeStyleFromLayerAction.triggered.connect(self.removeStyleFromLayer)
+            removeStyleFromLayerAction.triggered.connect(lambda: self.removeStyleFromLayer(tree, explorer))
             removeStyleFromLayerAction.setEnabled(not self.isDefault)            
             actions.append(removeStyleFromLayerAction)                           
         else:                      
             deleteStyleAction = QtGui.QAction("Delete", explorer)
-            deleteStyleAction.triggered.connect(self.deleteStyle)
+            deleteStyleAction.triggered.connect(lambda: self.deleteStyle(tree, explorer))
             actions.append(deleteStyleAction)
         return actions 
     
@@ -752,26 +745,26 @@ class GsStyleItem(GsTreeItem):
                 publishDraggedStyle(explorer, item.element.name(), destinationItem)
                 return [destinationItem]              
     
-    def multipleSelectionContextMenuActions(self, explorer, selected):
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         self.explorer = explorer
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def deleteStyle(self):
-        self.deleteElements([self])
+    def deleteStyle(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)
         
-    def removeStyleFromLayer(self):
+    def removeStyleFromLayer(self, tree, explorer):
         layer = self.parent().element        
         styles = layer.styles
         styles = [style for style in styles if style.name != self.element.name]            
         layer.styles = styles 
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                 "Style '" + self.element.name + "' removed from layer '" + layer.name, 
-                self.explorer.tree.findAllItems(self.parent().element),
+                tree.findAllItems(self.parent().element),
                 layer)
     
-    def setAsDefaultStyle(self):
+    def setAsDefaultStyle(self, tree, explorer):
         layer = self.parent().element        
         styles = layer.styles
         styles = [style for style in styles if style.name != self.element.name]
@@ -780,9 +773,9 @@ class GsStyleItem(GsTreeItem):
             styles.append(default)
         layer.default_style = self.element
         layer.styles = styles 
-        self.explorer.run(self.parentCatalog().save, 
+        explorer.run(self.parentCatalog().save, 
                 "Style '" + self.element.name + "' set as default style for layer '" + layer.name + "'", 
-                self.explorer.tree.findAllItems(self.parent().element),
+                tree.findAllItems(self.parent().element),
                 layer)          
     
                       
@@ -824,26 +817,26 @@ class GsWorkspaceItem(GsTreeItem):
             return toUpdate        
                                     
                                      
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer
         setAsDefaultAction = QtGui.QAction("Set as default workspace", explorer)
         setAsDefaultAction.triggered.connect(self.setAsDefaultWorkspace)
         setAsDefaultAction.setEnabled(not self.isDefault)                                
         deleteWorkspaceAction = QtGui.QAction("Delete", explorer)
-        deleteWorkspaceAction.triggered.connect(self.deleteWorkspace)
+        deleteWorkspaceAction.triggered.connect(lambda: self.deleteWorkspace(tree, explorer))
         return[setAsDefaultAction, deleteWorkspaceAction]
         
-    def multipleSelectionContextMenuActions(self, explorer, selected):
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         self.explorer = explorer
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def deleteWorkspace(self):
-        self.deleteElements([self])
+    def deleteWorkspace(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)
         
-    def setAsDefaultWorkspace(self):
-        self.explorer.run(self.parentCatalog().set_default_workspace, 
+    def setAsDefaultWorkspace(self, explorer):
+        explorer.run(self.parentCatalog().set_default_workspace, 
                  "Workspace '" + self.element.name + "' set as default workspace",
                  [self.parent()],
                  self.element.name)
@@ -869,20 +862,18 @@ class GsStoreItem(GsTreeItem):
             publishDraggedLayer(explorer, item.element, self.element.workspace)
             return explorer.tree.findAllItems(self.element.catalog)        
     
-    def contextMenuActions(self, explorer):
-        self.explorer = explorer
+    def contextMenuActions(self, tree, explorer):        
         deleteStoreAction = QtGui.QAction("Delete", explorer)
-        deleteStoreAction.triggered.connect(self.deleteStore)
+        deleteStoreAction.triggered.connect(lambda: self.deleteStore(tree, explorer))
         return[deleteStoreAction]
                 
-    def multipleSelectionContextMenuActions(self, explorer, selected):
-        self.explorer = explorer
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
                     
-    def deleteStore(self):
-        self.deleteElements([self])
+    def deleteStore(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)
         
 class GsResourceItem(GsTreeItem): 
     def __init__(self, resource):  
@@ -898,14 +889,14 @@ class GsResourceItem(GsTreeItem):
             publishDraggedLayer(explorer, item.element, self.element.workspace)
             return explorer.tree.findAllItems(self.element.catalog)
     
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer
         deleteResourceAction = QtGui.QAction("Delete", explorer)
-        deleteResourceAction.triggered.connect(self.deleteResource)
+        deleteResourceAction.triggered.connect(self.deleteResource, tree, explorer)
         return[deleteResourceAction]
                 
-    def deleteResource(self):
-        self.deleteElements([self])      
+    def deleteResource(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)      
 
 #### GWC ####
 
@@ -929,14 +920,14 @@ class GwcLayersItem(GsTreeItem):
             return [self]
         return []
     
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer   
         addGwcLayerAction = QtGui.QAction("New GWC layer...", explorer)
-        addGwcLayerAction.triggered.connect(self.addGwcLayer)
+        addGwcLayerAction.triggered.connect(lambda: self.addGwcLayer(tree, explorer))
         return [addGwcLayerAction]        
                
      
-    def addGwcLayer(self):
+    def addGwcLayer(self, tree, explorer):
         cat = self.parentCatalog()
         layers = cat.get_layers()              
         dlg = EditGwcLayerDialog(layers, None)
@@ -949,8 +940,8 @@ class GwcLayersItem(GsTreeItem):
             typename = layer.resource.workspace.name + ":" + layer.name
             
             gwclayer= GwcLayer(gwc, typename, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
-            catItem = self.explorer.tree.findAllItems(cat)            
-            self.explorer.run(gwc.addLayer,
+            catItem = tree.findAllItems(cat)            
+            explorer.run(gwc.addLayer,
                               "GWC layer '" + layer.name + "' correctly created",
                               [catItem.gwcItem],
                               gwclayer)             
@@ -964,26 +955,25 @@ class GwcLayerItem(GsTreeItem):
         GsTreeItem.__init__(self, layer, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
         
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         self.explorer = explorer  
         editGwcLayerAction = QtGui.QAction("Edit...", explorer)
-        editGwcLayerAction.triggered.connect(self.editGwcLayer)           
+        editGwcLayerAction.triggered.connect(lambda: self.editGwcLayer(explorer))           
         seedGwcLayerAction = QtGui.QAction("Seed...", explorer)
-        seedGwcLayerAction.triggered.connect(self.seedGwcLayer)        
+        seedGwcLayerAction.triggered.connect(lambda: self.seedGwcLayer(explorer))        
         emptyGwcLayerAction = QtGui.QAction("Empty", explorer)
-        emptyGwcLayerAction.triggered.connect(self.emptyGwcLayer)                  
+        emptyGwcLayerAction.triggered.connect(lambda: self.emptyGwcLayer(explorer))                  
         deleteLayerAction = QtGui.QAction("Delete", explorer)
-        deleteLayerAction.triggered.connect(self.deleteLayer)
+        deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
         return[editGwcLayerAction, seedGwcLayerAction, emptyGwcLayerAction, deleteLayerAction]
 
-    def multipleSelectionContextMenuActions(self, explorer, selected):
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         self.explorer = explorer
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected))
+        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def descriptionWidget(self):
-        
+    def descriptionWidget(self):        
         text = self.getSeedingTasksStateDescription()
         self.webView = QtWebKit.QWebView()
         self.webView.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
@@ -1015,34 +1005,34 @@ class GwcLayerItem(GsTreeItem):
         self.webView.setHtml(text)
         
           
-    def deleteLayer(self):
-        self.deleteElements([self])      
+    def deleteLayer(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)      
         
         
-    def emptyGwcLayer(self):
+    def emptyGwcLayer(self, explorer):
         layer = self.element   
         #TODO: confirmation dialog??    
-        self.explorer.run(layer.truncate,
+        explorer.run(layer.truncate,
                           "GWC layer '" + layer.name + "' correctly truncated",
                           [],
                           )            
-    def seedGwcLayer(self):
+    def seedGwcLayer(self, explorer):
         layer = self.element   
         dlg = SeedGwcLayerDialog(layer)
         dlg.show()
         dlg.exec_()
         if dlg.format is not None:
-            self.explorer.run(layer.seed,
+            explorer.run(layer.seed,
                               "GWC layer '" + layer.name + "' correctly seeded",
                               [],
                               dlg.operation, dlg.format, dlg.gridset, dlg.minzoom, dlg.maxzoom, dlg.extent)
     
-    def editGwcLayer(self):
+    def editGwcLayer(self, explorer):
         layer = self.element   
         dlg = EditGwcLayerDialog([layer], layer)
         dlg.exec_()
         if dlg.gridsets is not None:
-            self.explorer.run(layer.update,
+            explorer.run(layer.update,
                               "GWC layer '" + layer.name + "' correctly updated",
                               [],
                               dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)

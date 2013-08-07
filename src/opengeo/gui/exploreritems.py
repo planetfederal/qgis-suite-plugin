@@ -21,10 +21,10 @@ class TreeItem(QtGui.QTreeWidgetItem):
         widget.setText("No description available for this element")   
         return widget 
     
-    def contextMenuActions(self, explorer):
+    def contextMenuActions(self, tree, explorer):
         return []   
     
-    def multipleSelectionContextMenuActions(self, explorer, selected):
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         return []
     
     def acceptDroppedItem(self, explorer, item):

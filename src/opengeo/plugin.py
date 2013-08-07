@@ -19,6 +19,8 @@ class OpenGeoPlugin:
         
     def unload(self):
         self.menu.deleteLater()
+        self.iface.legendInterface().itemAdded.disconnect(self.explorer.updateContent)
+        self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateContent)
 
     def initGui(self):
         self.menu = QMenu(self.iface.mainWindow())
@@ -35,6 +37,9 @@ class OpenGeoPlugin:
 
         menuBar = self.iface.mainWindow().menuBar()
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)
+        
+        self.iface.legendInterface().itemAdded.connect(self.explorer.updateContent)
+        self.iface.legendInterface().itemRemoved.connect(self.explorer.updateContent)
         
     def openExplorer(self):
         self.explorer.updateContent()

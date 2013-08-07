@@ -63,7 +63,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             return 
         items = self.selectedItems()
         if len(items) == 1:
-            actions = item.contextMenuActions(self.explorer)
+            actions = item.contextMenuActions(self, self.explorer)
             if (isinstance(item, TreeItem) and hasattr(item, 'populate')):            
                 refreshAction = QtGui.QAction("Refresh", self.explorer)
                 refreshAction.triggered.connect(item.refreshContent)
@@ -91,7 +91,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.selectedItem = self.itemAt(point)  
         point = self.mapToGlobal(point)        
         menu = QtGui.QMenu()
-        actions = self.selectedItem.multipleSelectionContextMenuActions(self.explorer, self.selectedItems())
+        actions = self.selectedItem.multipleSelectionContextMenuActions(self, self.explorer, self.selectedItems())
         for action in actions:
             menu.addAction(action)            
         menu.exec_(point)             
@@ -107,7 +107,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             refreshAction.triggered.connect(self.selectedItem.refreshContent)
             menu.addAction(refreshAction) 
         point = self.mapToGlobal(point)    
-        actions = self.selectedItem.contextMenuActions(self.explorer)
+        actions = self.selectedItem.contextMenuActions(self, self.explorer)
         for action in actions:
             menu.addAction(action)            
         menu.exec_(point)

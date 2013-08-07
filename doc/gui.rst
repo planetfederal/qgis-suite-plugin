@@ -5,13 +5,13 @@ Configuring/Using the OpenGeo Suite from QGIS
 Introduction
 *************
 
-The OpenGeo Suite explorer is used to configure the components of the OpenGeoSuite from QGIS. You can edit, add or delete elements, and make them interact with the elements in the current QGIS project. This allows you to easily configure your OpenGeo Suite, for instance preparing your data and its stylying with the usual QGIS tools, and then publishing it directly from QGIS.
+The OpenGeo Suite explorer is used to configure the components of the OpenGeo Suite from QGIS. You can edit, add or delete elements, and make them interact with the elements in the current QGIS project. This allows you to easily configure your OpenGeo Suite, for instance preparing your data and its stylying with the usual QGIS tools, and then publishing it directly from QGIS to GeoServer.
 
 The explorer is launched from the *OpenGeo* menu and it looks like this.
 
 .. image:: explorer.png
 
-It has the following main branches, each of which deals with a different component
+The main element of the explorer is the explorer tree. It has the following main branches, each of which deals with a different component.
 
 - GeoServer catalogs
 - PostGIS
@@ -24,14 +24,21 @@ The *GeoServer catalogs* branch contains the catalogs that you are connected to,
 
 The *QGIS Project* branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in GeoServer. This way, it is easy to understand the relation between both the QGIS project and the GeoServer Catalogs
 
-The *PostGIS databases* contains a list of all available PostGIS connections in QGIS. It's funcitonality resembles that of the QGIS built--in DB Manager.
+The *PostGIS databases* contains a list of all available PostGIS connections in QGIS. Its functionality resembles that of the QGIS built--in DB Manager.
 
 The *GeoGit repositories* branch contains the available GeoGit repositories that have been defined. Like the branch corresponding to GeoServer catalogs, it's empty when you launch the explorer, and you can add as many repositories as needed.
+
+In the lower part to will see a tabbed panel with two panels: *Description* and *Log*, which show the description of the currently selected item and the log of all actions performed using the explorer. In case you cannot run an operation, or something is not working as you expect, check the log information, since errors are also logged there and they might give you some additional information about waht is happening (for instance, if you are trying to connect to a GeoServer instance that is not responding or does not exist)
+
+.. image:: log.png
+
+When the explorer window is docked, the log and description panels are found on its lower the lower part. If you undock the window, they will be placed on the right--hand side of it, to make better use of the available space.
 
 Using the explorer
 ******************
 
-Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above.
+Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above. Also, when you select an element in the tree, buttons in the toolbar in the upper part of the explorer window are updated to show the available actions for that element. These actions correspond to the ones shown in the context menu when you right--click on the element, so you have two different ways of accesing the same funcionality.
+
 
 Let's do some work with the GeoServer branch, to start getting familiar with the interface and behaviour of the OpenGeo Suite explorer. First, let's add a connection to a local GeoServer instance (make sure you have a local GeoServer running before doing it). Right--click on the *GeoServer catalogs* item and select *Add new catalog...*. You will see the following screen.
 
@@ -145,26 +152,63 @@ GeoWebCache
 
 	- *Empty*. Deletes (truncates) all cached data for a given layer.
 
+	When a seeding operation is started, the description box corresponding to the GWC layer being seeded will show the current state of the operation. 
+
+	..image:: seed_status.png
+
+	Since this operations might be very long, depending on the selected zoom levels and the area covered by the layer, progress in this case is not shown using the normal progress bar and hourglass mouse pointer. 
+
+	Instead, you can use QGIS as usual while the operation is running in the background, and to update the status, just click on the *update* link in the description box to get the current number of processed tiles. If you want to stop the seeding operation, just click on the *kill* link.
+
 PostGIS
 --------
 
-The functionality in the PostGIS branch is similar to that of the QGIS DB Manager, but with some additional operations and integrated with the other elements that can be managed from the OpenGeo explorer
+The functionality in the PostGIS branch is similar to that of the QGIS DB Manager, but with some additional operations and integrated with the other elements that can be managed from the OpenGeo explorer. It contains the list of connections currently available in QGIS. If passwords were not stored when the DB connection was created, the connection will not be possible, and the corresponding tree element will not be populated with the available schemas. This is indicated with a different icon in the connection element.
+
+.. image:: wrong_db.png
+
+To reconnect a wrong connection, select the *Refresh* option. You will be prompted for the username and password, and a new attemp will be made to conenct to the PostGIS database.
+
+.. image:: db_credentials.png
+
+The following actions are available for items in the PostGIS branch.
 
 - PostGIS connections item
 
-	[To be written]
+	- *Add new connection*. Adds a new PostGIS connection through the usual QGIS connection dialog
 
-- PostGIS connections item
 
-	[To be written]
+- PostGIS connection item
+
+	- *New schema*
+
+	- *Import files*. Import a set of files with data into the selected schema. The following window is shown.
+
+	.. image:: import_postgis.png
+
+	Click on the button in the *Layers* group and select the files you want to import. Then select the destination schema and table. You can select the name of a preexisting table or enter the name you want. In case of selecting a preexisting table, click on the *Add to table* checkbox to add the imported data to the current content of the table. Otherwise, the table will be deleted and a new one with that name created. If you select the *Add to table* box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
+
+	There is an additional option, *[create table from file name]*, which will set the table name based on the name of the file to import (without extension). The *Add to table* box applies also in this case.
+
+	
 
 - PostGIS schema item
 
-	[To be written]
+	- *New table*. Creates a new table.
+
+	- *Delete*. Deletes the schema. It has to be empty to be removed. Otherwise, PostGIS will refuse to delete it.
+
+	- *Rename*. Renames the schema
+
+
 
 - PostGIS table item
 
-	[To be written]
+	- *Delete*. Deletes the table.
+
+	- *Rename*. Renames the table.
+
+	- *Run vacuum analyze*. Vacuums the table
 
 
 QGIS project

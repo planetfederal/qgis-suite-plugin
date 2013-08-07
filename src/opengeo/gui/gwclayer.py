@@ -1,13 +1,12 @@
-from opengeo.gui.ui_gwclayer import Ui_EditGwcLayerDialog
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from opengeo.gui.extentpanel import ExtentSelectionPanel
 
-class EditGwcLayerDialog(QDialog, Ui_EditGwcLayerDialog):
+class EditGwcLayerDialog(QDialog):
     
     def __init__(self, layers, gwclayer = None):
         QDialog.__init__(self)        
-        self.setupUi(self)
+        self.setupUi()
         self.setWindowTitle('Define cache layer')
         self.layers = layers
         self.layerBox.addItems([lyr.name for lyr in layers])
@@ -31,6 +30,83 @@ class EditGwcLayerDialog(QDialog, Ui_EditGwcLayerDialog):
         self.gridsets = None
         self.metaWidth = None
         self.metaHeight = None
+        
+    def setupUi(self):
+        self.resize(528, 276)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.verticalLayout = QVBoxLayout(self)
+        self.horizontalLayout = QHBoxLayout()
+        self.layerLabel = QLabel("Layer")
+        self.horizontalLayout.addWidget(self.layerLabel)
+        self.layerBox = QComboBox()
+        self.horizontalLayout.addWidget(self.layerBox)
+        self.verticalLayout.addLayout(self.horizontalLayout)        
+        self.groupBox = QGroupBox(self)
+        self.verticalLayout_4 = QVBoxLayout(self.groupBox)
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.labelWidth = QLabel(self.groupBox)
+        self.horizontalLayout_3.addWidget(self.labelWidth)
+        self.spinBoxWidth = QSpinBox(self.groupBox)
+        self.horizontalLayout_3.addWidget(self.spinBoxWidth)
+        self.labelHeight = QLabel(self.groupBox)
+        self.horizontalLayout_3.addWidget(self.labelHeight)
+        self.spinBoxHeight = QSpinBox(self.groupBox)
+        self.horizontalLayout_3.addWidget(self.spinBoxHeight)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_3)
+        self.verticalLayout.addWidget(self.groupBox)
+        self.horizontalLayout = QHBoxLayout()
+        self.groupBoxFormats = QGroupBox(self)
+        self.verticalLayout_2 = QVBoxLayout(self.groupBoxFormats)
+        self.checkBoxPng = QCheckBox(self.groupBoxFormats)
+        self.verticalLayout_2.addWidget(self.checkBoxPng)
+        self.checkBoxPng8 = QCheckBox(self.groupBoxFormats)
+        self.verticalLayout_2.addWidget(self.checkBoxPng8)
+        self.checkBoxJpg = QCheckBox(self.groupBoxFormats)
+        self.verticalLayout_2.addWidget(self.checkBoxJpg)
+        self.checkBoxGif = QCheckBox(self.groupBoxFormats)
+        self.verticalLayout_2.addWidget(self.checkBoxGif)
+        self.horizontalLayout.addWidget(self.groupBoxFormats)
+        self.groupBoxGridsets = QGroupBox(self)
+        self.verticalLayout_3 = QVBoxLayout(self.groupBoxGridsets)
+        self.checkBox4326 = QCheckBox(self.groupBoxGridsets)
+        self.verticalLayout_3.addWidget(self.checkBox4326)
+        self.checkBox900913 = QCheckBox(self.groupBoxGridsets)
+        self.verticalLayout_3.addWidget(self.checkBox900913)
+        self.checkBoxGoogle = QCheckBox(self.groupBoxGridsets)
+        self.verticalLayout_3.addWidget(self.checkBoxGoogle)
+        self.checkBoxGlobalScale = QCheckBox(self.groupBoxGridsets)
+        self.verticalLayout_3.addWidget(self.checkBoxGlobalScale)
+        self.checkBoxGlobalPixel = QCheckBox(self.groupBoxGridsets)
+        self.verticalLayout_3.addWidget(self.checkBoxGlobalPixel)
+        self.horizontalLayout.addWidget(self.groupBoxGridsets)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.buttonBox = QDialogButtonBox(self)
+        self.buttonBox.setOrientation(Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.verticalLayout.addWidget(self.buttonBox)
+
+        self.setWindowTitle("Dialog")
+        self.groupBox.setTitle("Metatiling factors")
+        self.labelWidth.setText("Width")
+        self.labelHeight.setText("Height")
+        self.groupBoxFormats.setTitle("Tile image formats")
+        self.checkBoxPng.setText("png")
+        self.checkBoxPng8.setText("png8")
+        self.checkBoxJpg.setText("jpg")
+        self.checkBoxGif.setText("gif")
+        self.groupBoxGridsets.setTitle("Gridsets")
+        self.checkBox4326.setText("EPSG:4326")
+        self.checkBox900913.setText("ESPG:900913")
+        self.checkBoxGoogle.setText("GoogleCRS84Quad")
+        self.checkBoxGlobalScale.setText("GlobalCRS84Scale")
+        self.checkBoxGlobalPixel.setText("GlobalCRS84Pixel")
+        self.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
+        self.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+        
 
     def accept(self):
         self.layer = self.layers[self.layerBox.currentIndex()]

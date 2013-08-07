@@ -8,6 +8,5 @@ class Schema(object):
         
     def tables(self):
         tables = self.conn.geodb.list_geotables(self.name)   
-        print tables     
         return [Table(self.conn, self.name, table[0], table[2], table[7]) for table in tables]
     

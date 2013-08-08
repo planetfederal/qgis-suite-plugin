@@ -66,22 +66,50 @@ class PgConnectionItem(TreeItem):
             newSchemaAction.triggered.connect(self.newSchema) 
             sqlAction = QtGui.QAction("Run SQL...", explorer)
             sqlAction.triggered.connect(self.runSql)     
-            importAction = QtGui.QAction("Import file/layer...", explorer)
+            importAction = QtGui.QAction("Import files...", explorer)
             importAction.triggered.connect(lambda: self.importIntoDatabase(explorer))                                        
             return [newSchemaAction, sqlAction, importAction]
         else:
             return []
              
+    def startDropEvent(self):
+        self.uris = []        
+        
+    def acceptDroppedUri(self, explorer, uri):
+        if self.element.isValid:
+            self.uris.append(uri) 
+    
+    def finishDropEvent(self, explorer):
+        if self.uris:
+            files = []
+            for uri in self.uris:
+                try:
+                    files.append(uri.split(":",3)[-1])
+                except Exception, e:
+                    pass
+            print files
+            dlg = ImportIntoPostGISDialog(self.element, files = files)
+            dlg.exec_()
+            if dlg.files is not None:            
+                for i, filename in enumerate(dlg.files):
+                    explorer.progress.setValue(i)
+                    explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
+                    [],
+                    filename, self.element, dlg.schema, dlg.tablename, not dlg.add)        
+            return [self]
+        else:
+            return []
+        
       
     def importIntoDatabase(self, explorer):           
         dlg = ImportIntoPostGISDialog(self.element)
         dlg.exec_()
-        if dlg.files is not None:            
-            for i, file in enumerate(dlg.files):
+        if dlg.ok:            
+            for i, filename in enumerate(dlg.files):
                 explorer.progress.setValue(i)
-                explorer.run(importFile, file + " correctly imported into database " + dlg.conn.name,
+                explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
                 [],
-                file, dlg.conn, dlg.schema, dlg.tablename)
+                filename, self.element, dlg.schema, dlg.tablename, not dlg.add)
         self.refreshContent()
           
     def runSql(self):
@@ -110,19 +138,19 @@ class PgSchemaItem(TreeItem):
         deleteAction.triggered.connect(lambda: self.deleteSchema(explorer))  
         renameAction= QtGui.QAction("Rename...", explorer)
         renameAction.triggered.connect(lambda: self.renameSchema(explorer))
-        importAction = QtGui.QAction("Import file/layer...", explorer)
+        importAction = QtGui.QAction("Import files...", explorer)
         importAction.triggered.connect(lambda: self.importIntoSchema(explorer))                            
         return [newTableAction, deleteAction, renameAction, importAction]
 
     def importIntoSchema(self, explorer):
         dlg = ImportIntoPostGISDialog(self.element.conn, self.element.name)
         dlg.exec_()
-        if dlg.files is not None:            
-            for i, file in enumerate(dlg.files):
+        if dlg.ok:            
+            for i, filename in enumerate(dlg.files):
                 explorer.progress.setValue(i)
-                explorer.run(importFile, file + " correctly imported into database " + dlg.conn.name,
+                explorer.run(importFile, filename + " correctly imported into database " + self.element.conn.name,
                 [],
-                file, dlg.conn, dlg.schema, dlg.tablename)
+                filename, self.element.conn, dlg.schema, dlg.tablename, not dlg.add)
         self.refreshContent()
         
     def deleteSchema(self, explorer):
@@ -132,7 +160,7 @@ class PgSchemaItem(TreeItem):
                           self.element.name)
     
     def renameSchema(self, explorer):
-        text, ok = QtGui.QInputDialog.getText(self.explorer, "Schema name", "Enter new name for schema", text="schema")
+        text, ok = QtGui.QInputDialog.getText(explorer, "Schema name", "Enter new name for schema", text="schema")
         if ok:
             explorer.run(self.element.conn.geodb.rename_schema, 
                           "Schema " + self.element.name + " correctly renamed to " + text,
@@ -140,7 +168,35 @@ class PgSchemaItem(TreeItem):
                           self.element.name, text)      
     
     def newTable(self):
-        pass                    
+        pass    
+    
+    def startDropEvent(self):
+        self.uris = []        
+        
+    def acceptDroppedUri(self, explorer, uri):
+        if self.element.isValid:
+            self.uris.append(uri) 
+    
+    def finishDropEvent(self, explorer):
+        if self.uris:
+            files = []
+            for uri in self.uris:
+                try:
+                    files.append(uri.split(":",3)[-1])
+                except Exception, e:
+                    pass
+            print files
+            dlg = ImportIntoPostGISDialog(self.element, schema = self.element, files = files)
+            dlg.exec_()
+            if dlg.files is not None:            
+                for i, filename in enumerate(dlg.files):
+                    explorer.progress.setValue(i)
+                    explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
+                    [],
+                    filename, self.element.conn, dlg.schema, dlg.tablename, not dlg.add)        
+            return [self]
+        else:
+            return []                
         
 class PgTableItem(TreeItem): 
     def __init__(self, table):                               
@@ -169,8 +225,7 @@ class PgTableItem(TreeItem):
         
         return tableIcon
     
-    def contextMenuActions(self, tree, explorer):
-        self.explorer = explorer  
+    def contextMenuActions(self, tree, explorer):        
         publishPgTableAction = QtGui.QAction("Publish...", explorer)
         publishPgTableAction.triggered.connect(lambda: self.publishPgTable(tree, explorer))            
         publishPgTableAction.setEnabled(len(tree.gsItem.catalogs()) > 0)
@@ -194,7 +249,7 @@ class PgTableItem(TreeItem):
         layer = QgsVectorLayer(uri, self.element.name, "postgres")
 
         from db_manager.dlg_export_vector import DlgExportVector
-        dlg = DlgExportVector(layer, None, self.explorer)
+        dlg = DlgExportVector(layer, None, explorer)
         dlg.exec_()
 
         layer.deleteLater()
@@ -204,7 +259,7 @@ class PgTableItem(TreeItem):
         pass
     
     def vacuumTable(self, explorer):
-        explorer.run(self.element.conn.geodb.vacuum_analize, 
+        explorer.run(self.element.conn.geodb.vacuum_analyze, 
                   "Table " + self.element.name + " correctly vacuumed",
                   [self.parent()], 
                   self.element.name, self.element.schema.name)
@@ -216,12 +271,12 @@ class PgTableItem(TreeItem):
                           self.element.name)
     
     def renameTable(self, explorer):
-        text, ok = QtGui.QInputDialog.getText(self.explorer, "Table name", "Enter new name for table", text="table")
+        text, ok = QtGui.QInputDialog.getText(explorer, "Table name", "Enter new name for table", text="table")
         if ok:
             explorer.run(self.element.conn.geodb.rename_table, 
                           "Table " + self.element.name + " correctly renamed to " + text,
                           [self.parent()], 
-                          self.element.name, text, self.element.schema.name)      
+                          self.element.name, text, self.element.schema)      
     
     
     def publishPgTable(self, tree, explorer):
@@ -255,5 +310,58 @@ class PgTableItem(TreeItem):
                                            passwd = geodb.passwd)
         catalog.create_pg_featuretype(table.name, connection.name, workspace)  
         
-def importFile(file, connection, schema, table, name):
+def importFile(filename, connection, schema, tablename, overwrite):
+
+    pk = "id"
+    geom = "geom" 
+    providerName = "postgres" 
+    
+    layerName = QtCore.QFileInfo(filename).completeBaseName()
+    if tablename is None:
+        tablename = layerName
+
+    geodb = connection.geodb
+    uri = QgsDataSourceURI()    
+    uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)    
+    uri.setDataSource(schema, tablename, geom, "", pk)
+
+    options = {}
+    if overwrite:
+        options['overwrite'] = True
+    else:
+        options['append'] = True
+        
+    layer = QgsVectorLayer(filename, layerName, "ogr")    
+    if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
+        layer.deleteLater()
+        raise WrongLayerFileError("Error reading file {} or it is not a valid vector layer file".format(filename))
+                
+    ret, errMsg = QgsVectorLayerImport.importLayer(layer, uri.uri(), providerName, layer.crs(), False, False, options)
+    if ret != 0:
+        raise Exception(errMsg)
+    
+    
+    
+ #==============================================================================
+ #   if self.chkSinglePart.isEnabled() and self.chkSinglePart.isChecked():
+ #      options['forceSinglePartGeometryType'] = True
+ #   outCrs = None
+ #   if self.chkTargetSrid.isEnabled() and self.chkTargetSrid.isChecked():
+ #       targetSrid = int(self.editTargetSrid.text())
+ #       outCrs = qgis.core.QgsCoordinateReferenceSystem(targetSrid)
+ # 
+ #   # update input layer crs and encoding
+ #   if self.chkSourceSrid.isEnabled() and self.chkSourceSrid.isChecked():
+ #       sourceSrid = int(self.editSourceSrid.text())
+ #       inCrs = QgsCoordinateReferenceSystem(sourceSrid)
+ #       self.inLayer.setCrs( inCrs )
+ # 
+ #   if self.chkEncoding.isEnabled() and self.chkEncoding.isChecked():
+ #       enc = self.cboEncoding.currentText()
+ #       self.inLayer.setProviderEncoding( enc )
+ #==============================================================================
+
+    # do the import!
+    
+class WrongLayerFileError(Exception):
     pass

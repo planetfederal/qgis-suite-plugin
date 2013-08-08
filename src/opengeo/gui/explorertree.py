@@ -157,9 +157,35 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         return mimeData
         
     def dropEvent(self, event):
-        if not isinstance(event.source(), ExplorerTreeWidget):
-            event.acceptProposedAction()
-            return        
+        if isinstance(event.source(), ExplorerTreeWidget):
+            self.dropExplorerItemEvent(event)
+        else:
+            destinationItem=self.itemAt(event.pos())        
+            mimeData = event.mimeData()
+            elements = []            
+            for mimeFormat in mimeData.formats():                
+                if mimeFormat != self.QGIS_URI_MIME:
+                    continue            
+                encoded = mimeData.data(mimeFormat)
+                stream = QtCore.QDataStream(encoded, QtCore.QIODevice.ReadOnly)
+                while not stream.atEnd():
+                    mimeUri = stream.readQString()
+                    elements.append(mimeUri)            
+            if elements:
+                destinationItem.startDropEvent()
+                self.explorer.progress.setMaximum(len(elements))
+                toUpdate = set()
+                for i, element in enumerate(elements):
+                    destinationItem.acceptDroppedUri(self.explorer, element)                                                                            
+                    self.explorer.progress.setValue(i)                
+                toUpdate = destinationItem.finishDropEvent(self.explorer)
+                for item in toUpdate:
+                    item.refreshContent()        
+                self.explorer.progress.setValue(0)
+                event.acceptProposedAction()    
+ 
+    
+    def dropExplorerItemEvent(self, event):        
         destinationItem=self.itemAt(event.pos())
         draggedTypes = {item.__class__ for item in event.source().selectedItems()}
         if len(draggedTypes) > 1:

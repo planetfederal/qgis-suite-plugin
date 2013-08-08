@@ -112,7 +112,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
     def setDescriptionWidget(self, widget):
         self.tabbedPanel.removeTab(0)
         self.tabbedPanel.insertTab(0, widget, "Description")
-        self.tabbedPanel.setCurrentIndex(0)
+        #self.tabbedPanel.setCurrentIndex(0)
         
 
     def refreshDescription(self):

@@ -32,7 +32,7 @@ In the lower part to will see a tabbed panel with two panels: *Description* and 
 
 .. image:: log.png
 
-When the explorer window is docked, the log and description panels are found on its lower the lower part. If you undock the window, they will be placed on the right--hand side of it, to make better use of the available space.
+When the explorer window is docked, the log and description panels are found on its lower the lower part. If you undock the window, they will be placed on the right--hand side of it, to make better use of the available space. The image above shows the undocked configuration.
 
 Using the explorer
 ******************
@@ -67,12 +67,7 @@ At the botton of the explorer you can find a box with two information tabs: *Des
 
 The *Description* tab shows information about the currently selected element. In most cases, it is just static information shown as text, but it might also be a table that allows some interaction as well.
 
-
-.. image:: description.png
-
-The *Log* tab shows a log of all tasks performed by the explorer, including information related to errors that might appear.
-
-.. image:: info.png
+The *Log* tab, as it was already mentioned, shows a log of all tasks performed by the explorer, including information related to errors that might appear.
 
 
 Available commands and actions
@@ -141,13 +136,13 @@ GeoWebCache
 
 	- *Seed...*. Launches a seeding operation for the cached layer. The operation is defined through the following dialog.
 
-	..image:: seed.png
+	.. image:: seed.png
 
 	The area to seed has to be entered in the box in the bottom part of the dialog, with a string of 4 comma-separated values (xmin, xmax, ymin, ymax). If no values are entered, the full extent of the layer to seed is used.
 
 	Another way of setting the seeding region is to click on the *Define on canvas* button on the right--hand side of the extent box. This will cause the dialog to temporarily this appear and show the QGIS canvas. Just click and drag on the canvas to define the desired seeding region, and the dialog will show up again, containing the coordinates of the region.
 
-	..image:: extent_drag.png
+	.. image:: extent_drag.png
 
 
 	- *Empty*. Deletes (truncates) all cached data for a given layer.
@@ -180,7 +175,7 @@ The following actions are available for items in the PostGIS branch.
 
 - PostGIS connection item
 
-	- *New schema*
+	- *New schema*. Creates a new schema.
 
 	- *Import files*. Import a set of files with data into the selected schema. The following window is shown.
 
@@ -188,7 +183,9 @@ The following actions are available for items in the PostGIS branch.
 
 	Click on the button in the *Layers* group and select the files you want to import. Then select the destination schema and table. You can select the name of a preexisting table or enter the name you want. In case of selecting a preexisting table, click on the *Add to table* checkbox to add the imported data to the current content of the table. Otherwise, the table will be deleted and a new one with that name created. If you select the *Add to table* box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
 
-	There is an additional option, *[create table from file name]*, which will set the table name based on the name of the file to import (without extension). The *Add to table* box applies also in this case.
+	There is an additional option, *[use file name]*, which will set the table name based on the name of the file to import (without extension). The *Add to table* box applies also in this case.
+
+	When two or more files are selected, the *Add to table* box will automatically be checked in case a table name option other than *[use file name]* is selected. In this case, it makes no sense to overwrite the destination table, since all imported files are going to be imported into the same table, and that will cause each one to overwrite the previous ones, leaving in the final table just the content of the last file.
 
 	
 
@@ -200,7 +197,7 @@ The following actions are available for items in the PostGIS branch.
 
 	- *Rename*. Renames the schema
 
-
+    - *Import files*. Same as the import command for connection items, but the schema field in the import dialog is not enabled.
 
 - PostGIS table item
 
@@ -239,7 +236,7 @@ QGIS project
 
 - QGIS style item
 
-	- *Publish*. Publishes the selected style. Since only vector layers suport SLD in QGIS, raster layers are not listed in this group.
+	- *Publish*. Publishes the selected style. Since only vector layers support SLD in QGIS, raster layers are not listed in this group.
 
 - QGIS project item
 
@@ -263,7 +260,7 @@ Another task than can be done with a multiple selection is creating a new group.
 Drag & drop operations
 ***********************
 
-The tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of a catalog. 
+The explorer tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of an element. 
 
 .. image:: dragdrop.png
 
@@ -276,10 +273,16 @@ Below you can find more information about the operations that can be performed t
 - Dragging a QGIS style into a GeoServer layer element. It publishes the style to the catalog the layer belongs to, and then adds the style to the list of alternative styles of the layer.
 - Dragging a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
 - Dragging a GeoServer layer item onto the *GeoWebCache layers* item of the same catalog. It will add the corresponding cached layer for the dragged layer.
+- Dragging a QGIS layer into a PostGIS connection or schema item. It will import the layer into the corresponding PostGIS database. The import dialog is shown before importing.
+- Draggin a PostGIS table item into a Geoserver catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of ropping onto a catalog item
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 
-GeoServer layers can be dragged onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described.
+You can also drag elements from elements outside of the explorer itself. For instance, you can open the QGIS browser, select some files with vector data and drag and drop them into a PostGIS element in the explorer. That will cause the data in those files to be imported into the corresponding PostGIS database.
+
+.. image:: dragdrop_external.png
+
+Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer layers can be dropped onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described. Dragging and dropping a PostGIS table will cause a new layer to be added to the QGIS project, based on that table.
 
 
 

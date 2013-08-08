@@ -29,3 +29,12 @@ class TreeItem(QtGui.QTreeWidgetItem):
     
     def acceptDroppedItem(self, explorer, item):
         return []
+    
+    def startDropEvent(self):
+        self.uris = []
+        
+    def finishDropEvent(self, explorer):
+        return []
+            
+    def acceptDroppedUri(self, explorer, uri):
+        pass

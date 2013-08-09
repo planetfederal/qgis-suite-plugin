@@ -1,7 +1,7 @@
 OpenGeo Suite QGIS Plugin
 ============================
 
-A plugin to configure and OpenGeo suite (mostly its GeoServer component) from QGIS
+A plugin to configure the OpenGeo suite from QGIS
 
 Installation
 --------------
@@ -16,8 +16,21 @@ To install the plugin, follow these steps:
 - Start QGIS and activate the plugin in the plugin manager.
 - You should have an *OpenGeo* menu already available in the menu bar.
 
+The plugin can also be installed using the plugin manager.
+
+- Add the following repository to the list of plugin repositories:
+
+	.. image:: doc/img/plugin_repo.png
+
+- Now the OpenGeo Suite plugin should be available and ready to be installed. You can look for it in the list of installable plugins in the  plugin manager.
+	
+	.. image:: doc/img/plugin_install.png
+
+- Click on *Install plugin*. The plugin will be downloaded and installed.
+
+The plugin repository is updated frequently- However, it is not guaranteed that it will contain the same code that can be found in the GitHub repository. If you want to be sure that you are using the latest development version, use the first installation procedure and install from the GitHub repository.
 
 Usage
 ------
 
-The plugin functionality is accessed through the GeoServer Eplorer, which is documented `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/gui.rst>`_
+The plugin functionality is accessed through the OpenGeo Explorer, which is documented `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/gui.rst>`_

@@ -15,7 +15,10 @@ class PublishProjectDialog(QtGui.QDialog):
         layout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         self.setWindowTitle('Publish layer')
-         
+                 
+        
+        verticalLayout = QtGui.QVBoxLayout()
+        
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        
@@ -25,7 +28,7 @@ class PublishProjectDialog(QtGui.QDialog):
         self.catalogBox.currentIndexChanged.connect(self.catalogHasChanged)
         horizontalLayout.addWidget(catalogLabel)
         horizontalLayout.addWidget(self.catalogBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -37,18 +40,28 @@ class PublishProjectDialog(QtGui.QDialog):
         self.workspaceBox.addItems(workspaceNames)
         horizontalLayout.addWidget(workspaceLabel)
         horizontalLayout.addWidget(self.workspaceBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
+        
+        self.destGroupBox = QtGui.QGroupBox()
+        self.destGroupBox.setLayout(verticalLayout)
+        
+        verticalLayout = QtGui.QVBoxLayout()
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        
-        groupLabel = QtGui.QLabel('Group name')
+        groupLabel = QtGui.QLabel('Global group name')
         self.groupNameBox = QtGui.QLineEdit()        
-        self.groupNameBox.setText("New_group")
+        self.groupNameBox.setPlaceholderText("[leave empty if no global group should be created]")
         horizontalLayout.addWidget(groupLabel)
         horizontalLayout.addWidget(self.groupNameBox)
-        layout.addLayout(horizontalLayout)
-                      
+        verticalLayout.addLayout(horizontalLayout)
+        
+        self.groupGroupBox = QtGui.QGroupBox()
+        self.groupGroupBox.setLayout(verticalLayout)
+        
+        layout.addWidget(self.destGroupBox)
+        layout.addWidget(self.groupGroupBox)                      
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
@@ -68,6 +81,8 @@ class PublishProjectDialog(QtGui.QDialog):
         self.catalog = self.catalogs[self.catalogBox.currentText()]
         self.workspace = self.workspaces[self.workspaceBox.currentIndex()]
         self.groupName = self.groupNameBox.text()
+        if self.groupName.strip() == "":
+            self.groupName = None
         self.close()
 
     def cancelPressed(self):

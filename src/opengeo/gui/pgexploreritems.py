@@ -7,6 +7,7 @@ from opengeo.gui.layerdialog import PublishLayerDialog
 from opengeo.postgis.postgis_utils import tableUri
 from opengeo.gui.userpasswd import UserPasswdDialog
 from opengeo.gui.importvector import ImportIntoPostGISDialog
+from opengeo.gui.pgconnectiondialog import NewPgConnectionDialog
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")   
  
@@ -19,24 +20,44 @@ class PgConnectionsItem(TreeItem):
         settings = QtCore.QSettings()
         settings.beginGroup(u'/PostgreSQL/connections')
         for name in settings.childGroups():
+            settings.beginGroup(name)
+            try:                                            
+                conn = PgConnection(name, settings.value('host'), int(settings.value('port')), 
+                                settings.value('database'), settings.value('username'), 
+                                settings.value('password'))                 
+                item = PgConnectionItem(conn)
+                if conn.isValid:                              
+                    item.populate()
+                    #self.addChild(item)
+                else:    
+                    #if there is a problem connecting, we add the unpopulated item with the error icon
+                    #TODO: report on the problem
+                    wrongConnectionIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/wrong.gif")                 
+                    item.setIcon(0, wrongConnectionIcon)
+                    #item.setText(0, name + "[cannot connect]")
+                self.addChild(item)
+            except Exception, e:                
+                pass
+            finally:                            
+                settings.endGroup()  
         
-            settings.beginGroup(name)                
-            conn = PgConnection(name, settings.value('host'), int(settings.value('port')), 
-                            settings.value('database'), settings.value('username'), 
-                            settings.value('password'))                 
-            item = PgConnectionItem(conn)
-            if conn.isValid:                              
-                item.populate()
-                #self.addChild(item)
-            else:    
-                #if there is a problem connecting, we add the unpopulated item with the error icon
-                #TODO: report on the problem
+    def contextMenuActions(self, tree, explorer):         
+        newConnectionAction = QtGui.QAction("New connection...", explorer)
+        newConnectionAction.triggered.connect(lambda: self.newConnection(explorer))                                             
+        return [newConnectionAction]
+                 
+    def newConnection(self, explorer):
+        dlg = NewPgConnectionDialog(explorer)
+        dlg.exec_()
+        if dlg.conn is not None:
+            item = PgConnectionItem(dlg.conn)
+            if dlg.conn.isValid:                              
+                item.populate()                
+            else:                    
                 wrongConnectionIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/wrong.gif")                 
-                item.setIcon(0, wrongConnectionIcon)
-                #item.setText(0, name + "[cannot connect]")
-            self.addChild(item)                            
-                                   
-        settings.endGroup()            
+                item.setIcon(0, wrongConnectionIcon)                
+            self.addChild(item)
+            
                   
 class PgConnectionItem(TreeItem): 
     def __init__(self, conn):                      
@@ -63,7 +84,7 @@ class PgConnectionItem(TreeItem):
     def contextMenuActions(self, tree, explorer): 
         if self.element.isValid:            
             newSchemaAction = QtGui.QAction("New schema...", explorer)
-            newSchemaAction.triggered.connect(self.newSchema) 
+            newSchemaAction.triggered.connect(lambda: self.newSchema(explorer)) 
             sqlAction = QtGui.QAction("Run SQL...", explorer)
             sqlAction.triggered.connect(self.runSql)     
             importAction = QtGui.QAction("Import files...", explorer)
@@ -71,6 +92,21 @@ class PgConnectionItem(TreeItem):
             return [newSchemaAction, sqlAction, importAction]
         else:
             return []
+        
+    def _getDescriptionHtml(self, tree, explorer):  
+        if not self.element.isValid:
+            html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
+            html += ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
+                    'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')     
+            return html
+        else:
+            return TreeItem._getDescriptionHtml(self, tree, explorer)
+
+    def linkClicked(self, url):
+        if not self.element.isValid:
+            self.refreshContent()
+        else:
+            TreeItem.linkClicked(self, url)        
              
     def startDropEvent(self):
         self.uris = []        
@@ -86,14 +122,13 @@ class PgConnectionItem(TreeItem):
                 try:
                     files.append(uri.split(":",3)[-1])
                 except Exception, e:
-                    pass
-            print files
+                    pass            
             dlg = ImportIntoPostGISDialog(self.element, files = files)
             dlg.exec_()
             if dlg.files is not None:            
                 for i, filename in enumerate(dlg.files):
                     explorer.progress.setValue(i)
-                    explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
+                    explorer.run(importFile, "Import " + filename + "  into database " + self.element.name,
                     [],
                     filename, self.element, dlg.schema, dlg.tablename, not dlg.add)        
             return [self]
@@ -107,7 +142,7 @@ class PgConnectionItem(TreeItem):
         if dlg.ok:            
             for i, filename in enumerate(dlg.files):
                 explorer.progress.setValue(i)
-                explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
+                explorer.run(importFile, "Import" + filename + " into database " + self.element.name,
                 [],
                 filename, self.element, dlg.schema, dlg.tablename, not dlg.add)
         self.refreshContent()
@@ -115,8 +150,13 @@ class PgConnectionItem(TreeItem):
     def runSql(self):
         pass
     
-    def newSchema(self):
-        pass 
+    def newSchema(self, explorer):            
+        text, ok = QtGui.QInputDialog.getText(explorer, "Schema name", "Enter name for new schema", text="schema")
+        if ok:
+            explorer.run(self.element.geodb.create_schema, 
+                        "Create schema '" + text + "'",
+                         [self], 
+                         text) 
                     
 class PgSchemaItem(TreeItem): 
     def __init__(self, schema): 
@@ -148,14 +188,14 @@ class PgSchemaItem(TreeItem):
         if dlg.ok:            
             for i, filename in enumerate(dlg.files):
                 explorer.progress.setValue(i)
-                explorer.run(importFile, filename + " correctly imported into database " + self.element.conn.name,
+                explorer.run(importFile, "Import " + filename + " into database " + self.element.conn.name,
                 [],
                 filename, self.element.conn, dlg.schema, dlg.tablename, not dlg.add)
         self.refreshContent()
         
     def deleteSchema(self, explorer):
         explorer.run(self.element.conn.geodb.delete_schema, 
-                          "Schema " + self.element.name + " correctly deleted",
+                          "Delete schema '" + self.element.name + "'",
                           [self.parent()], 
                           self.element.name)
     
@@ -163,11 +203,11 @@ class PgSchemaItem(TreeItem):
         text, ok = QtGui.QInputDialog.getText(explorer, "Schema name", "Enter new name for schema", text="schema")
         if ok:
             explorer.run(self.element.conn.geodb.rename_schema, 
-                          "Schema " + self.element.name + " correctly renamed to " + text,
+                          "Rename schema '" + self.element.name + "'  to '" + text + "'", 
                           [self.parent()], 
                           self.element.name, text)      
     
-    def newTable(self):
+    def newTable(self, explorer):
         pass    
     
     def startDropEvent(self):
@@ -184,14 +224,13 @@ class PgSchemaItem(TreeItem):
                 try:
                     files.append(uri.split(":",3)[-1])
                 except Exception, e:
-                    pass
-            print files
+                    pass            
             dlg = ImportIntoPostGISDialog(self.element, schema = self.element, files = files)
             dlg.exec_()
             if dlg.files is not None:            
                 for i, filename in enumerate(dlg.files):
                     explorer.progress.setValue(i)
-                    explorer.run(importFile, filename + " correctly imported into database " + self.element.name,
+                    explorer.run(importFile, "Import" + filename + " into database " + self.element.name,
                     [],
                     filename, self.element.conn, dlg.schema, dlg.tablename, not dlg.add)        
             return [self]
@@ -228,45 +267,24 @@ class PgTableItem(TreeItem):
     def contextMenuActions(self, tree, explorer):        
         publishPgTableAction = QtGui.QAction("Publish...", explorer)
         publishPgTableAction.triggered.connect(lambda: self.publishPgTable(tree, explorer))            
-        publishPgTableAction.setEnabled(len(tree.gsItem.catalogs()) > 0)
-        exportAction= QtGui.QAction("Export...", explorer)
-        exportAction.triggered.connect(lambda: self.exportTable(explorer))    
-        editAction= QtGui.QAction("Edit...", explorer)
-        editAction.triggered.connect(lambda: self.editTable(explorer))   
+        publishPgTableAction.setEnabled(len(tree.gsItem.catalogs()) > 0)    
         deleteAction= QtGui.QAction("Delete", explorer)
         deleteAction.triggered.connect(lambda: self.deleteTable(explorer))  
         renameAction= QtGui.QAction("Rename...", explorer)
         renameAction.triggered.connect(lambda: self.renameTable(explorer))                 
         vacuumAction= QtGui.QAction("Vacuum analyze", explorer)
         vacuumAction.triggered.connect(lambda: self.vacuumTable(explorer))
-        return [publishPgTableAction, exportAction, editAction, deleteAction, renameAction, vacuumAction]
-        
-
-    
-    def exportTable(self, explorer):
-        table = self.element
-        uri = tableUri(table)
-        layer = QgsVectorLayer(uri, self.element.name, "postgres")
-
-        from db_manager.dlg_export_vector import DlgExportVector
-        dlg = DlgExportVector(layer, None, explorer)
-        dlg.exec_()
-
-        layer.deleteLater()
-
-    
-    def editTable(self, explorer):
-        pass
-    
+        return [publishPgTableAction, deleteAction, renameAction, vacuumAction]
+           
     def vacuumTable(self, explorer):
         explorer.run(self.element.conn.geodb.vacuum_analyze, 
-                  "Table " + self.element.name + " correctly vacuumed",
+                  "Vacuum table " + self.element.name,
                   [self.parent()], 
-                  self.element.name, self.element.schema.name)
+                  self.element.name, self.element.schema)
     
     def deleteTable(self, explorer):
         explorer.run(self.element.conn.geodb.delete_table, 
-                          "Table " + self.element.name + " correctly deleted",
+                          "Delete table '" + self.element.name + "'",
                           [self.parent()], 
                           self.element.name)
     
@@ -274,7 +292,7 @@ class PgTableItem(TreeItem):
         text, ok = QtGui.QInputDialog.getText(explorer, "Table name", "Enter new name for table", text="table")
         if ok:
             explorer.run(self.element.conn.geodb.rename_table, 
-                          "Table " + self.element.name + " correctly renamed to " + text,
+                          "Rename table '" + self.element.name + "' to '" + text + "'",
                           [self.parent()], 
                           self.element.name, text, self.element.schema)      
     
@@ -288,7 +306,7 @@ class PgTableItem(TreeItem):
         catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
         explorer.run(self._publishTable,
-                 "Layer correctly published from layer '" + self.element.name() + "'",
+                 "Publish table '" + self.element.name + "'",
                  toUpdate,
                  self.element, cat, dlg.workspace)
         
@@ -308,7 +326,7 @@ class PgTableItem(TreeItem):
                                            port = geodb.port,
                                            user = geodb.user,
                                            passwd = geodb.passwd)
-        catalog.create_pg_featuretype(table.name, connection.name, workspace)  
+        catalog.create_pg_featuretype(table.name, connection.name, workspace, "EPSG:" + str(table.srid))  
         
 def importFile(filename, connection, schema, tablename, overwrite):
 

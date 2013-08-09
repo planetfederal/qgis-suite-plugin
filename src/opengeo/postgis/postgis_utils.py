@@ -638,7 +638,7 @@ def tableUri(table):
         geodb = table.conn.geodb
         uri = QgsDataSourceURI()    
         uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)    
-        uri.setDataSource(table.schema, table.name, "geom") #TODO: do not hardcode geometry column
+        uri.setDataSource(table.schema, table.name, table.geomfield) 
         return uri.uri()
              
 def mimeUri(table):

@@ -14,17 +14,17 @@ The explorer is launched from the *OpenGeo* menu and it looks like this.
 The main element of the explorer is the explorer tree. It has the following main branches, each of which deals with a different component.
 
 - GeoServer catalogs
-- PostGIS
+- PostGIS connections
 - GeoGit
 - QGIS project
 
-A GeoWebCache branch is found under the *Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer
+A *GeoWebCache* branch is found under the *Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer
 
 The *GeoServer catalogs* branch contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
 
 The *QGIS Project* branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in GeoServer. This way, it is easy to understand the relation between both the QGIS project and the GeoServer Catalogs
 
-The *PostGIS databases* contains a list of all available PostGIS connections in QGIS. Its functionality resembles that of the QGIS built--in DB Manager.
+The *PostGIS databases* branch contains a list of all available PostGIS connections in QGIS. Its functionality resembles that of the QGIS built--in DB Manager.
 
 The *GeoGit repositories* branch contains the available GeoGit repositories that have been defined. Like the branch corresponding to GeoServer catalogs, it's empty when you launch the explorer, and you can add as many repositories as needed.
 
@@ -170,7 +170,11 @@ The following actions are available for items in the PostGIS branch.
 
 - PostGIS connections item
 
-	- *Add new connection*. Adds a new PostGIS connection through the usual QGIS connection dialog
+	- *Add new connection*. Adds a new PostGIS connection. The connection is not defined through the usual QGIS connection dialog, but a custom one instead.
+
+	.. image:: new_pg_connection.png
+
+	At the moment, this dialog does not allow to configure all the parameters that can be set up through the built-in dialog. Also, passwords and user names are always stored in this case. If this doesn't fit your needs, please, create the new connection through the usual interface, using the *Add PostGIS layers* ad then creatig a new connection. After doing it, refresh the *PostGIS connection* entry in the OpenGeo explorer, since it will not be automatically updated.
 
 
 - PostGIS connection item
@@ -240,7 +244,13 @@ QGIS project
 
 - QGIS project item
 
-	- *Publish*. Publishes all the layers in the project and then creates a group with all of them.
+	- *Publish*. Publishes all the layers in the project. The publish operation is configured through the following dialog.
+
+	.. image:: publish_project.png 
+
+	All layers will be published to the selected workspace. If there are groups in the QGIS project, they will also be created.
+
+	If you want to create a group containing all the published layers, enter its name in the *Global group name* textbox. Otherwise, leave it empty and the global group will not be created.
 
 
 

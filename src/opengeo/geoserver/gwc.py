@@ -55,8 +55,6 @@ class Gwc(object):
         }        
         message = layer.xml()        
         response = self.http.request(layer.href, "PUT", message, headers)
-        print layer.href
-        print message
         headers, body = response        
         if 400 <= int(headers['status']) < 600:            
             raise FailedRequestError(body)
@@ -135,7 +133,6 @@ class GwcLayer(object):
             raise FailedRequestError(str(response) + content)
             
     def truncate(self):
-
         url = self.gwc.url + "masstruncate"        
         
         message = "<truncateLayer><layerName>"  + self.name + "</layerName></truncateLayer>"
@@ -148,8 +145,7 @@ class GwcLayer(object):
 
         
     def seed(self, operation, mimetype, gridset, minzoom, maxzoom, bbox):
-        url = self.gwc.url + "seed/" + self.name + ".xml"  
-        print url      
+        url = self.gwc.url + "seed/" + self.name + ".xml"          
         root = ET.Element('seedRequest')        
         name = ET.SubElement(root, 'name')
         name.text = self.name        

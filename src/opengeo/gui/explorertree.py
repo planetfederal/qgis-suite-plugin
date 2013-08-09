@@ -55,7 +55,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         
     def treeItemClicked(self, item, column):        
         if hasattr(item, 'descriptionWidget'):
-            widget = item.descriptionWidget()
+            widget = item.descriptionWidget(self, self.explorer)
             if widget is not None:
                 self.explorer.setDescriptionWidget(widget) 
         allTypes = self.getSelectionTypes()                
@@ -144,13 +144,11 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         for item in items:
             if isinstance(item, GsLayerItem):                
                 layer = item.element
-                uri = gsutils.mimeUri(layer)                
-                print uri
+                uri = gsutils.mimeUri(layer)                                
                 stream.writeQString(uri)
             elif isinstance(item, PgTableItem):
                 table = item.element
-                uri = pgutils.mimeUri(table)
-                print uri
+                uri = pgutils.mimeUri(table)                          
                 stream.writeQString(uri)                
   
         mimeData.setData(self.QGIS_URI_MIME, encodedData)        
@@ -181,7 +179,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 toUpdate = destinationItem.finishDropEvent(self.explorer)
                 for item in toUpdate:
                     item.refreshContent()        
-                self.explorer.progress.setValue(0)
+                self.explorer.resetActivity()
                 event.acceptProposedAction()    
  
     
@@ -189,9 +187,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         destinationItem=self.itemAt(event.pos())
         draggedTypes = {item.__class__ for item in event.source().selectedItems()}
         if len(draggedTypes) > 1:
-            return
-        draggedType = draggedTypes.pop()
-        print "Dragging objects of type '" + str(draggedType) +"' into object of type '" + str(destinationItem.__class__) + "'"
+            return            
         
         selected = self.selectedItems()
         self.explorer.progress.setMaximum(len(selected))
@@ -209,36 +205,6 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.explorer.progress.setValue(0)
         event.acceptProposedAction()
         
-        
-#===============================================================================
-#        destinationItem=self.itemAt(event.pos())        
-#        mimeData = event.mimeData()
-#        elements = []
-#        for mimeFormat in mimeData.formats():
-#            print mimeFormat
-#            if mimeFormat != "application/x-qabstractitemmodeldatalist":
-#                continue
-# 
-#            encoded = mimeData.data(mimeFormat)
-#            stream = QtCore.QDataStream(encoded, QtCore.QIODevice.ReadOnly)
-#            itemDataDict = {}
-#            while not stream.atEnd():
-#                row = stream.readInt32()
-#                col = stream.readInt32()
-#                n = stream.readUInt32()
-#                qmap = {}
-#                for i in range(n):
-#                    key = stream.readInt32()                                                    
-#                    qmap[key] = stream.readQVariant()
-#                itemDataDict[row, col] = qmap
-# 
-#            
-#            for key, value in itemDataDict.items():
-#                print key, value
-#                if key[1] == 0:
-#                   elements.append(value[QtCore.Qt.UserRole])
-#                   event.acceptProposedAction()
-#===============================================================================
         
 
         

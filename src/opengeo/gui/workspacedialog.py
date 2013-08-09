@@ -9,7 +9,8 @@ class DefineWorkspaceDialog(QtGui.QDialog):
         self.initGui()
         
         
-    def initGui(self):                         
+    def initGui(self):     
+        self.setWindowTitle('New workspace')                    
         layout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         

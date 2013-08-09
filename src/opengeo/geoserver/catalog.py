@@ -282,9 +282,7 @@ class Catalog(object):
         if store is not None:              
             if overwrite:
                 #if the existing store is the same we are trying to add, we do nothing
-                params = store.connection_parameters
-                print params
-                print (port, database, host, user, passwd)
+                params = store.connection_parameters                                
                 if (str(params['port']) == str(port) and params['database'] == database and params['host'] == host
                         and params['user'] == user):
                     print "db connection already exists"
@@ -333,7 +331,7 @@ class Catalog(object):
         if headers.status != 201 and headers.status != 200:            
             raise UploadError(response)
         
-    def create_pg_featuretype(self, name, store, workspace=None):
+    def create_pg_featuretype(self, name, store, workspace=None, srs = "EPSG:4326"):
         
         if workspace is None:
             workspace = self.get_default_workspace()
@@ -355,15 +353,12 @@ class Catalog(object):
         "<projectionPolicy>REPROJECT_TO_DECLARED</projectionPolicy>\n" 
         "<title>" + name + "</title>\n" 
         "<name>" + name +"</name>\n"         
-        "<srs>EPSG:32632</srs>" 
+        "<srs>" + srs +"</srs>" 
         "</featureType>")
-                
+        
         headers, response = self.http.request(ds_url, "POST", xml, headers)
-        
-        print xml
-        print headers
-        print response
-        
+
+               
         if headers.status != 201 and headers.status != 200:            
             raise UploadError(response)
 

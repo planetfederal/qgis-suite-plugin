@@ -103,11 +103,11 @@ class GsTreeItem(TreeItem):
             explorer.progress.setValue(progress)    
             if isinstance(element, GwcLayer):
                 explorer.run(element.delete,
-                     element.__class__.__name__ + " '" + element.name + "' correctly deleted",
+                     "Delete " + element.__class__.__name__ + " '" + element.name + "'",
                      [])                      
             else:                                     
                 explorer.run(element.catalog.delete,
-                     element.__class__.__name__ + " '" + element.name + "' correctly deleted",
+                     "Delete " + element.__class__.__name__ + " '" + element.name + "'",
                      [], 
                      element, isinstance(element, Style))  
             progress += 1
@@ -127,11 +127,12 @@ class GsTreeItem(TreeItem):
                 continue
             for style in lyr.styles:
                 allUsedStyles.add(style.name)
-            allUsedStyles.add(lyr.default_style.name)
+                if lyr.default_style is not None:
+                    allUsedStyles.add(lyr.default_style.name)
         for style in layer.styles:
             if style.name not in allUsedStyles:
                 unique.append(style)
-        if layer.default_style not in allUsedStyles:
+        if layer.default_style is not None and layer.default_style not in allUsedStyles:
             unique.append(layer.default_style)
         return unique
             
@@ -288,7 +289,7 @@ class GsGroupsItem(GsTreeItem):
         group = dlg.group
         if group is not None:
             explorer.run(self.parentCatalog().save,
-                     "Group '" + group.name + "' correctly created",
+                     "Create group '" + group.name + "'",
                      [self],
                      group)
      
@@ -377,7 +378,7 @@ class GsWorkspacesItem(GsTreeItem):
         dlg.exec_()            
         if dlg.name is not None:
             explorer.run(self.parentCatalog().create_workspace, 
-                    "Workspace '" + dlg.name + "' correctly created",
+                    "Create workspace '" + dlg.name + "'",
                     [self],
                     dlg.name, dlg.uri)
                  
@@ -414,10 +415,10 @@ class GsStylesItem(GsTreeItem):
         dlg.exec_()      
         if dlg.layer is not None:
             ogcat = OGCatalog(self.catalogs()[dlg.catalog])        
-            explorer.run(ogcat.publish_style, 
-                     "Style correctly created from layer '" + dlg.layer + "'",
+            explorer.run(ogcat.publishStyle, 
+                     "Create style from layer '" + dlg.layer + "'",
                      [self],
-                     dlg.layer, dlg.name, True)
+                     dlg.layer, True, dlg.name)
 
 
 class GsCatalogItem(GsTreeItem): 
@@ -515,7 +516,7 @@ class GsLayerItem(GsTreeItem):
             idx = layers.index(self.element.name)
             removeLayerFromGroupAction = QtGui.QAction("Remove layer from group", explorer)            
             removeLayerFromGroupAction.setEnabled(count > 1)
-            removeLayerFromGroupAction.triggered.connect(self.removeLayerFromGroup)
+            removeLayerFromGroupAction.triggered.connect(lambda: self.removeLayerFromGroup(explorer))
             actions.append(removeLayerFromGroupAction)                                                
             moveLayerUpInGroupAction = QtGui.QAction("Move up", explorer)            
             moveLayerUpInGroupAction.setEnabled(count > 1 and idx > 0)
@@ -538,7 +539,7 @@ class GsLayerItem(GsTreeItem):
             addStyleToLayerAction.triggered.connect(lambda: self.addStyleToLayer(explorer))                    
             actions.append(addStyleToLayerAction)   
             deleteLayerAction = QtGui.QAction("Delete", None)
-            deleteLayerAction.triggered.connect(lambda: self.deleteLayer(explorer))
+            deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
             actions.append(deleteLayerAction)                                
             addLayerAction = QtGui.QAction("Add to current QGIS project", explorer)
             addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
@@ -569,12 +570,12 @@ class GsLayerItem(GsTreeItem):
         group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
                 
         explorer.run(self.parentCatalog().save,
-                     "Group '" + name + "' correctly created",
+                     "Create group '" + name + "'",
                      [groupsItem],
                      group)
                     
-    def deleteLayer(self):
-        self.deleteElements([self])
+    def deleteLayer(self, tree, explorer):
+        self.deleteElements([self], tree, explorer)
             
     def removeLayerFromGroup(self, explorer):
         group = self.parent().element
@@ -585,7 +586,7 @@ class GsLayerItem(GsTreeItem):
         del styles[idx]
         group.dirty.update(layers = layers, styles = styles)
         explorer.run(self.parentCatalog().save, 
-                 "Layer '" + self.element.name + "' correctly removed from group '" + group.name +"'",
+                 "Remove layer '" + self.element.name + "' from group '" + group.name +"'",
                  [self.parent()],
                  group)
 
@@ -602,7 +603,7 @@ class GsLayerItem(GsTreeItem):
         styles[idx] = tmp          
         group.dirty.update(layers = layers, styles = styles)
         explorer.run(self.parentCatalog().save, 
-                 "Layer '" + self.element.name + "' correctly moved down in group '" + group.name +"'",
+                 "Move layer '" + self.element.name + "' down in group '" + group.name +"'",
                  [self.parent()],
                  group)        
     
@@ -619,7 +620,7 @@ class GsLayerItem(GsTreeItem):
         styles.insert(0, tmp)          
         group.dirty.update(layers = layers, styles = styles)
         explorer.run(self.parentCatalog().save, 
-                 "Layer '" + self.element.name + "' correctly moved to front in group '" + group.name +"'",
+                 "Move layer '" + self.element.name + "' to front in group '" + group.name +"'",
                  [self.parent()],
                  group)
     
@@ -636,7 +637,7 @@ class GsLayerItem(GsTreeItem):
         styles.append(tmp)          
         group.dirty.update(layers = layers, styles = styles)
         explorer.run(self.parentCatalog().save, 
-                 "Layer '" + self.element.name + "' correctly moved to back in group '" + group.name +"'",
+                 "Move layer '" + self.element.name + "' to back in group '" + group.name +"'",
                  [self.parent()],
                  group)
                      
@@ -653,7 +654,7 @@ class GsLayerItem(GsTreeItem):
         styles[idx] = tmp          
         group.dirty.update(layers = layers, styles = styles)
         explorer.run(self.parentCatalog().save, 
-                 "Layer '" + self.element.name + "' correctly moved up in group '" + group.name +"'",
+                 "Move layer '" + self.element.name + "' up in group '" + group.name +"'",
                  [self.parent()],
                  group)    
         
@@ -674,7 +675,7 @@ class GsLayerItem(GsTreeItem):
                 styles.append(dlg.style)
                 layer.styles = styles 
             explorer.run(cat.save, 
-                     "Style '" + dlg.style.name + "' correctly added to layer '" + layer.name + "'",
+                     "Add style '" + dlg.style.name + "' to layer '" + layer.name + "'",
                      [self],
                      layer)  
             
@@ -711,7 +712,7 @@ class GsGroupItem(GsTreeItem):
         editLayerGroupAction = QtGui.QAction("Edit...", explorer)
         editLayerGroupAction.triggered.connect(lambda: self.editLayerGroup(explorer))             
         deleteLayerGroupAction = QtGui.QAction("Delete", explorer)
-        deleteLayerGroupAction.triggered.connect(lambda: self.deleteLayerGroup(explorer))
+        deleteLayerGroupAction.triggered.connect(self.deleteLayerGroup)
         return [editLayerGroupAction, deleteLayerGroupAction]
        
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
@@ -728,7 +729,7 @@ class GsGroupItem(GsTreeItem):
         dlg.exec_()
         group = dlg.group
         if group is not None:
-            explorer.run(cat.save, "Layer group '" + self.element.name + "' correctly edited", 
+            explorer.run(cat.save, "Edit layer group '" + self.element.name + "'", 
                               [self], 
                               group)   
     
@@ -786,7 +787,7 @@ class GsStyleItem(GsTreeItem):
         styles = [style for style in styles if style.name != self.element.name]            
         layer.styles = styles 
         explorer.run(self.parentCatalog().save, 
-                "Style '" + self.element.name + "' removed from layer '" + layer.name, 
+                "Remove style '" + self.element.name + "' from layer '" + layer.name, 
                 tree.findAllItems(self.parent().element),
                 layer)
     
@@ -800,7 +801,7 @@ class GsStyleItem(GsTreeItem):
         layer.default_style = self.element
         layer.styles = styles 
         explorer.run(self.parentCatalog().save, 
-                "Style '" + self.element.name + "' set as default style for layer '" + layer.name + "'", 
+                "Set style '" + self.element.name + "' as default style for layer '" + layer.name + "'", 
                 tree.findAllItems(self.parent().element),
                 layer)          
     
@@ -845,7 +846,7 @@ class GsWorkspaceItem(GsTreeItem):
                                      
     def contextMenuActions(self, tree, explorer):
         setAsDefaultAction = QtGui.QAction("Set as default workspace", explorer)
-        setAsDefaultAction.triggered.connect(self.setAsDefaultWorkspace)
+        setAsDefaultAction.triggered.connect(lambda: self.setAsDefaultWorkspace(explorer))
         setAsDefaultAction.setEnabled(not self.isDefault)                                
         deleteWorkspaceAction = QtGui.QAction("Delete", explorer)
         deleteWorkspaceAction.triggered.connect(lambda: self.deleteWorkspace(tree, explorer))
@@ -861,15 +862,43 @@ class GsWorkspaceItem(GsTreeItem):
         
     def setAsDefaultWorkspace(self, explorer):
         explorer.run(self.parentCatalog().set_default_workspace, 
-                 "Workspace '" + self.element.name + "' set as default workspace",
+                 "Set workspace '" + self.element.name + "' as default workspace",
                  [self.parent()],
                  self.element.name)
         
+    def startDropEvent(self):
+        self.uris = []        
+        
+    def acceptDroppedUri(self, explorer, uri):        
+        self.uris.append(uri) 
+    
+    def finishDropEvent(self, explorer):        
+        if self.uris:
+            catalog = self.parentCatalog()
+            files = []
+            for uri in self.uris:
+                try:
+                    files.append(uri.split(":",3)[-1])
+                except Exception, e:                    
+                    pass            
+            workspace = self.element                            
+            for i, filename in enumerate(files):
+                explorer.progress.setValue(i)
+                layerName = QtCore.QFileInfo(filename).completeBaseName()
+                layer = QgsVectorLayer(filename, layerName, "ogr")    
+                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
+                    layer.deleteLater()
+                    explorer.setInfo("Error reading file {} or it is not a valid vector layer file".format(filename), 1)                                
+                else:
+                    publishDraggedLayer(explorer, layer, workspace)
+            return [explorer.tree.findAllItems(catalog)[0]]
+        else:
+            return []        
                                      
 class GsStoreItem(GsTreeItem): 
     def __init__(self, store):
         if isinstance(store, DataStore):
-            icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer_polygon.png")
         else:
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/grid.jpg")             
         GsTreeItem.__init__(self, store, icon)
@@ -915,7 +944,7 @@ class GsResourceItem(GsTreeItem):
     
     def contextMenuActions(self, tree, explorer):
         deleteResourceAction = QtGui.QAction("Delete", explorer)
-        deleteResourceAction.triggered.connect(self.deleteResource, tree, explorer)
+        deleteResourceAction.triggered.connect(lambda: self.deleteResource(tree, explorer))
         return[deleteResourceAction]
                 
     def deleteResource(self, tree, explorer):
@@ -939,8 +968,8 @@ class GwcLayersItem(GsTreeItem):
 
     def acceptDroppedItem(self, explorer, item):  
         if isinstance(item, GsLayerItem):      
-            createGwcLayer(explorer, item.element)
-            return [self]
+            if createGwcLayer(explorer, item.element):
+                return [self]
         return []
     
     def contextMenuActions(self, tree, explorer):
@@ -962,9 +991,9 @@ class GwcLayersItem(GsTreeItem):
             typename = layer.resource.workspace.name + ":" + layer.name
             
             gwclayer= GwcLayer(gwc, typename, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
-            catItem = tree.findAllItems(cat)            
+            catItem = tree.findAllItems(cat)[0]            
             explorer.run(gwc.addLayer,
-                              "GWC layer '" + layer.name + "' correctly created",
+                              "Create GWC layer '" + layer.name + "'",
                               [catItem.gwcItem],
                               gwclayer)             
                             
@@ -988,41 +1017,49 @@ class GwcLayerItem(GsTreeItem):
         deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
         return[editGwcLayerAction, seedGwcLayerAction, emptyGwcLayerAction, deleteLayerAction]
 
+    def acceptDroppedItem(self, explorer, item):  
+        if isinstance(item, GsLayerItem):      
+            if createGwcLayer(explorer, item.element):
+                return [self.parent()]
+        return []
+        
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         deleteSelectedAction = QtGui.QAction("Delete", explorer)
         deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def descriptionWidget(self):        
-        text = self.getSeedingTasksStateDescription()
-        self.webView = QtWebKit.QWebView()
-        self.webView.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
-        self.webView.connect(self.webView, SIGNAL("linkClicked(const QUrl&)"), self.linkClicked)
-        self.webView.setHtml(text)   
-        return self.webView 
-    
-    def getSeedingTasksStateDescription(self):        
+
+    def _getDescriptionHtml(self, tree, explorer):                        
+        html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
+        html += '<p><b>Seeding status</b></p>'     
         try:
             state = self.element.getSeedingState()
             if state is None:
-                text = "No seeding tasks exist for this layer"
+                html += "<p>No seeding tasks exist for this layer</p>"
             else:
-                text = "This layer is being seeded. Processed {} tiles of {}".format(state[0], state[1])
-                text += '</br></br><a href="update">update</a> - <a href="kill">kill</a>'
+                html += "<p>This layer is being seeded. Processed {} tiles of {}</p>".format(state[0], state[1])
+                html += '<p><a href="update">update</a> - <a href="kill">kill</a></p>'
         except SeedingStatusParsingError:
-            text = 'Cannot determine running seeding tasks for this layer'
-        return text
+            html += '<p>Cannot determine running seeding tasks for this layer</p>'
+        actions = self.contextMenuActions(tree, explorer)
+        html += "<p><b>Available actions</b></p><ul>"
+        for action in actions:
+            if action.isEnabled():
+                html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
+        html += '</ul>'
+        return html 
+        
     
     def linkClicked(self, url):
-        print url.toString()
+        TreeItem.linkClicked(self, url)        
         if url.toString() == 'kill':
             try:
                 self.element.killSeedingTasks()
             except FailedRequestError:
                 #TODO:
                 return
-        text = self.getSeedingTasksStateDescription()
-        self.webView.setHtml(text)
+        text = self.getDescriptionHtml(self.description.tree, self.description.explorer)
+        self.description.setHtml(text)
         
           
     def deleteLayer(self, tree, explorer):
@@ -1033,7 +1070,7 @@ class GwcLayerItem(GsTreeItem):
         layer = self.element   
         #TODO: confirmation dialog??    
         explorer.run(layer.truncate,
-                          "GWC layer '" + layer.name + "' correctly truncated",
+                          "Truncate GWC layer '" + layer.name + "'",
                           [],
                           )            
     def seedGwcLayer(self, explorer):
@@ -1043,7 +1080,7 @@ class GwcLayerItem(GsTreeItem):
         dlg.exec_()
         if dlg.format is not None:
             explorer.run(layer.seed,
-                              "GWC layer '" + layer.name + "' correctly seeded",
+                              "Request seed for GWC layer '" + layer.name + "' ",
                               [],
                               dlg.operation, dlg.format, dlg.gridset, dlg.minzoom, dlg.maxzoom, dlg.extent)
     
@@ -1053,7 +1090,7 @@ class GwcLayerItem(GsTreeItem):
         dlg.exec_()
         if dlg.gridsets is not None:
             explorer.run(layer.update,
-                              "GWC layer '" + layer.name + "' correctly updated",
+                              "Update GWC layer '" + layer.name + "'",
                               [],
                               dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
             
@@ -1082,21 +1119,21 @@ def publishDraggedGroup(self, explorer, groupItem, catalog, workspace):
         explorer.progress.setValue(progress)  
     names = [layer.name() for layer in group]      
     layergroup = catalog.create_layergroup(groupName, names, names)
-    explorer.run(catalog.save, "Layer group correctly created from group '" + groupName + "'", 
+    explorer.run(catalog.save, "Create layer group from group '" + groupName + "'", 
              [], layergroup)       
 
 def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog  
     ogcat = OGCatalog(cat)                                
     explorer.run(ogcat.publishLayer,
-             "Layer correctly published from layer '" + layer.name() + "'",
+             "Publish layer from layer '" + layer.name() + "'",
              [],
              layer, workspace, True)
     
 def publishDraggedTable(explorer, table, workspace):    
     cat = workspace.catalog                          
     explorer.run(_publishTable,
-             "Table correctly published from table '" + table.name + "'",
+             "Publish table from table '" + table.name + "'",
              [],
              table, cat, workspace)
     
@@ -1116,7 +1153,7 @@ def _publishTable(table, catalog = None, workspace = None):
                                    port = geodb.port,
                                    user = geodb.user,
                                    passwd = geodb.passwd)
-    catalog.create_pg_featuretype(table.name, connection.name, workspace)  
+    catalog.create_pg_featuretype(table.name, connection.name, workspace, "EPSG:" + str(table.srid))  
 
 def publishDraggedStyle(explorer, layerName, catalogItem):
     ogcat = OGCatalog(catalogItem.element)
@@ -1127,7 +1164,7 @@ def publishDraggedStyle(explorer, layerName, catalogItem):
             toUpdate.append(subitem)
             break                
     explorer.run(ogcat.publishStyle,
-             "Style correctly published from layer '" + layerName + "'",
+             "Publish style from layer '" + layerName + "'",
              toUpdate,
              layerName, True, layerName)
 
@@ -1140,7 +1177,7 @@ def addDraggedLayerToGroup(explorer, layer, groupItem):
         styles.append(layer.default_style.name)
     group.dirty.update(layers = layers, styles = styles)
     explorer.run(layer.catalog.save,
-                 "Group '" + group.name + "' correctly updated",
+                 "Update group '" + group.name + "'",
                  [groupItem],
                  group)
     
@@ -1158,7 +1195,7 @@ def addDraggedStyleToLayer(explorer, styleItem, layerItem):
     styles.append(style)
     layer.styles = styles                        
     explorer.run(catalog.save, 
-             "Style '" + style.name + "' correctly added to layer '" + layer.name + "'",
+             "Add style '" + style.name + "' to layer '" + layer.name + "'",
              [layerItem],
              layer)  
          
@@ -1174,6 +1211,9 @@ def createGwcLayer(explorer, layer):
         
         gwclayer= GwcLayer(gwc, typename, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
         explorer.run(gwc.addLayer,
-                          "GWC layer '" + layer.name + "' correctly created",
+                          "Create GWC layer '" + layer.name + "'",
                           [],
-                          gwclayer)                   
+                          gwclayer)  
+        return True
+    else:
+        return False                 

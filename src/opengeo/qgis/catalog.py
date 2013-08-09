@@ -134,7 +134,7 @@ class OGCatalog(object):
                                            port = uri.port(),
                                            user = uri.username(),
                                            passwd = uri.password())  
-                    self.catalog.create_pg_featuretype(uri.table(), connName, workspace)
+                    self.catalog.create_pg_featuretype(uri.table(), connName, workspace, layer.crs().authid())
                 else:                             
                     data = self.getDataFromLayer(layer)
                     self.catalog.create_shp_featurestore(name,

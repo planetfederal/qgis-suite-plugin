@@ -539,12 +539,15 @@ class Catalog(object):
             return UnsavedLayerGroup(self, name, layers, styles, bounds)
 
     def get_style(self, name):
-        try:
+        if ':' in name:
+            ws, name = name.split(':')
+            style_url = url(self.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
+        else:
             style_url = url(self.service_url, ["styles", name + ".xml"])
-            dom = self.get_xml(style_url)
-            return Style(self, dom.find("name").text)
-        except FailedRequestError:
-            return None
+        #dom = self.get_xml(style_url)
+        return Style(self, name)#dom.find("name").text)
+        
+
 
     def get_styles(self):
         styles_url = url(self.service_url, ["styles.xml"])

@@ -3,19 +3,18 @@ from qgis.core import *
 from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
 
-from opengeo.gui.explorertree import ExplorerTreeWidget
 import os
+from opengeo.gui.explorerwidget import ExplorerWidget
 
 INFO = 0
 ERROR = 1
 CONSOLE_OUTPUT = 2   
     
 class OpenGeoExplorer(QtGui.QDockWidget):
-    
- 
-        
-    def __init__(self, parent = None):
-        super(OpenGeoExplorer, self).__init__()        
+
+    def __init__(self, parent = None, singletab = False):
+        super(OpenGeoExplorer, self).__init__()  
+        self.singletab = singletab      
         self.initGui()
         
     def initGui(self):    
@@ -25,11 +24,12 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.splitter = QtGui.QSplitter()
         self.splitter.setOrientation(Qt.Vertical)
         self.subwidget = QtGui.QWidget()               
-        self.tree = ExplorerTreeWidget(self)
+        self.explorerWidget = ExplorerWidget(self, self.singletab)
         self.toolbar = QtGui.QToolBar()
         self.toolbar.setToolButtonStyle(Qt.ToolButtonTextOnly)#Qt.ToolButtonTextUnderIcon)
+        self.toolbar.setVisible(self.singletab)
         self.setToolbarActions([])
-        self.splitter.addWidget(self.tree)         
+        self.splitter.addWidget(self.explorerWidget)         
         self.tabbedPanel = QtGui.QTabWidget()                      
         self.log = QtGui.QTextEdit()        
         self.tabbedPanel.addTab(QtGui.QWidget(), "Description")
@@ -44,7 +44,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.layout.setSpacing(2)
         self.layout.setMargin(0)     
         self.status = QtGui.QLabel()   
-                                             
+        self.status.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)                                             
         self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.splitter)
         self.layout.addWidget(self.status)
@@ -69,7 +69,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         if len(actions) == 0:
             refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")                         
             refreshAction = QtGui.QAction(refreshIcon, "Refresh", self)
-            refreshAction.triggered.connect(self.tree.updateContent)
+            refreshAction.triggered.connect(self.explorerWidget.refreshContent)
             self.toolbar.addAction(refreshAction)
              
         for action in actions:
@@ -78,9 +78,16 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.toolbar.update()
         
             
-    def updateContent(self):
-        self.tree.updateContent()
-            
+    def refreshContent(self):
+        self.explorerWidget.refreshContent()
+        self.refreshDescription()
+        
+    def catalogs(self):        
+        return self.explorerWidget.catalogs()
+        
+    def updateQgisContent(self):
+        self.explorerWidget.updateQgisContent()
+                   
     def run(self, command, msg, refresh, *params):
         error = False                                
         self.status.setText(msg)
@@ -89,7 +96,10 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         def finish():
             QtGui.QApplication.restoreOverrideCursor()
             for item in refresh:
-                item.refreshContent()
+                if item is not None:
+                    item.refreshContent()
+            if None in refresh:
+                self.refreshContent()
             self.setInfo("Operation <i>" + msg + "</i> correctly executed")
         def error(msg):
             QtGui.QApplication.restoreOverrideCursor()            
@@ -128,10 +138,10 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         
 
     def refreshDescription(self):
-        item = self.tree.currentItem()
-        if item is not None: 
+        item = self.explorerWidget.currentTreeWidget().currentItem()
+        if item is not None:
             try:      
-                self.tree.treeItemClicked(item, 0)
+                self.explorerWidget.currentTree().treeItemClicked(item, 0)
             except:
                 self.setDescriptionWidget(QtGui.QWidget())
     

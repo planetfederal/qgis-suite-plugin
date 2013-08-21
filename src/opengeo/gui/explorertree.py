@@ -2,7 +2,6 @@ from PyQt4.QtCore import *
 from qgis.core import *
 from opengeo.gui.gsexploreritems import *
 from opengeo.gui.qgsexploreritems import *
-from opengeo.gui.pgexploreritems import PgConnectionsItem
 from opengeo.geoserver import utils as gsutils
 from opengeo.postgis import postgis_utils as pgutils
 
@@ -22,32 +21,11 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.catalogs = {}
-        self.qgsItem = None
-        self.fillTree()
-        
-    def fillTree(self):
-        self.addGeoServerCatalogs()
-        self.addPostGisConnections()
-        self.addQGisProject()
-        
-    def updateContent(self):
-        if self.qgisItem is not None:
-            self.qgisItem.refreshContent()
-        
-    def addGeoServerCatalogs(self):
-        self.gsItem = GsCatalogsItem()                
-        self.gsItem.populate()
-        self.addTopLevelItem(self.gsItem) 
-        
-    def addPostGisConnections(self):
-        self.pgItem = PgConnectionsItem()
-        self.pgItem.populate()
-        self.addTopLevelItem(self.pgItem)           
-        
-    def addQGisProject(self):        
-        self.qgisItem = QgsProjectItem()                
-        self.qgisItem.populate()
-        self.addTopLevelItem(self.qgisItem)        
+        self.qgisItem = None
+  
+    def refreshContent(self):
+        pass        
+        #self.qgisItem.refreshContent()      
         
     def getSelectionTypes(self):
         items = self.selectedItems()
@@ -125,6 +103,8 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                     allItems.append(value)                
             iterator += 1
             value = iterator.value()
+        if not allItems:
+            allItems = [None] #Signal that the whole tree has to be updated
         return allItems      
     
 
@@ -194,7 +174,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         i = 0
         toUpdate = set()
         for item in selected:
-            updatable = destinationItem.acceptDroppedItem(self.explorer, item)
+            updatable = destinationItem.acceptDroppedItem(self, self.explorer, item)
             if updatable is not None:  
                 toUpdate.update(updatable)                                      
             i += 1

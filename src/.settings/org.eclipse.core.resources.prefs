@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//opengeo/__init__.py=utf-8
+encoding//opengeo/gui/crsdialog.py=utf-8
 encoding//opengeo/gui/extentpanel.py=utf-8
 encoding//opengeo/gui/importvector.py=utf-8
 encoding//opengeo/gui/rectangletool.py=utf-8

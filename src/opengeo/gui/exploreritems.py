@@ -20,13 +20,10 @@ class TreeItem(QtGui.QTreeWidgetItem):
         text = self.getDescriptionHtml(tree, explorer)
         self.description = QtGui.QTextBrowser()
         self.description.setOpenLinks(False)        
-
-        self.description.connect(self.description, QtCore.SIGNAL("anchorClicked(const QUrl&)"), self.linkClicked)
-        #self.description.page().setLinkDelegationPolicy(QtWebKit.QWebPage.DelegateAllLinks)
-        #self.description.connect(self.description, QtCore.SIGNAL("linkClicked(const QUrl&)"), self.linkClicked)
+        def linkClicked(url):
+            self.linkClicked(tree, explorer, url)
+        self.description.connect(self.description, QtCore.SIGNAL("anchorClicked(const QUrl&)"), linkClicked)
         self.description.setHtml(text)   
-        self.description.tree = tree
-        self.description.explorer = explorer
         return self.description 
     
     def getDescriptionHtml(self, tree, explorer):
@@ -60,9 +57,9 @@ class TreeItem(QtGui.QTreeWidgetItem):
         html += '</ul>'
         return html 
     
-    def linkClicked(self, url):
+    def linkClicked(self, tree, explorer, url):
         actionName = url.toString()
-        actions = self.contextMenuActions(self.description.tree, self.description.explorer)
+        actions = self.contextMenuActions(tree, explorer)
         for action in actions:
             if action.text() == actionName:
                 action.trigger()
@@ -74,7 +71,7 @@ class TreeItem(QtGui.QTreeWidgetItem):
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         return []
     
-    def acceptDroppedItem(self, explorer, item):
+    def acceptDroppedItem(self, tree, explorer, item):
         return []
     
     def startDropEvent(self):

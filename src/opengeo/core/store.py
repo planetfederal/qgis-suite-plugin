@@ -41,7 +41,9 @@ class DataStore(ResourceInfo):
     def get_resources(self):
         res_url = url(self.catalog.service_url,
             ["workspaces", self.workspace.name, "datastores", self.name, "featuretypes.xml"])
+        
         xml = self.catalog.get_xml(res_url)
+
         def ft_from_node(node):
             return featuretype_from_index(self.catalog, self.workspace, self, node)
 
@@ -97,7 +99,7 @@ class CoverageStore(ResourceInfo):
             ["workspaces", self.workspace.name, "coveragestores", self.name, "coverages.xml"])
 
         xml = self.catalog.get_xml(res_url)
-
+           
         def cov_from_node(node):
             return coverage_from_index(self.catalog, self.workspace, self, node)
 

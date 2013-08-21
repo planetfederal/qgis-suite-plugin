@@ -35,10 +35,10 @@ class Gwc(object):
                                                   (headers,response))
     
         # try to resolve layer if already configured
-        dom = XML(response)
+        dom = XML(response)        
         layers = []
         for layer in dom.getchildren():
-            els = layer.getchildren()            
+            els = layer.getchildren()                    
             layers.append(self.layer(els[0].text))
         return layers 
     

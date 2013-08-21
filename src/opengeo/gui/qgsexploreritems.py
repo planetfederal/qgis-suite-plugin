@@ -43,13 +43,13 @@ class QgsProjectItem(TreeItem):
     def contextMenuActions(self, tree, explorer):        
         publishProjectAction = QtGui.QAction("Publish...", explorer)
         publishProjectAction.triggered.connect(lambda: self.publishProject(tree, explorer))
-        publishProjectAction.setEnabled(len(tree.gsItem.catalogs())>0)        
+        publishProjectAction.setEnabled(len(explorer.catalogs())>0)        
         return [publishProjectAction]
                        
         
     def publishProject(self, tree, explorer):        
         layers = qgislayers.getAllLayers()                
-        dlg = PublishProjectDialog(tree.gsItem.catalogs())
+        dlg = PublishProjectDialog(explorer.catalogs())
         dlg.exec_()     
         catalog  = dlg.catalog
         if catalog is None:
@@ -94,10 +94,10 @@ class QgsLayerItem(TreeItem):
     def contextMenuActions(self, tree, explorer):
         publishLayerAction = QtGui.QAction("Publish...", explorer)
         publishLayerAction.triggered.connect(lambda: self.publishLayer(tree, explorer)) 
-        publishLayerAction.setEnabled(len(tree.gsItem.catalogs())>0)       
+        publishLayerAction.setEnabled(len(explorer.catalogs())>0)       
         createStoreFromLayerAction= QtGui.QAction("Create store from layer...", explorer)
         createStoreFromLayerAction.triggered.connect(lambda: self.createStoreFromLayer(tree, explorer))
-        createStoreFromLayerAction.setEnabled(len(tree.gsItem.catalogs())>0)
+        createStoreFromLayerAction.setEnabled(len(explorer.catalogs())>0)
         return [publishLayerAction, createStoreFromLayerAction]   
     
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):        
@@ -110,7 +110,7 @@ class QgsLayerItem(TreeItem):
     def publishLayers(self, tree, explorer, selected):        
         layers = [item.element for item in selected]
         #TODO: better way of accessing catalogs        
-        dlg = PublishLayersDialog(tree.gsItem.catalogs(), layers)
+        dlg = PublishLayersDialog(explorer.catalogs(), layers)
         dlg.exec_()     
         toPublish  = dlg.topublish
         if toPublish is None:
@@ -137,7 +137,7 @@ class QgsLayerItem(TreeItem):
         
     def createStoresFromLayers(self, tree, explorer, selected):        
         layers = [item.element for item in selected]        
-        dlg = PublishLayersDialog(tree.gsItem.catalogs(), layers)
+        dlg = PublishLayersDialog(explorer.catalogs(), layers)
         dlg.exec_()     
         toPublish  = dlg.topublish
         if toPublish is None:
@@ -161,7 +161,7 @@ class QgsLayerItem(TreeItem):
         explorer.progress.setValue(0)
         
     def createStoreFromLayer(self, tree, explorer):
-        dlg = PublishLayerDialog(tree.gsItem.catalogs())
+        dlg = PublishLayerDialog(explorer.catalogs())
         dlg.exec_()      
         if dlg.catalog is None:
             return
@@ -175,7 +175,7 @@ class QgsLayerItem(TreeItem):
                  self.element, dlg.workspace, True)
                     
     def publishLayer(self, tree, explorer):
-        dlg = PublishLayerDialog(tree.gsItem.catalogs())
+        dlg = PublishLayerDialog(explorer.catalogs())
         dlg.exec_()      
         if dlg.catalog is None:
             return
@@ -204,14 +204,14 @@ class QgsGroupItem(TreeItem):
     def contextMenuActions(self, tree, explorer):                 
         publishGroupAction = QtGui.QAction("Publish...", explorer)
         publishGroupAction.triggered.connect(lambda: self.publishGroup(tree, explorer))
-        publishGroupAction.setEnabled(len(tree.gsItem.catalogs())>0)
+        publishGroupAction.setEnabled(len(explorer.catalogs())>0)
         return[publishGroupAction]  
         
     def publishGroup(self, tree, explorer):
         groupname = self.element
         groups = qgislayers.getGroups()   
         group = groups[groupname]     
-        cat = selectCatalog(tree.gsItem.catalogs())
+        cat = selectCatalog(explorer.catalogs())
         if cat is None:
             return                            
         gslayers= [layer.name for layer in cat.get_layers()]
@@ -222,7 +222,7 @@ class QgsGroupItem(TreeItem):
         toUpdate = set();
         toUpdate.add(tree.findAllItems(cat)[0])
         if missing:
-            catalogs = {k :v for k, v in tree.gsItem.catalogs().iteritems() if v == cat}
+            catalogs = {k :v for k, v in explorer.catalogs().iteritems() if v == cat}
             dlg = PublishLayersDialog(catalogs, missing)
             dlg.exec_()     
             toPublish  = dlg.topublish
@@ -258,7 +258,7 @@ class QgsStyleItem(TreeItem):
     def contextMenuActions(self, tree, explorer):
         publishStyleAction = QtGui.QAction("Publish...", explorer)
         publishStyleAction.triggered.connect(lambda: self.publishStyle(tree, explorer))
-        publishStyleAction.setEnabled(tree.gsItem.catalogs())
+        publishStyleAction.setEnabled(explorer.catalogs())
         return [publishStyleAction]    
         
     def publishStyle(self, tree, explorer):
@@ -266,7 +266,7 @@ class QgsStyleItem(TreeItem):
         dlg.exec_()      
         if dlg.catalog is None:
             return
-        cat = tree.gsItem.catalogs()[dlg.catalog]  
+        cat = explorer.catalogs()[dlg.catalog]  
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem.stylesItem]                        

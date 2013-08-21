@@ -73,8 +73,8 @@ class AddStyleToLayerDialog(QtGui.QDialog):
     def __init__(self, catalog, parent = None):
         super(AddStyleToLayerDialog, self).__init__(parent)
         self.catalog = catalog
-        self.layer = None            
-        self.name = None
+        self.style = None            
+        self.default = None
         self.initGui()        
         
     def initGui(self):                         

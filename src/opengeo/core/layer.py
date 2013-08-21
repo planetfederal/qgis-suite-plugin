@@ -77,6 +77,14 @@ class Layer(ResourceInfo):
             self.fetch()
         name = self.dom.find("resource/name").text
         return self.catalog.get_resource(name)
+    
+    @property
+    def abstract(self):
+        return self.resource.abstract
+
+    @property
+    def title(self):
+        return self.resource.title
 
     def _get_default_style(self):
         if 'default_style' in self.dirty:

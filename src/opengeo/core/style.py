@@ -11,10 +11,17 @@ class Style(ResourceInfo):
 
     @property
     def href(self):
-        return url(self.catalog.service_url, ["styles", self.name + ".xml"])
+        if ':' in self.name:
+            ws, name = self.name.split(':')
+            return url(self.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
+        else:
+            return  url(self.service_url, ["styles", self.name + ".xml"])
+        #return url(self.catalog.service_url, ["styles", self.name + ".xml"])
 
     def body_href(self):
-        return url(self.catalog.service_url, ["styles", self.name + ".sld"])
+        return self.href[:-3] + "sld"
+            
+        #return url(self.catalog.service_url, ["styles", self.name + ".sld"])
 
     filename = xml_property("filename")
 

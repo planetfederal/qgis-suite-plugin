@@ -102,11 +102,11 @@ class PgConnectionItem(TreeItem):
         else:
             return TreeItem._getDescriptionHtml(self, tree, explorer)
 
-    def linkClicked(self, url):
+    def linkClicked(self, tree, explorer, url):
         if not self.element.isValid:
             self.refreshContent()
         else:
-            TreeItem.linkClicked(self, url)        
+            TreeItem.linkClicked(self, tree, explorer, url)        
              
     def startDropEvent(self):
         self.uris = []        
@@ -267,7 +267,7 @@ class PgTableItem(TreeItem):
     def contextMenuActions(self, tree, explorer):        
         publishPgTableAction = QtGui.QAction("Publish...", explorer)
         publishPgTableAction.triggered.connect(lambda: self.publishPgTable(tree, explorer))            
-        publishPgTableAction.setEnabled(len(tree.gsItem.catalogs()) > 0)    
+        publishPgTableAction.setEnabled(len(explorer.catalogs()) > 0)    
         deleteAction= QtGui.QAction("Delete", explorer)
         deleteAction.triggered.connect(lambda: self.deleteTable(explorer))  
         renameAction= QtGui.QAction("Rename...", explorer)
@@ -298,7 +298,7 @@ class PgTableItem(TreeItem):
     
     
     def publishPgTable(self, tree, explorer):
-        dlg = PublishLayerDialog(tree.gsItem.catalogs())
+        dlg = PublishLayerDialog(explorer.catalogs())
         dlg.exec_()      
         if dlg.catalog is None:
             return

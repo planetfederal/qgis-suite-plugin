@@ -19,14 +19,14 @@ class OpenGeoPlugin:
         
     def unload(self):
         self.menu.deleteLater()
-        self.iface.legendInterface().itemAdded.disconnect(self.explorer.updateContent)
-        self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateContent)
+        self.iface.legendInterface().itemAdded.disconnect(self.explorer.updateQgisContent)
+        self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateQgisContent)
 
     def initGui(self):
         self.menu = QMenu(self.iface.mainWindow())
         self.menu.setTitle("OpenGeo")
         
-        self.explorer = OpenGeoExplorer()
+        self.explorer = OpenGeoExplorer(singletab = True)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         self.explorer.hide()        
 
@@ -38,9 +38,9 @@ class OpenGeoPlugin:
         menuBar = self.iface.mainWindow().menuBar()
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)
         
-        self.iface.legendInterface().itemAdded.connect(self.explorer.updateContent)
-        self.iface.legendInterface().itemRemoved.connect(self.explorer.updateContent)
+        self.iface.legendInterface().itemAdded.connect(self.explorer.updateQgisContent)
+        self.iface.legendInterface().itemRemoved.connect(self.explorer.updateQgisContent)
         
     def openExplorer(self):
-        self.explorer.updateContent()
+        self.explorer.updateQgisContent()
         self.explorer.show()        

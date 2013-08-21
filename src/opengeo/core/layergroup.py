@@ -7,9 +7,10 @@ def _maybe_text(n):
     else:
         return n.text
 
-def _layer_list(node):
-    if node is not None:
-        return [_maybe_text(n.find("name")) for n in node.findall("layer")]
+def _layer_list(node):    
+    if node is not None:        
+        return [_maybe_text(n.find("name")) for n in node.findall("published")]
+     
 
 def _style_list(node):
     if node is not None:
@@ -58,7 +59,7 @@ class LayerGroup(ResourceInfo):
         return url(self.catalog.service_url, ["layergroups", self.name + ".xml"])
 
     styles = xml_property("styles", _style_list)
-    layers = xml_property("layers", _layer_list)
+    layers = xml_property("publishables", _layer_list)
     bounds = xml_property("bounds", bbox)
 
     writers = dict(

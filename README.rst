@@ -20,11 +20,11 @@ The plugin can also be installed using the plugin manager.
 
 - Add the following repository to the list of plugin repositories:
 
-	.. image:: doc/img/plugin_repo.png
+	.. image:: doc/plugin_repo.png
 
 - Now the OpenGeo Suite plugin should be available and ready to be installed. You can look for it in the list of installable plugins in the  plugin manager.
 	
-	.. image:: doc/img/plugin_install.png
+	.. image:: doc/plugin_install.png
 
 - Click on *Install plugin*. The plugin will be downloaded and installed.
 

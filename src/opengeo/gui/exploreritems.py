@@ -1,4 +1,4 @@
-from opengeo.core import util
+from opengeo.geoserver import util
 from PyQt4 import QtGui, QtCore
 
 class TreeItem(QtGui.QTreeWidgetItem): 
@@ -14,6 +14,8 @@ class TreeItem(QtGui.QTreeWidgetItem):
             
     def refreshContent(self):
         self.takeChildren()
+        if hasattr(self.element, "refresh"):
+            self.element.refresh()
         self.populate()    
        
     def descriptionWidget(self, tree, explorer):                

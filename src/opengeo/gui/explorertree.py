@@ -22,6 +22,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.setDropIndicatorShown(True)
         self.catalogs = {}
         self.qgisItem = None
+        self.lastClicked = None
   
     def refreshContent(self):
         pass        
@@ -31,7 +32,8 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         items = self.selectedItems()
         return set([type(item) for item in items])  
         
-    def treeItemClicked(self, item, column):        
+    def treeItemClicked(self, item, column): 
+        self.lastClicked = item
         if hasattr(item, 'descriptionWidget'):
             widget = item.descriptionWidget(self, self.explorer)
             if widget is not None:
@@ -47,7 +49,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 refreshAction.triggered.connect(item.refreshContent)
                 actions.append(refreshAction) 
             self.explorer.setToolbarActions(actions)
-        
+    
+    def lastClickedItem(self):
+        return self.lastClicked
+    
     def showTreePopupMenu(self,point):
         allTypes = self.getSelectionTypes()                
         if len(allTypes) != 1:

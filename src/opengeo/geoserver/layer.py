@@ -1,5 +1,5 @@
-from opengeo.core.support import ResourceInfo, xml_property, write_bool, url
-from opengeo.core.style import Style
+from opengeo.geoserver.support import ResourceInfo, xml_property, write_bool, url
+from opengeo.geoserver.style import Style
 
 class _attribution(object):
     def __init__(self, title, width, height):

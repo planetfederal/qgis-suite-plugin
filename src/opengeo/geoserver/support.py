@@ -100,7 +100,7 @@ def write_bool(name):
         builder.end(name)
     return write
 
-def write_bbox(name):
+def  write_bbox(name):
     def write(builder, b):
         builder.start(name, dict())
         bbox_xml(builder, b)

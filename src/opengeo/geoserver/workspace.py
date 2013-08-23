@@ -1,4 +1,4 @@
-from opengeo.core.support import xml_property, write_bool, ResourceInfo, url,\
+from opengeo.geoserver.support import xml_property, write_bool, ResourceInfo, url,\
     write_string
 
 def workspace_from_index(catalog, node):

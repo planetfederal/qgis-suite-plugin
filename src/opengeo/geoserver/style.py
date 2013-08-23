@@ -1,4 +1,4 @@
-from opengeo.core.support import ResourceInfo, url, xml_property
+from opengeo.geoserver.support import ResourceInfo, url, xml_property
 
 class Style(ResourceInfo):
     def __init__(self, catalog, name):
@@ -13,13 +13,13 @@ class Style(ResourceInfo):
     def href(self):
         if ':' in self.name:
             ws, name = self.name.split(':')
-            return url(self.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
+            return url(self.catalog.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
         else:
-            return  url(self.service_url, ["styles", self.name + ".xml"])
+            return  url(self.catalog.service_url, ["styles", self.name + ".xml"])
         #return url(self.catalog.service_url, ["styles", self.name + ".xml"])
 
     def body_href(self):
-        return self.href[:-3] + "sld"
+        return self.href.rstrip("xml") + "sld"
             
         #return url(self.catalog.service_url, ["styles", self.name + ".sld"])
 
@@ -49,5 +49,7 @@ class Style(ResourceInfo):
 
     def update_body(self, body):
         headers = { "Content-Type": "application/vnd.ogc.sld+xml" }
-        self.catalog.http.request(
+        response, content = self.catalog.http.request(
             self.body_href(), "PUT", body, headers)
+        if response.status != 200:
+            raise Exception(content)

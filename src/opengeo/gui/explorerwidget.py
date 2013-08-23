@@ -54,7 +54,7 @@ class ExplorerWidget(QtGui.QWidget):
         if self.singletab:
             return self.gsItem._catalogs            
         else:
-            return self.gsPanel.catalogs()           
+            return self.gsPanel.catalogs         
         
     def currentTreeWidget(self):
         if self.singletab:

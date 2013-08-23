@@ -1,7 +1,7 @@
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from opengeo.core.layergroup import UnsavedLayerGroup
+from opengeo.geoserver.layergroup import UnsavedLayerGroup
 
 class LayerGroupDialog(QtGui.QDialog):
     def __init__(self, catalog, previousgroup = None):
@@ -88,7 +88,7 @@ class LayerGroupDialog(QtGui.QDialog):
                 try:
                     idx = self.styles.index(layer.default_style.name)
                     item.setCurrentIndex(idx)
-                except ValueError:
+                except:                    
                     pass 
                 self.table.setCellWidget(i,1, item)
                 i += 1

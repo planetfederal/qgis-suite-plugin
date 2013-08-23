@@ -2,7 +2,8 @@ import os
 from PyQt4 import QtGui, QtCore
 from opengeo.gui.gsexploreritems import GsCatalogsItem, \
     GsLayerItem, GsWorkspaceItem, GsStyleItem, GsGroupItem,\
-    GwcLayerItem, GsProcessItem
+    GwcLayerItem, GsProcessItem, GsLayersItem, GsGroupsItem, GsStylesItem,\
+    GsWorkspacesItem, GwcLayersItem, GsProcessesItem
 from opengeo.qgis import layers as qgislayers
 from opengeo.gui.explorertree import ExplorerTreeWidget
 from opengeo.geoserver.gwc import Gwc
@@ -11,13 +12,15 @@ from opengeo.gui.pgexploreritems import PgConnectionsItem, PgSchemaItem
 from opengeo.gui.qgsexploreritems import QgsProjectItem, QgsGroupItem,\
     QgsLayerItem, QgsStyleItem
 from opengeo.geoserver.wps import Wps
+from opengeo.gui.catalogdialog import DefineCatalogDialog
 
 class GsTreePanel(QtGui.QWidget):
     
     def __init__(self, explorer):                 
         QtGui.QWidget.__init__(self, None) 
         self.explorer = explorer
-        self.catalogsItem = GsCatalogsItem()                    
+        self.catalogs = {}
+        #self.catalogsItem = GsCatalogsItem()                    
         verticalLayout = QtGui.QVBoxLayout()
         verticalLayout.setSpacing(2)
         verticalLayout.setMargin(0)      
@@ -53,27 +56,27 @@ class GsTreePanel(QtGui.QWidget):
         layersIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         self.layersAction = QtGui.QAction(layersIcon, "Layers", explorer)
         self.layersAction.triggered.connect(lambda: self.toggleVisibility((GsLayerItem), 
-                                            self.catalogItem.child(1).contextMenuActions(self.tree, self.explorer)))        
+                                            self.containerItems[0].contextMenuActions(self.tree, self.explorer)))        
         workspacesIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/workspace.png")
         self.workspacesAction = QtGui.QAction(workspacesIcon, "Workspaces", explorer)
         self.workspacesAction.triggered.connect(lambda: self.toggleVisibility((GsWorkspaceItem),
-                                                self.catalogItem.child(0).contextMenuActions(self.tree, self.explorer))) 
+                                                self.containerItems[1].contextMenuActions(self.tree, self.explorer))) 
         stylesIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
         self.stylesAction = QtGui.QAction(stylesIcon, "Styles", explorer)
         self.stylesAction.triggered.connect(lambda: self.toggleVisibility((GsStyleItem),
-                                            self.catalogItem.child(3).contextMenuActions(self.tree, self.explorer))) 
+                                            self.containerItems[2].contextMenuActions(self.tree, self.explorer))) 
         groupsIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
         self.groupsAction = QtGui.QAction(groupsIcon, "Groups", explorer)
         self.groupsAction.triggered.connect(lambda: self.toggleVisibility((GsGroupItem),
-                                            self.catalogItem.child(2).contextMenuActions(self.tree, self.explorer))) 
+                                            self.containerItems[3].contextMenuActions(self.tree, self.explorer))) 
         gwcIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/gwc.png")
         self.gwcAction = QtGui.QAction(gwcIcon, "GeoWebCache", explorer)
         self.gwcAction.triggered.connect(lambda: self.toggleVisibility((GwcLayerItem),
-                                        self.catalogItem.child(4).contextMenuActions(self.tree, self.explorer))) 
+                                        self.containerItems[4].contextMenuActions(self.tree, self.explorer))) 
         wpsIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/process.png")
         self.wpsAction = QtGui.QAction(wpsIcon, "Processes", explorer)
         self.wpsAction.triggered.connect(lambda: self.toggleVisibility((GsProcessItem),
-                                        self.catalogItem.child(5).contextMenuActions(self.tree, self.explorer))) 
+                                        self.containerItems[5].contextMenuActions(self.tree, self.explorer))) 
         self.layersAction.setEnabled(False)
         self.workspacesAction.setEnabled(False)
         self.stylesAction.setEnabled(False)
@@ -100,7 +103,7 @@ class GsTreePanel(QtGui.QWidget):
     def fillTree(self):    
         self.tree.clear() 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor)) 
-        self.explorer.progress.setMaximum(6)      
+        self.explorer.progress.setMaximum(7)      
         try:
             groups = self.catalog.get_layergroups()
             for group in groups:
@@ -140,10 +143,21 @@ class GsTreePanel(QtGui.QWidget):
                 self.tree.addTopLevelItem(item)
             self.explorer.progress.setValue(6)
             self.element = Wps(self.catalog)        
-            processes = self.element.processes()
-            for process in processes:
-                item = GsProcessItem(process)
-                self.tree.addTopLevelItem(item)                
+            try:
+                processes = self.catalog.processes()
+                for process in processes:
+                    item = GsProcessItem(process)
+                    self.tree.addTopLevelItem(item)
+                self.explorer.progress.setValue(7)
+            except:
+                #ignore this section if catalog does not have WPS installed
+                pass  
+            self.tree.invisibleRootItem().sortChildren(0, QtCore.Qt.AscendingOrder)
+            #we keep a list of container items, to use their actions
+            self.containerItems = [GsLayersItem(self.catalog), GsWorkspacesItem(self.catalog),
+                                   GsStylesItem(self.catalog),GsGroupsItem(self.catalog), 
+                                   GwcLayersItem(self.catalog), GsProcessesItem(self.catalog)]
+                          
         finally:
             self.explorer.progress.setValue(0)
             QtGui.QApplication.restoreOverrideCursor()
@@ -159,15 +173,21 @@ class GsTreePanel(QtGui.QWidget):
             self.toptoolbar.addAction(action)
         self.visibleItems = visibleItems
         self.visibleActions = visibleActions
-    
-    def addCatalog(self):
-        count = self.catalogsItem.childCount()
-        self.catalogsItem.addGeoServerCatalog(self.explorer)
-        newCount = self.catalogsItem.childCount()
-        if newCount > count:
-            self.catalogItem = self.catalogsItem.child(count)     
-            self.catalog = self.catalogItem.element       
-            self.comboBox.addItem(self.catalogItem.text(0), self.catalog)            
+
+            
+    def addCatalog(self, explorer):         
+        dlg = DefineCatalogDialog()
+        dlg.exec_()
+        cat = dlg.getCatalog()        
+        if cat is not None:   
+            name = dlg.getName()
+            i = 2
+            while name in self.catalogs.keys():
+                name = dlg.getName() + "_" + str(i)
+                i += 1                                             
+            self.catalogs[name] = cat   
+            self.catalog = cat      
+            self.comboBox.addItem(name, cat)            
             self.layersAction.setEnabled(True)
             self.workspacesAction.setEnabled(True)
             self.stylesAction.setEnabled(True)
@@ -176,15 +196,8 @@ class GsTreePanel(QtGui.QWidget):
             self.wpsAction.setEnabled(True)
             self.refreshButton.setEnabled(True)
             self.fillTree()
-            self.layersAction.trigger()   
-    
-    def catalogs(self):
-        catalogs = {}
-        for i in range(self.catalogsItem.childCount()):
-            item = self.catalogsItem.child(i)
-            catalogs[item.text(0)] = item.element
-        return catalogs
-            
+            self.layersAction.trigger()  
+                   
     def refreshContent(self):
         self.fillTree()   
         self.toggleVisibility(self.visibleItems, self.visibleActions)                           
@@ -249,8 +262,7 @@ class PgTreePanel(QtGui.QWidget):
     def addConnection(self):
         pass
     
-    def connectionHasChanged(self):
-        print str(self.comboBox.currentIndex())
+    def connectionHasChanged(self):        
         self.connection = self.comboBox.itemData(self.comboBox.currentIndex())        
         self.refreshContent()
         

@@ -4,7 +4,7 @@ import time
 from PyQt4.QtCore import *
 import urllib
 from qgis.core import *
-from opengeo.core.layer import Layer
+from opengeo.geoserver.layer import Layer
 
 def tempFolder():
     tempDir = os.path.join(unicode(QDir.tempPath()), "suiteplugin")

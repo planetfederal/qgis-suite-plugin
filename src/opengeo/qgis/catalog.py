@@ -15,6 +15,7 @@ from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 from PyQt4 import QtXml
 from opengeo.geoserver import utils
+from opengeo.geoserver.sldadapter import adaptQgsToGs, adaptGsToQgs
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
@@ -41,6 +42,7 @@ class OGCatalog(object):
         sld = self.getStyleAsSld(layer) 
         if sld:       
             name = name if name is not None else layer.name()
+            sld = adaptQgsToGs(sld)
             self.catalog.create_style(name, sld, overwrite)
         return sld
        
@@ -222,7 +224,7 @@ class OGCatalog(object):
         
         groups = layers.getGroups()
         if name not in groups:
-            raise Exception("the specified group does not exist")
+            raise Exception("The specified group does not exist")
         
         group = groups[name]
         
@@ -287,7 +289,8 @@ class OGCatalog(object):
         if resource.resource_type == "featureType":                    
             qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
             try:
-                sld = layer.default_style.sld_body                
+                sld = layer.default_style.sld_body  
+                sld = adaptGsToQgs(sld)              
                 node = QtXml.QDomDocument()  
                 node.setContent(sld)              
                 qgslayer.readSld(node, "")

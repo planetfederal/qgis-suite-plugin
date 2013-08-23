@@ -5,9 +5,31 @@ Configuring/Using the OpenGeo Suite from QGIS
 Introduction
 *************
 
-The OpenGeo Suite explorer is used to configure the components of the OpenGeo Suite from QGIS. You can edit, add or delete elements, and make them interact with the elements in the current QGIS project. This allows you to easily configure your OpenGeo Suite, for instance preparing your data and its stylying with the usual QGIS tools, and then publishing it directly from QGIS to GeoServer.
+The OpenGeo Suite explorer is used to configure the components of the OpenGeo Suite from QGIS. You can edit, add or delete elements, and make them interact with the elements in the current QGIS project. This allows you to easily configure your OpenGeo Suite, for instance preparing your data and its styling with the usual QGIS tools, and then publishing it directly from QGIS to GeoServer.
 
-The explorer is launched from the *OpenGeo* menu and it looks like this.
+
+Version support and limitations
+********************************
+
+The current version is the plugin is targeted at GeoServer 2.3.x. If you are using an older version, you might encounter some problems, and some elements might not be correctly configured due to differences in the way they are handled by GeoServer or in changes in the REST API that the plugin uses to communicate with GeoServer. Although most things should work fine if connecting to a GeoServer 2.2.x catalog, the following are some of the incompatibilities that have been detected.
+
+- Empty groups. Layers belonging to a group are not found, since the group definition has a different structure
+- Styles belonging to a given namespace are not found. Only styles with no namespace are reported if using GeoServer 2.2.x
+
+To check the version of your catalog, just select the catalog in the tree and look at the description tab. 
+
+.. image:: about.png
+
+If you do not see information like that, it is likely that your catalog uses a GeoServer version that doesn't support that operation. In this case, it will not support the other operations that cause problems, so you will probably not find some issues when working with the catalog through the plugin.
+
+In the case of GeoGit, the Suite plugin supports repositories that use GeoGit 1.0 (¿¿¿???)
+
+Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. To increase compatibility between them, specific routines have been added to the plugin code. However, in some cases, a style defined in QGIS might not be compatible with the elements supported by GeoServer, and publishing a layer will be done without publishing the corresponding style, but using a default one instead.
+
+Usage
+******
+
+The OpenGeo Suite explorer is launched from the *OpenGeo* menu and it looks like this.
 
 .. image:: explorer.png
 
@@ -30,14 +52,23 @@ The *GeoGit repositories* branch contains the available GeoGit repositories that
 
 In the lower part to will see a tabbed panel with two panels: *Description* and *Log*, which show the description of the currently selected item and the log of all actions performed using the explorer. In case you cannot run an operation, or something is not working as you expect, check the log information, since errors are also logged there and they might give you some additional information about waht is happening (for instance, if you are trying to connect to a GeoServer instance that is not responding or does not exist)
 
+
 .. image:: log.png
 
 When the explorer window is docked, the log and description panels are found on its lower the lower part. If you undock the window, they will be placed on the right--hand side of it, to make better use of the available space. The image above shows the undocked configuration.
 
-Using the explorer
-******************
+The description panel shows information about the currently selected element, but also contains links to actions that affect or are related to the current element. As an example, below you can see the description panel corresponding to a GeoServer layer element.
 
-Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above. Also, when you select an element in the tree, buttons in the toolbar in the upper part of the explorer window are updated to show the available actions for that element. These actions correspond to the ones shown in the context menu when you right--click on the element, so you have two different ways of accesing the same funcionality.
+.. image:: description_panel.png
+
+Use the hyperlinks to perform the corresponding actions based on the current element.
+
+The description tab can also show tables where parameters can be edited. The one shown below corresponds to the *Settings* element of a GeoServer catalog.
+
+.. image:: description_table.png
+
+
+Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above. Also, when you select an element in the tree, buttons in the toolbar in the upper part of the explorer window are updated to show the available actions for that element. These actions correspond to the ones shown in the context menu when you right--click on the element, so you have different ways of accesing the same funcionality. As it was explained before, the *Description* panel is also interactive.
 
 
 Let's do some work with the GeoServer branch, to start getting familiar with the interface and behaviour of the OpenGeo Suite explorer. First, let's add a connection to a local GeoServer instance (make sure you have a local GeoServer running before doing it). Right--click on the *GeoServer catalogs* item and select *Add new catalog...*. You will see the following screen.
@@ -48,7 +79,7 @@ Enter the connection parameters for you GeoServer endpoint (the default values a
 
 .. image:: catalog_added.png
 
-Of course, the content will depend on the content of your GeoServer catalog. Each catalog contains 4 entries: *Workspaces, Layers, Layer groups* and *Styles*. The workspaces in the *Workspaces* node contain themselves other elements, like the stores and also the resources (Feature types and coverages) in each store. By right--clicking on these elements, you will get to the functionality related to each of them.
+Of course, the content will depend on the content of your GeoServer catalog. Each catalog contains 7entries: *Workspaces, Layers, Layer groups, Styles, GeoWebCache, Processes and Setting*. The workspaces in the *Workspaces* node contain themselves other elements, like the stores and also the resources (Feature types and coverages) in each store. By right--clicking on these elements, you will get to the functionality related to each of them.
 
 All items can be renamed/deleted/refreshed using the corresponding menu item, which are available in all of them. 
 
@@ -60,20 +91,15 @@ If a layer GeoServer layer is deleted and it uses a style with the same name a t
 
 QGIS elements have their commands enabled only if there is at least one GeoServer catalog configured, since they need it (all the available commands upload QGIS data to a GeoServer catalog, so it makes no sense to use the if there is no catalog configured).
 
-The QGIS branch is not aware of changes introduced in your current QGIS project, so you should refresh it if you have added/removed layers after having opened the  explorer.
+Not all layers in a project will appear in the QGIS branch. Layers based on a WMS connection are not included, since, at the moment, there is no possible interaction between them and the remaining element represented in the explorer.
 
-
-At the botton of the explorer you can find a box with two information tabs: *Description* and *Log*.
-
-The *Description* tab shows information about the currently selected element. In most cases, it is just static information shown as text, but it might also be a table that allows some interaction as well.
-
-The *Log* tab, as it was already mentioned, shows a log of all tasks performed by the explorer, including information related to errors that might appear.
+The QGIS branch is not aware of certain changes introduced in your current QGIS project, so you should refresh it if you have renamed layers or performed any operation after having opened the  explorer, and those changes are not reflected in the explorer. There is no need to refresh after adding or removing layers, since the explorer is automatically updated in that case.
 
 
 Available commands and actions
 *******************************
 
-Below you can find information about commands available depending on the type of element you click onto, and how to use them
+Below you can find more detailed information about commands available depending on the type of element you click onto, and how to use them.
 
 
 GeoServer
@@ -108,7 +134,7 @@ GeoServer
 
 - GeoServer layer group item.
 
-	- *Edit...*. Layers in a goup can be configured through the following dialog.
+	- *Edit...*. Layers in a group can be configured through the following dialog.
 
 	.. image:: define_group.png
 
@@ -117,6 +143,17 @@ GeoServer
 	- *Set as default style*. Sets the style as the default style for the layer
 
 	- *Add style to layer*. A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer
+
+ Style items also have an *Edit SLD...* option. By clicking on it you can directly edit the content of the corresponding SLD, using a dialog with an XML editor, such as the one shown below.
+
+ .. image:: edit_sld.png
+
+ Clicking on *OK* will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message erturned by GeoServer will be shown in the *Log* panel.
+
+ .. image:: sld_error.png
+
+- Settings item. The *Settings* item contains no children. Instead, when you click on it, it will display all configurable parameters in the description panel. You can edit them there and then press the *Save* button to upload changes to the corresponding catalog and update it.
+
 
 
 GeoWebCache
@@ -183,15 +220,17 @@ The following actions are available for items in the PostGIS branch.
 
 	- *Import files*. Import a set of files with data into the selected schema. The following window is shown.
 
-	.. image:: import_postgis.png
+	 .. image:: import_postgis.png
 
-	Click on the button in the *Layers* group and select the files you want to import. Then select the destination schema and table. You can select the name of a preexisting table or enter the name you want. In case of selecting a preexisting table, click on the *Add to table* checkbox to add the imported data to the current content of the table. Otherwise, the table will be deleted and a new one with that name created. If you select the *Add to table* box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
+	 Click on the button in the *Layers* group and select the files you want to import. Then select the destination schema and table. You can select the name of a preexisting table or enter the name you want. In case of selecting a preexisting table, click on the *Add to table* checkbox to add the imported data to the current content of the table. Otherwise, the table will be deleted and a new one with that name created. If you select the *Add to table* box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
 
-	There is an additional option, *[use file name]*, which will set the table name based on the name of the file to import (without extension). The *Add to table* box applies also in this case.
+	 There is an additional option, *[use file name]*, which will set the table name based on the name of the file to import (without extension). The *Add to table* box applies also in this case.
 
-	When two or more files are selected, the *Add to table* box will automatically be checked in case a table name option other than *[use file name]* is selected. In this case, it makes no sense to overwrite the destination table, since all imported files are going to be imported into the same table, and that will cause each one to overwrite the previous ones, leaving in the final table just the content of the last file.
+	 When two or more files are selected, the *Add to table* box will automatically be checked in case a table name option other than *[use file name]* is selected. In this case, it makes no sense to overwrite the destination table, since all imported files are going to be imported into the same table, and that will cause each one to overwrite the previous ones, leaving in the final table just the content of the last file.
 
-	
+	- *Run SQL...*. Run a SQL sentence on the database. Calling this method will show the DB-manager SQL dialog, where the query can be written or a saved one can be open.
+
+	 .. image:: sql_dialog.png
 
 - PostGIS schema item
 
@@ -199,7 +238,7 @@ The following actions are available for items in the PostGIS branch.
 
 	- *Delete*. Deletes the schema. It has to be empty to be removed. Otherwise, PostGIS will refuse to delete it.
 
-	- *Rename*. Renames the schema
+	- *Rename*. Renames the schema.
 
     - *Import files*. Same as the import command for connection items, but the schema field in the import dialog is not enabled.
 
@@ -284,7 +323,7 @@ Below you can find more information about the operations that can be performed t
 - Dragging a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
 - Dragging a GeoServer layer item onto the *GeoWebCache layers* item of the same catalog. It will add the corresponding cached layer for the dragged layer.
 - Dragging a QGIS layer into a PostGIS connection or schema item. It will import the layer into the corresponding PostGIS database. The import dialog is shown before importing.
-- Draggin a PostGIS table item into a Geoserver catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of ropping onto a catalog item
+- Draggin a PostGIS table item into a GeoServer catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of dropping onto a catalog item
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 
@@ -292,7 +331,10 @@ You can also drag elements from elements outside of the explorer itself. For ins
 
 .. image:: dragdrop_external.png
 
-Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer layers can be dropped onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described. Dragging and dropping a PostGIS table will cause a new layer to be added to the QGIS project, based on that table.
+Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer layers can be dropped onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described. Notice that, however, the style of the layer will not be used in this case, and the layer that will be added to the QGIs project will have a default style assigned to it.
+
+Dragging and dropping a PostGIS table will cause a new layer to be added to the QGIS project, based on that table.
+
 
 
 

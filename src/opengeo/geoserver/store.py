@@ -1,6 +1,6 @@
-from opengeo.core.workspace import Workspace
-from opengeo.core.resource import featuretype_from_index, coverage_from_index
-from opengeo.core.support import ResourceInfo, xml_property, key_value_pairs, \
+from opengeo.geoserver.workspace import Workspace
+from opengeo.geoserver.resource import featuretype_from_index, coverage_from_index
+from opengeo.geoserver.support import ResourceInfo, xml_property, key_value_pairs, \
         write_bool, write_dict, write_string, url
 
 def datastore_from_index(catalog, workspace, node):

@@ -47,7 +47,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.status.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)                                             
         self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.splitter)
-        self.layout.addWidget(self.status)
+        #self.layout.addWidget(self.status)
         self.layout.addWidget(self.progress)        
         self.setLayout(self.layout)
         self.dockWidgetContents.setLayout(self.layout)
@@ -110,7 +110,9 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         thread.start()
         thread.wait()
         self.status.setText("")
+        print "refreshing"
         self.refreshDescription()
+        
         return error
         
     def resetActivity(self):
@@ -138,10 +140,12 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         
 
     def refreshDescription(self):
-        item = self.explorerWidget.currentTreeWidget().currentItem()
+        item = self.explorerWidget.currentTree().lastClickedItem()
         if item is not None:
             try:      
                 self.explorerWidget.currentTree().treeItemClicked(item, 0)
             except:
                 self.setDescriptionWidget(QtGui.QWidget())
+        else:
+            print "NOONE"
     

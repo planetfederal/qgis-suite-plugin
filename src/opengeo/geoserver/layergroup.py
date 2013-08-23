@@ -1,4 +1,4 @@
-from opengeo.core.support import ResourceInfo, bbox, write_bbox, \
+from opengeo.geoserver.support import ResourceInfo, bbox, write_bbox, \
         write_string, xml_property, url
 
 def _maybe_text(n):
@@ -9,8 +9,7 @@ def _maybe_text(n):
 
 def _layer_list(node):    
     if node is not None:        
-        return [_maybe_text(n.find("name")) for n in node.findall("published")]
-     
+        return [_maybe_text(n.find("name")) for n in node.findall("published")]     
 
 def _style_list(node):
     if node is not None:

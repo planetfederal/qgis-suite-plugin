@@ -3,19 +3,19 @@ from qgis.core import *
 from PyQt4 import QtGui,QtCore, QtWebKit
 from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
-from opengeo.core.store import DataStore
-from opengeo.core.resource import Coverage, FeatureType
+from opengeo.geoserver.store import DataStore
+from opengeo.geoserver.resource import Coverage, FeatureType
 from opengeo.geoserver.gwc import Gwc, GwcLayer, SeedingStatusParsingError
 from opengeo.gui.catalogdialog import DefineCatalogDialog
-from opengeo.core.style import Style
-from opengeo.core.layer import Layer
+from opengeo.geoserver.style import Style
+from opengeo.geoserver.layer import Layer
 from opengeo.gui.styledialog import AddStyleToLayerDialog, StyleFromLayerDialog
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.exploreritems import TreeItem
 from opengeo.gui.groupdialog import LayerGroupDialog
 from opengeo.gui.workspacedialog import DefineWorkspaceDialog
 from opengeo.gui.gwclayer import SeedGwcLayerDialog, EditGwcLayerDialog
-from opengeo.core.layergroup import UnsavedLayerGroup
+from opengeo.geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.qgsexploreritems import QgsLayerItem, QgsGroupItem,\
     QgsStyleItem
 from opengeo.geoserver.catalog import FailedRequestError
@@ -25,6 +25,7 @@ from opengeo.geoserver.wps import Wps
 from opengeo.gui.crsdialog import CrsSelectionDialog
 from opengeo.geoserver.settings import Settings
 from opengeo.gui.parametereditor import ParameterEditor
+from opengeo.gui.sldeditor import SldEditorDialog
 
 class GsTreeItem(TreeItem):
     
@@ -231,7 +232,8 @@ class GsLayersItem(GsTreeItem):
         for layer in layers:
             layerItem = GsLayerItem(layer)            
             layerItem.populate()    
-            self.addChild(layerItem)       
+            self.addChild(layerItem) 
+        self.sortChildren(0, Qt.AscendingOrder)                  
     
     def acceptDroppedItem(self, tree, explorer, item):            
         if isinstance(item, GsLayerItem):
@@ -483,6 +485,9 @@ class GsCatalogItem(GsTreeItem):
         del explorer.catalogs()[self.text(0)]
         parent = self.parent()        
         parent.takeChild(parent.indexOfChild(self))   
+        
+    def _getDescriptionHtml(self, tree, explorer):                        
+        return self.catalog.about()       
            
                                 
 class GsLayerItem(GsTreeItem): 
@@ -532,10 +537,10 @@ class GsLayerItem(GsTreeItem):
                                     '&nbsp;<a href="modify:setinproject">Set as project SRS</a></li>\n')        
         bbox = self.element.resource.latlon_bbox
         html += '<li><b>Bounding box (lat/lon): </b> &nbsp;<a href="modify:zoomtobbox">Zoom to this bbox</a></li>\n<ul>'        
-        html += '<li> N:' + str(bbox[0]) + '</li>'
-        html += '<li> S:' + str(bbox[1]) + '</li>'
-        html += '<li> E:' + str(bbox[2]) + '</li>'
-        html += '<li> W:' + str(bbox[3]) + '</li>'
+        html += '<li> N:' + str(bbox[3]) + '</li>'
+        html += '<li> S:' + str(bbox[2]) + '</li>'
+        html += '<li> E:' + str(bbox[0]) + '</li>'
+        html += '<li> W:' + str(bbox[1]) + '</li>'
         html += '</ul>'                 
         html += '</ul>'
         actions = self.contextMenuActions(tree, explorer)
@@ -550,20 +555,23 @@ class GsLayerItem(GsTreeItem):
         actionName = url.toString()
         if actionName == 'modify:title':
             text, ok = QtGui.QInputDialog.getText(None, "New title", "Enter new title", text=self.element.resource.title)
-            if ok:
-                self.element.resource.title = text
-                self.catalog.save(self.element)            
+            if ok:                
+                r = self.element.resource
+                r.dirty['title'] = text                                 
+                explorer.run(self.catalog.save, "Update layer title", [], r)            
         if actionName == 'modify:abstract':
             text, ok = QtGui.QInputDialog.getText(None, "New abstract", "Enter new abstract", text=self.element.resource.abstract)
             if ok:
-                self.element.resource.abstract = text
-                self.catalog.save(self.element)
+                r = self.element.resource
+                r.dirty['abstract'] = text                                 
+                explorer.run(self.catalog.save, "Update layer abstract", [], r) 
         if actionName == 'modify:srs':
             dlg = CrsSelectionDialog()
             dlg.exec_()
             if dlg.authid is not None:
-                #TODO
-                pass
+                r = self.element.resource
+                r.dirty['srs'] = text                                 
+                explorer.run(self.catalog.save, "Update layer srs", [], r) 
         actions = self.contextMenuActions(tree, explorer)
         for action in actions:
             if action.text() == actionName:
@@ -623,7 +631,10 @@ class GsLayerItem(GsTreeItem):
             return
         catalog = self.element.catalog
         catalogItem = tree.findAllItems(catalog)[0]
-        groupsItem = catalogItem.groupsItem
+        if catalogItem is not None:
+            groupsItem = catalogItem.groupsItem
+        else:
+            groupItem = None
         layers = [item.element for item in selected]
         styles = [layer.default_style.name for layer in layers]
         layerNames = [layer.name for layer in layers]
@@ -762,10 +773,9 @@ class GsGroupItem(GsTreeItem):
         if groupLayers is None:
             return
         for layer in groupLayers:
-            print layer
             if ':' in layer:
                 layer = layer.split(':')[1]
-            layerItem = GsLayerItem(layersDict[layer])                    
+            layerItem = GsLayerItem(layersDict[layer])                          
             self.addChild(layerItem)
             
             
@@ -825,6 +835,9 @@ class GsStyleItem(GsTreeItem):
             deleteStyleAction = QtGui.QAction("Delete", explorer)
             deleteStyleAction.triggered.connect(lambda: self.deleteStyle(tree, explorer))
             actions.append(deleteStyleAction)
+        editStyleAction = QtGui.QAction("Edit SLD...", explorer)
+        editStyleAction.triggered.connect(lambda: self.editStyle(tree, explorer))                    
+        actions.append(editStyleAction)               
         return actions 
     
     
@@ -844,6 +857,10 @@ class GsStyleItem(GsTreeItem):
         deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
+    def editStyle(self, tree, explorer):
+        dlg = SldEditorDialog(self.element, explorer)
+        dlg.exec_()
+        
     def deleteStyle(self, tree, explorer):
         self.deleteElements([self], tree, explorer)
         
@@ -1204,7 +1221,7 @@ class GsSettingsItem(GsTreeItem):
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
     def descriptionWidget(self, tree, explorer):                
-        self.description = ParameterEditor(self.element) 
+        self.description = ParameterEditor(self.element, explorer) 
         return self.description 
             
 class GsSettingItem(GsTreeItem): 

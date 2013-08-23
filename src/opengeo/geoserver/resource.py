@@ -1,4 +1,4 @@
-from opengeo.core.support import ResourceInfo, xml_property, write_string, bbox, \
+from opengeo.geoserver.support import ResourceInfo, xml_property, write_string, bbox, \
     write_bbox, string_list, write_string_list, attribute_list, write_bool, url
 
 def md_link(node):

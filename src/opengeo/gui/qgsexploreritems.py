@@ -258,11 +258,11 @@ class QgsStyleItem(TreeItem):
     def contextMenuActions(self, tree, explorer):
         publishStyleAction = QtGui.QAction("Publish...", explorer)
         publishStyleAction.triggered.connect(lambda: self.publishStyle(tree, explorer))
-        publishStyleAction.setEnabled(explorer.catalogs())
+        publishStyleAction.setEnabled(len(explorer.catalogs()) > 0)
         return [publishStyleAction]    
         
     def publishStyle(self, tree, explorer):
-        dlg = PublishStyleDialog(tree.gsItem.catalogs().keys())
+        dlg = PublishStyleDialog(explorer.catalogs().keys())
         dlg.exec_()      
         if dlg.catalog is None:
             return

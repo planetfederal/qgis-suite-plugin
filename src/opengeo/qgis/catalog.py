@@ -15,7 +15,8 @@ from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 from PyQt4 import QtXml
 from opengeo.geoserver import utils
-from opengeo.geoserver.sldadapter import adaptQgsToGs, adaptGsToQgs
+from opengeo.geoserver.sldadapter import adaptQgsToGs, adaptGsToQgs,\
+    getGsCompatibleSld
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
@@ -39,51 +40,12 @@ class OGCatalog(object):
         
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)         
-        sld = self.getStyleAsSld(layer) 
-        if sld:       
-            name = name if name is not None else layer.name()
-            sld = adaptQgsToGs(sld)
+        sld = getGsCompatibleSld(layer) 
+        if sld is not None:       
+            name = name if name is not None else layer.name()            
             self.catalog.create_style(name, sld, overwrite)
         return sld
        
-    def getStyleAsSld(self, layer):        
-        if layer.type() == layer.VectorLayer:  
-            document = QDomDocument()
-            header = document.createProcessingInstruction( "xml", "version=\"1.0\" encoding=\"UTF-8\"" )
-            document.appendChild( header )
-                
-            root = document.createElementNS( "http://www.opengis.net/sld", "StyledLayerDescriptor" )
-            root.setAttribute( "version", "1.1.0" )
-            root.setAttribute( "xsi:schemaLocation", "http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/StyledLayerDescriptor.xsd" )
-            root.setAttribute( "xmlns:ogc", "http://www.opengis.net/ogc" )
-            root.setAttribute( "xmlns:se", "http://www.opengis.net/se" )
-            root.setAttribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" )
-            root.setAttribute( "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance" )
-            document.appendChild( root )
-        
-            namedLayerNode = document.createElement( "NamedLayer" )
-            root.appendChild( namedLayerNode )
-                    
-            errorMsg = ""
-                    
-            layer.writeSld(namedLayerNode, document, errorMsg)
-            
-            return unicode(document.toString(4))
-        elif layer.type() == layer.RasterLayer: 
-            #QGIS does not support SLD for raster layers, so we have this workaround
-            sldpath = os.path.join(os.path.dirname(__file__), "..", "resources")
-            if layer.bandCount() == 1:
-                sldfile = os.path.join(sldpath, "grayscale.sld")
-            else:
-                sldfile = os.path.join(sldpath, "rgb.sld")                
-            with open(sldfile, 'r') as f:
-                sld = f.read()
-            return sld
-        else:
-            return None
-            
-    
-    
     def getDataFromLayer(self, layer):
         '''
         Returns the data corresponding to a given layer, ready to be passed to the
@@ -267,7 +229,7 @@ class OGCatalog(object):
             
         self.createStore(layer, workspace, overwrite, name)      
     
-        if sld:
+        if sld is not None:
             #assign style to created store  
             publishing = self.catalog.get_layer(name)        
             publishing.default_style = self.catalog.get_style(name)

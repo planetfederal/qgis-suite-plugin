@@ -109,8 +109,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         thread.error.connect(error)                                         
         thread.start()
         thread.wait()
-        self.status.setText("")
-        print "refreshing"
+        self.status.setText("")        
         self.refreshDescription()
         
         return error
@@ -145,7 +144,5 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             try:      
                 self.explorerWidget.currentTree().treeItemClicked(item, 0)
             except:
-                self.setDescriptionWidget(QtGui.QWidget())
-        else:
-            print "NOONE"
+                self.setDescriptionWidget(QtGui.QWidget())        
     

@@ -250,15 +250,18 @@ class OGCatalog(object):
         uri = utils.layerUri(layer)                        
         if resource.resource_type == "featureType":                    
             qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
+            err = False
             try:
                 sld = layer.default_style.sld_body  
                 sld = adaptGsToQgs(sld)              
                 node = QtXml.QDomDocument()  
                 node.setContent(sld)              
-                qgslayer.readSld(node, "")
-                QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+                qgslayer.readSld(node, "")                
             except Exception, e:        
-               raise e        
+                err = True
+            QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+            if err:
+               raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")        
         elif resource.resource_type == "coverage":                        
             qgslayer = QgsRasterLayer(uri, name, "wcs" )            
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])

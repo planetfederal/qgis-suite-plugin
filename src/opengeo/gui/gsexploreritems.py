@@ -754,9 +754,14 @@ class GsLayerItem(GsTreeItem):
             
     def addLayerToProject(self, explorer):
         #Using threads here freezes the QGIS GUI
+        #TODO: fix this
         cat = OGCatalog(self.parentCatalog()) 
-        cat.addLayerToProject(self.element.name) 
-        explorer.setInfo("Layer '" + self.element.name + "' correctly added to QGIS project")                        
+        try:
+            cat.addLayerToProject(self.element.name)
+            explorer.setInfo("Layer '" + self.element.name + "' correctly added to QGIS project")
+        except Exception, e:
+            explorer.setInfo(str(e), 1)  
+                                
 
 class GsGroupItem(GsTreeItem): 
     def __init__(self, group):

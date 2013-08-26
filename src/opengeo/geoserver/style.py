@@ -1,19 +1,18 @@
 from opengeo.geoserver.support import ResourceInfo, url, xml_property
 
 class Style(ResourceInfo):
-    def __init__(self, catalog, name):
+    def __init__(self, catalog, name, workspace = None):
         super(Style, self).__init__()
-        assert isinstance(name, basestring)
-
+        assert isinstance(name, basestring)        
         self.catalog = catalog
+        self.workspace = workspace
         self.name = name
         self._sld_dom = None
 
     @property
     def href(self):
-        if ':' in self.name:
-            ws, name = self.name.split(':')
-            return url(self.catalog.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
+        if self.workspace is not None:            
+            return url(self.catalog.service_url, ["workspaces", self.workspace.name, "styles", self.name + ".xml"]) 
         else:
             return  url(self.catalog.service_url, ["styles", self.name + ".xml"])
         #return url(self.catalog.service_url, ["styles", self.name + ".xml"])

@@ -157,9 +157,7 @@ class Catalog(object):
         then POSTS the request.
         """
         rest_url = obj.href
-        message = obj.message()
-        
-        print message
+        message = obj.message()                
         
         headers = {
             "Content-type": "application/xml",
@@ -550,19 +548,26 @@ class Catalog(object):
         else:
             return UnsavedLayerGroup(self, name, layers, styles, bounds)
 
-    def get_style(self, name):
-        if ':' in name:
-            ws, name = name.split(':')
-            style_url = url(self.service_url, ["workspaces", ws, "styles", name + ".xml"]) 
-        else:
+    def get_style(self, name, workspace = None):
+        if workspace is not None:
+            style_url = url(self.service_url, ["workspaces", workspace.name, "styles", name + ".xml"]) 
+            try:
+                dom = self.get_xml(style_url)
+                return Style(self, name, workspace)
+            except:
+                return None           
+        else:            
             style_url = url(self.service_url, ["styles", name + ".xml"])
-        try:
-            dom = self.get_xml(style_url)
-            return Style(self, name)#dom.find("name").text)
-        except:
+            try:
+                dom = self.get_xml(style_url)
+                return Style(self, name)#dom.find("name").text)
+            except:
+                pass 
+            for ws in self.get_workspaces():
+                style = self.get_style(name, workspace=ws)
+                if style is not None:
+                    return style
             return None
-        
-
 
     def get_styles(self):
         styles_url = url(self.service_url, ["styles.xml"])

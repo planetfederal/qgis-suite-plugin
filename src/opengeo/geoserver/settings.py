@@ -63,8 +63,7 @@ class Settings(object):
                     subelement = ET.SubElement(element, name)
                     subelement.text = unicode(value)
         
-        xml = ET.tostring(root)
-        print xml
+        xml = ET.tostring(root)        
         settings_url = url(self.catalog.service_url, ['settings.xml'])  
         headers = {'Content-type': 'text/xml'}                          
         headers, response = self.http.request(settings_url, 'PUT', xml, headers = headers)

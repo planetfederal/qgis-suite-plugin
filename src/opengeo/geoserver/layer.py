@@ -90,7 +90,7 @@ class Layer(ResourceInfo):
         if 'default_style' in self.dirty:
             style =  self.dirty['default_style']
             if isinstance(style, basestring):
-                style = Style(self.catalog, style)
+                style = self.catalog.get_style(style)
             return style
         if self.dom is None:
             self.fetch()
@@ -112,7 +112,7 @@ class Layer(ResourceInfo):
         if self.dom is None:
             self.fetch()
         styles = self.dom.findall("styles/style/name")
-        return [Style(self.catalog, s.text) for s in styles]
+        return [self.catalog.get_style(s.text) for s in styles]
 
     def _set_alternate_styles(self, styles):
         self.dirty["alternate_styles"] = styles        

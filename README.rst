@@ -33,4 +33,4 @@ The plugin repository is updated frequently- However, it is not guaranteed that 
 Usage
 ------
 
-The plugin functionality is accessed through the OpenGeo Explorer, which is documented `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/gui.rst>`_
+The plugin functionality is accessed through the OpenGeo Explorer, which is documented `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/manual/gui.rst>`_

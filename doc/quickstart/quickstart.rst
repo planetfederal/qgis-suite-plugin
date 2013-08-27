@@ -5,7 +5,7 @@ This quickstart will guide you through some of the most usual task that can be p
 
 You should have a local GeoServer instance running, and a PostGIS database. The examples in this quickstart assume that both of them are available with the usual parameters set by a fresh OpenGeo Suite installation (``localhost:8080/geoserver/`` for GeoServer, port 54321 for PostGIS). Adapt the examples as needed, in case you are running your GeoServer or PostGIS with a different configuration.
 
-Example data used in this quickstart is available `here <>`_
+Example data used in this quickstart is available `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/quickstart/data.zip>`_
 
 
 To start, let's open the OpenGeo explorer, using the *OpenGeo* menu. It will appear on the right--hand side of your QGIS window.

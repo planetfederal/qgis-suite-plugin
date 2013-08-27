@@ -44,8 +44,9 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         items = self.selectedItems()
         if len(items) == 1:
             actions = item.contextMenuActions(self, self.explorer)
-            if (isinstance(item, TreeItem) and hasattr(item, 'populate')):            
-                refreshAction = QtGui.QAction("Refresh", self.explorer)
+            if (isinstance(item, TreeItem) and hasattr(item, 'populate')): 
+                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")           
+                refreshAction = QtGui.QAction(icon, "Refresh", self.explorer)
                 refreshAction.triggered.connect(item.refreshContent)
                 actions.append(refreshAction) 
             self.explorer.setToolbarActions(actions)
@@ -140,7 +141,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         return mimeData
         
     def dropEvent(self, event):
-        if isinstance(event.source(), ExplorerTreeWidget):
+        if isinstance(event.source(), self.__class__):
             self.dropExplorerItemEvent(event)
         else:
             destinationItem=self.itemAt(event.pos())        
@@ -161,7 +162,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 for i, element in enumerate(elements):
                     destinationItem.acceptDroppedUri(self.explorer, element)                                                                            
                     self.explorer.progress.setValue(i)                
-                toUpdate = destinationItem.finishDropEvent(self.explorer)
+                toUpdate = destinationItem.finishDropEvent(self, self.explorer)
                 for item in toUpdate:
                     item.refreshContent()        
                 self.explorer.resetActivity()

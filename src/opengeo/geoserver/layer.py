@@ -58,11 +58,10 @@ def _write_alternate_styles(builder, styles):
 
 
 class Layer(ResourceInfo):
-    def __init__(self, catalog, name, workspace = None):
+    def __init__(self, catalog, name):
         super(Layer, self).__init__()
         self.catalog = catalog
         self.name = name
-        self.workspace = workspace
 
     resource_type = "layer"
     save_method = "PUT"

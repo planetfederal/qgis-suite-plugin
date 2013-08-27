@@ -13,7 +13,7 @@ class TreeItem(QtGui.QTreeWidgetItem):
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)               
             
     def refreshContent(self):
-        self.takeChildren()
+        self.takeChildren()        
         if hasattr(self.element, "refresh"):
             self.element.refresh()
         self.populate()    
@@ -79,7 +79,7 @@ class TreeItem(QtGui.QTreeWidgetItem):
     def startDropEvent(self):
         self.uris = []
         
-    def finishDropEvent(self, explorer):
+    def finishDropEvent(self, tree, explorer):
         return []
             
     def acceptDroppedUri(self, explorer, uri):

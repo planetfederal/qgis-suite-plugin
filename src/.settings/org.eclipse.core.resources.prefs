@@ -1,9 +1,12 @@
 eclipse.preferences.version=1
 encoding//opengeo/__init__.py=utf-8
+encoding//opengeo/gui/createtable.py=utf-8
 encoding//opengeo/gui/crsdialog.py=utf-8
+encoding//opengeo/gui/data_model.py=utf-8
 encoding//opengeo/gui/extentpanel.py=utf-8
 encoding//opengeo/gui/importvector.py=utf-8
 encoding//opengeo/gui/rectangletool.py=utf-8
+encoding//opengeo/gui/ui_DlgCreateTable.py=utf-8
 encoding//opengeo/gui/ui_gwclayer.py=utf-8
 encoding//opengeo/httplib2/__init__.py=utf-8
 encoding//opengeo/plugin.py=utf-8

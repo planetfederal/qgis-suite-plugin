@@ -4,10 +4,10 @@ from qgis.core import *
 from opengeo.postgis.connection import PgConnection
 from opengeo.gui.exploreritems import TreeItem
 from opengeo.gui.layerdialog import PublishLayerDialog
-from opengeo.postgis.postgis_utils import tableUri
 from opengeo.gui.userpasswd import UserPasswdDialog
 from opengeo.gui.importvector import ImportIntoPostGISDialog
 from opengeo.gui.pgconnectiondialog import NewPgConnectionDialog
+from opengeo.gui.createtable import DlgCreateTable
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")   
  
@@ -41,8 +41,9 @@ class PgConnectionsItem(TreeItem):
             finally:                            
                 settings.endGroup()  
         
-    def contextMenuActions(self, tree, explorer):         
-        newConnectionAction = QtGui.QAction("New connection...", explorer)
+    def contextMenuActions(self, tree, explorer):       
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")  
+        newConnectionAction = QtGui.QAction(icon, "New connection...", explorer)
         newConnectionAction.triggered.connect(lambda: self.newConnection(explorer))                                             
         return [newConnectionAction]
                  
@@ -83,7 +84,8 @@ class PgConnectionItem(TreeItem):
             
     def contextMenuActions(self, tree, explorer): 
         if self.element.isValid:            
-            newSchemaAction = QtGui.QAction("New schema...", explorer)
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
+            newSchemaAction = QtGui.QAction(icon, "New schema...", explorer)
             newSchemaAction.triggered.connect(lambda: self.newSchema(explorer)) 
             sqlAction = QtGui.QAction("Run SQL...", explorer)
             sqlAction.triggered.connect(self.runSql)     
@@ -115,7 +117,7 @@ class PgConnectionItem(TreeItem):
         if self.element.isValid:
             self.uris.append(uri) 
     
-    def finishDropEvent(self, explorer):
+    def finishDropEvent(self, tree, explorer):
         if self.uris:
             files = []
             for uri in self.uris:
@@ -173,8 +175,9 @@ class PgSchemaItem(TreeItem):
     def contextMenuActions(self, tree, explorer):                        
         newTableIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/new_table.png")                         
         newTableAction = QtGui.QAction(newTableIcon, "New table...", explorer)
-        newTableAction.triggered.connect(lambda: self.newTable(explorer))                                                                  
-        deleteAction= QtGui.QAction("Delete", explorer)
+        newTableAction.triggered.connect(lambda: self.newTable(explorer))
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")                                                                    
+        deleteAction= QtGui.QAction(icon, "Delete", explorer)
         deleteAction.triggered.connect(lambda: self.deleteSchema(explorer))  
         renameAction= QtGui.QAction("Rename...", explorer)
         renameAction.triggered.connect(lambda: self.renameSchema(explorer))
@@ -208,16 +211,17 @@ class PgSchemaItem(TreeItem):
                           self.element.name, text)      
     
     def newTable(self, explorer):
-        pass    
+        dlg = DlgCreateTable(self.element)  
+        dlg.exec_()  
     
     def startDropEvent(self):
         self.uris = []        
         
     def acceptDroppedUri(self, explorer, uri):
-        if self.element.isValid:
+        if self.element.conn.isValid:
             self.uris.append(uri) 
     
-    def finishDropEvent(self, explorer):
+    def finishDropEvent(self, tree, explorer):
         if self.uris:
             files = []
             for uri in self.uris:
@@ -267,8 +271,9 @@ class PgTableItem(TreeItem):
     def contextMenuActions(self, tree, explorer):        
         publishPgTableAction = QtGui.QAction("Publish...", explorer)
         publishPgTableAction.triggered.connect(lambda: self.publishPgTable(tree, explorer))            
-        publishPgTableAction.setEnabled(len(explorer.catalogs()) > 0)    
-        deleteAction= QtGui.QAction("Delete", explorer)
+        publishPgTableAction.setEnabled(len(explorer.catalogs()) > 0) 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")     
+        deleteAction= QtGui.QAction(icon, "Delete", explorer)
         deleteAction.triggered.connect(lambda: self.deleteTable(explorer))  
         renameAction= QtGui.QAction("Rename...", explorer)
         renameAction.triggered.connect(lambda: self.renameTable(explorer))                 
@@ -354,6 +359,7 @@ def importFile(filename, connection, schema, tablename, overwrite):
         layer.deleteLater()
         raise WrongLayerFileError("Error reading file {} or it is not a valid vector layer file".format(filename))
                 
+    print options
     ret, errMsg = QgsVectorLayerImport.importLayer(layer, uri.uri(), providerName, layer.crs(), False, False, options)
     if ret != 0:
         raise Exception(errMsg)

@@ -1,5 +1,5 @@
 '''
-methods tto convert the SLD produced by GeoServer (1.0) to the SLD produced by QGIS (1.1), and also the other way round.
+methods to convert the SLD produced by GeoServer (1.0) to the SLD produced by QGIS (1.1), and also the other way round.
 This is a quick and dirty solution until both programs support the same specification
 '''
 
@@ -8,7 +8,7 @@ import os
 from PyQt4.QtXml import *
 
 def adaptQgsToGs(sld, layer):
-    print sld
+    #print sld
     sld = sld.replace("se:SvgParameter","CssParameter")
     sld = sld.replace("1.1.","1.0.")
     sld = sld.replace("\t","")
@@ -20,7 +20,7 @@ def adaptQgsToGs(sld, layer):
         s = ("<MinScaleDenominator>" + str(layer.minimumScale()) + 
         "</MinScaleDenominator><MaxScaleDenominator>" + str(layer.maximumScale()) + "</MaxScaleDenominator>")
         sld = sld.replace("<se:Rule>", "<se:Rule>" + s)
-    print sld        
+    #print sld        
     
     return sld
 

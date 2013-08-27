@@ -141,9 +141,8 @@ class OGCatalog(object):
                 resource.projection = "EPSG:4326"
                 self.catalog.save(resource)
             else:
-                msg = ('GeoServer failed to detect the projection for layer '
-                       '[%s]. It doesn\'t look like EPSG:4326, so backing out '
-                       'the layer.')
+                msg = ('Could not set projection for layer '
+                       '[%s]. the layer has been created, but its projection should be set manually.')
                 raise Exception(msg % layer.name())
             
     def getConnectionNameFromLayer(self, layer):

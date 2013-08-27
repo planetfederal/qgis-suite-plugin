@@ -2,7 +2,7 @@
 
 
 '''
-This module provides method to export layers so they can be used as valid data 
+This module provides methods to export layers so they can be used as valid data 
 for uploading to GeoServer.
 '''
 

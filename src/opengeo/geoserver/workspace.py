@@ -8,22 +8,22 @@ def workspace_from_index(catalog, node):
 class Workspace(ResourceInfo): 
     resource_type = "workspace"
 
-    def __init__(self, catalog, name):
+    def __init__(self, catalog, wsname):
         super(Workspace, self).__init__()
         self.catalog = catalog
-        self.name = name
+        self.wsname = wsname
 
     @property
     def href(self):
-        return url(self.catalog.service_url, ["workspaces", self.name + ".xml"])
+        return url(self.catalog.service_url, ["workspaces", self.wsname + ".xml"])
 
     @property
     def coveragestore_url(self):
-        return url(self.catalog.service_url, ["workspaces", self.name, "coveragestores.xml"])
+        return url(self.catalog.service_url, ["workspaces", self.wsname, "coveragestores.xml"])
 
     @property
     def datastore_url(self):
-        return url(self.catalog.service_url, ["workspaces", self.name, "datastores.xml"])
+        return url(self.catalog.service_url, ["workspaces", self.wsname, "datastores.xml"])
 
     
     name = xml_property("name")

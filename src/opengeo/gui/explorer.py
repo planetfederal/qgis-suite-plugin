@@ -26,7 +26,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.subwidget = QtGui.QWidget()               
         self.explorerWidget = ExplorerWidget(self, self.singletab)
         self.toolbar = QtGui.QToolBar()
-        self.toolbar.setToolButtonStyle(Qt.ToolButtonTextOnly)#Qt.ToolButtonTextUnderIcon)
+        self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.toolbar.setVisible(self.singletab)
         self.setToolbarActions([])
         self.splitter.addWidget(self.explorerWidget)         
@@ -65,16 +65,20 @@ class OpenGeoExplorer(QtGui.QDockWidget):
 
     def setToolbarActions(self, actions):        
         icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
-        self.toolbar.clear()        
+        self.toolbar.clear()
+        for action in actions:
+            if action.icon().isNull():
+                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/process.png")
+                action.setIcon(icon)        
         if len(actions) == 0:
             refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")                         
             refreshAction = QtGui.QAction(refreshIcon, "Refresh", self)
             refreshAction.triggered.connect(self.explorerWidget.refreshContent)
             self.toolbar.addAction(refreshAction)
              
-        for action in actions:
-            #action.setIcon(icon)                                    
+        for action in actions:                              
             self.toolbar.addAction(action)
+            
         self.toolbar.update()
         
             

@@ -146,9 +146,9 @@ GeoServer
 
  Style items also have an *Edit SLD...* option. By clicking on it you can directly edit the content of the corresponding SLD, using a dialog with an XML editor, such as the one shown below.
 
- .. image:: edit_sld.png
+ .. image:: editsld.png
 
- Clicking on *OK* will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message erturned by GeoServer will be shown in the *Log* panel.
+ Clicking on *OK* will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message rrturned by GeoServer will be shown in the *Log* panel.
 
  .. image:: sld_error.png
 
@@ -186,7 +186,7 @@ GeoWebCache
 
 	When a seeding operation is started, the description box corresponding to the GWC layer being seeded will show the current state of the operation. 
 
-	..image:: seed_status.png
+	.. image:: seed_status.png
 
 	Since this operations might be very long, depending on the selected zoom levels and the area covered by the layer, progress in this case is not shown using the normal progress bar and hourglass mouse pointer. 
 

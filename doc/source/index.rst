@@ -1,7 +1,7 @@
-Welcome to OpenGeo Suite QGIS plugin's documentation!
-=====================================================
+OpenGeo Suite QGIS plugin
+=========================
 
-Contents:
+.. todo:: Need intro content here.
 
 .. toctree::
    :maxdepth: 2

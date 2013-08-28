@@ -1,115 +1,148 @@
-OpenGeo Suite QGIS plugin Quickstart
-======================================
+.. _quickstart:
 
-This quickstart will guide you through some of the most usual task that can be performed using the OpenGeo Suite QGIS plugin.
+Quickstart tutorial
+===================
 
-You should have a local GeoServer instance running, and a PostGIS database. The examples in this quickstart assume that both of them are available with the usual parameters set by a fresh OpenGeo Suite installation (``localhost:8080/geoserver/`` for GeoServer, port 54321 for PostGIS). Adapt the examples as needed, in case you are running your GeoServer or PostGIS with a different configuration.
+This tutorial will guide you through some of the most basic tasks that can be performed using the OpenGeo Suite QGIS plugin.
 
-Example data used in this quickstart is available `here <https://github.com/opengeo/suite-qgis-plugin/blob/master/doc/quickstart/data.zip>`_
+Prerequisites
+-------------
 
+This tutorial assumes that QGIS and the OpenGeo Suite plugin has been already installed. It also assumes a local GeoServer instance and a PostGIS database installed with the parameters set by an OpenGeo Suite installation (GeoServer running on port 8080 and responding on ``http://localhost:8080/geoserver/`` and PostGIS running on port 54321). 
 
-To start, let's open the OpenGeo explorer, using the *OpenGeo* menu. It will appear on the right--hand side of your QGIS window.
+You may need to adapt the examples as needed to fit your specific installation.
 
-You will see that the *GeoServer catalogs* entry is empty. Select it and then click on the *New catalog* button that will appear on the toolbar in the upper part of the explorer window (the buttons in the toolbar change depending on the type of element selected in the tree). The catalog creation dialog contains the default parameters for a local GeoServer instance. 
+Data
+----
 
-.. image:: create_catalog.png
+:download:`Download the example data <data/data.zip>` to be used in this tutorial. Extract this archive to a convenient directory.
 
-Since that is what we want to configure, there is no need to modify those values, so just click on *OK*. The new catalog will appear on the corresponding branch
+Connecting to GeoServer
+-----------------------
 
-.. image:: catalog_entry.png
+#. To start, open the OpenGeo Explorer by clicking the :guilabel:`OpenGeo` menu and selecting :guilabel:`OpenGeo Explorer`. The panel will appear on the right side of your QGIS window.
 
-We are going to publish some data into that catalog, so the first thing to do is to create a workspace where we can put our data. Select the *Workspaces* entry and then click on the *New workspace* in the toolbar.
+#. You will see that the :guilabel:`GeoServer catalogs` entry is empty. Click to select it and then click the :guilabel:`New catalog` button that will appear on the toolbar above the panel.
 
-.. image:: create_workspace.png
+   .. note:: The buttons on the toolbar will change depending on the type of element selected in the tree.
 
-Fill the dialog text boxes with the inputs shown above and click on *OK*. The workspace whould now appear in the list of available ones. It's not however, the default workspace. Let's make it the default workspace by selecting the workspace item, right--clicking on it and then selecting *Set as default workspace*. This will make the next tasks a bit easier, since our recently created workspace will be used by default for some of the operations we are going to perform.
+#. The catalog creation dialog contains the default parameters for a local GeoServer instance.
 
+   .. image:: img/create_catalog.png
 
-..image:: default_workspace.png
+#. There is no need to modify the default values, so just click :guilabel:`OK`. The new catalog will appear in the :guilabel:`GeoServer catalogs` branch.
 
-Open the QGIS project that is included in the example data. You should have 5 layers in your project, with two groups defined.
+   .. image:: img/catalog_entry.png
 
-.. image:: project.png
+Publishing a QGIS project
+-------------------------
 
-We are going to publish the project as it is, with those layers and groups, and with the symbology that is associated to each layer (which is actually the same for all layers in each group). Normally, it would be your task to add the corresponding layers to your project and set their simobology, and also to create groups if needed. In this case, we are providing the project already configured, for the sake of smiplicity. The idea is to show that you can do all the work in QGIS, and then just replicate you configuration and data in the GeoServer catalog, by publishing into it.
+#. In order to publish some data into that catalog, so the first thing to do is to create a workspace where we can put our data. Select the :guilabel:`Workspaces` entry and then click :guilabel:`New workspace` in the toolbar.
 
-To publish the project as it is, just select the *QGIS project* entry in the explorer tree, and then click on *Publish...*. You will see the following dialog.
+   .. todo:: Redo image, the URI doesn't work.
 
-.. image:: publish_project.png
+   .. image:: img/create_workspace.png
 
-Select the *quickstart* workspace as the destination workspace.
+#. Fill out the form in the dialog boxes with the inputs as shown above and click :guilabel:`OK`.
 
-Apart from the groups contained in the current QGIS project, an additional group can be created with all the uploaded layers. Since we do not want that in this case, leave the *Create global group* box unchecked. Click on *OK* and the publishing process should start. You can track it's progress in the progress bar in the lower part of the explorer window.
+   .. todo:: List them here.
 
-Once it is finished, your catalog should look like this. 
+#. The new workspace should now appear in the list. It is not the default workspace, though, so to make it the default, select the workspace item, right-click and then select :guilabel:`Set as default workspace`. While not necessary, this will make the next few tasks a bit easier to perform.
 
-.. image:: catalog_after_publish.png
+   .. image:: img/default_workspace.png
 
-As you can see, a store has been created for each QGIS layer, and also the corresponding GeoServer layers and styles. Layers have been configured to use the corresponding styles.
+#. Open the QGIS project that is included in the example data (:file:`quickstart.qgs`). There should be five layers in your project in two groups.
 
-The sample dataset contains a shapefile with elevation data named ``pt_4.shp`` that is not included in the QGIS project. We will add it as well, since we want it to be published along with the other ones. 
+   .. image:: img/project.png
 
-There is no need to open the layer in QGIS. Just open the QGIS browser, and locate the shapefile in it. 
+#. We will publish this project to GeoServer as it is, with those layers, groups, and the symbology associated with each layer.
 
-.. image:: file_in_browser.png
+   To publish the project as it is, just select the :guilabel:`QGIS project` entry in the explorer tree, and then click :guilabel:`Publish...`. You will see the following dialog:
 
-Now select it and drag and drop it onto the catalog item in the tree. 
+   .. image:: img/publish_project.png
 
-.. image:: drag_file.png
+#. Select the :guilabel:`quickstart` workspace as the destination workspace. Make sure the :guilabel:`Global group name` box is left blank. Click :guilabel:`OK` to start the publishing process.
 
-Since *quickstart* is the default workspace, it will be added to that workspace. If you want to publish into another one, just drop it on the corresponing workspace item instead of the catalog one.
+#. Once finished, your catalog should look like this. 
 
-A layer has been created, but this time a default style has been assigned to it, since there was no style available (it was created directly from the shapefile, which has no styling itself). Since the layer should have the same style as the other roads layers, there is no need to upload a new style, we can just reuse one of the uploaded styles (which are actually the same, and are repeated, one for each layer). To do it, just select the GeoServer layer and then select the *Add style to layer* action. You will see the following dialog.
+   .. image:: img/catalog_after_publish.png
 
-.. image:: add_style.png
+   As you can see, a store has been created for each QGIS layer, and also the corresponding GeoServer layers and styles. Layers have been configured to use the corresponding styles.
 
-Make sure to check the *Add as deault style*, and select the *pt1* style.
+Publishing a shapefile
+----------------------
 
-You can also do it by draggin and dropping the *pt1* style onto the layer item. That will not make it the default style, but you can then select it and click on the *Set as default style* button.
+The sample data contains a shapefile named :file:`pt4.shp` that was not included in the QGIS project. We will add it to the already-published content.
 
-Since we do not want the default style to be used for that layer, remove it by running the *Remove style from layer* action. You can also delete it from the catalog (it is not used by any other layer), by clicking on the corresponding element in the *Styles* branch and then selecting the *Delete* action.
+#. There is no need to open the layer in QGIS. Just open the QGIS Browser, and locate the shapefile.
 
+   .. image:: img/file_in_browser.png
 
-There are other ways to publish our data. Instead of creating GeoServer layers that are based on shapefiles, we can import those shapefiles into a PostGIS database, and then create layers based on that database. To do it, first create a *quickstart* database (you have to do that outside of QGIS, using the command line or the PgAdmin utility). Now connect to it from the explorer, right-clicking on the *PostGIS connections* item and selecting *New connection*
+#. Select it and drag and drop onto the catalog item in the tree.
 
-.. image:: new_pg_connection.png
+   .. image:: img/drag_file.png
 
-Set the parameters of the connection and click on *OK*. The connection should appear in the explorer tree, along with other connections that you might have defined in QGIS.
+#. Since the ``quickstart`` workspace was set as the default, the layer will be added to that workspace. If you want to publish into another one, just drop it on the corresponding workspace item instead of the catalog one.
 
-.. image::connection.png
+#. In this case, we want the layer to have the same style as the other layers we uploaded (which all share the same styling), so we can reuse one of the uploaded styles. To change the style, select the layer and then click the :guilabel:`Add style to layer` button. You will see the following dialog:
 
-Now click on the schema where you want to import your data, and select *Import files...*. The following dialog will appear.
+   .. image:: img/add_style.png
 
-.. image:: import_to_postgis.png
+#. Select the :guilabel:`pt1` style in the list. Make sure to check the :guilabel:`Add as default style` option as well.
 
-Click on the button in the upper part of the dialog to select the files to import. Add the ``pt1.shp, pt2.shp`` and ``pt3.shp`` files. Set the name of the destination table to *elevation*, and check the *Add to table (do not overwrite)* box. This will cause all files to be imported to a single table named *elevation*. The dialog should look like this.
+   .. note:: You can also accomplish the same action by dragging the :guilabel:`pt1` style onto the layer item. That will not make it the default style, but you can then select it and click the :guilabel:`Set as default style` button.
 
-.. image:: import_to_postgis2.png
+#. Having switched the style for our ``pt4`` layer to use the one from ``pt1``, we can now remove the original ``pt4`` style. This can be done by right-clicking the style and selecting :guilabel:`Remove style from layer`. You can also delete it from the catalog itself (as it is not used by any other layer) by clicking the ``pt4`` element in the :guilabel:`Styles` branch and then selecting the :guilabel:`Delete` action.
 
-click on *OK* and the data will be imported into the specified table.
+Publishing from PostGIS
+-----------------------
 
-Now, to create a GeoServer layer with that table, you can drag and drop the table into the workspace item, just like you did when importing the shapefile. 
+There are other ways to publish our data. Instead of creating GeoServer layers that are based on shapefiles, we can import those shapefiles into a PostGIS database, and then create layers based on that database.
 
-The resulting GeoServer layer will also have no style associated. You can solve that by dropping a style onto it, as we have already seen.
+#. First create a database named ``quickstart``.
 
-Once the data is in our GeoServer catalog (whether in the form of several shapefile-based stores or a single PostGIS-based store), we can also use the explorer to seed the cached layer that is automatically created upon importing. In the *GeoWebCache* entry of your catalog, you should have something like this.
+   .. note:: The details of this step are beyond the scope of this tutorial, as it must be done outside of QGIS using the ``psql`` command or the pgAdmin utility. 
 
-..image:: gwc.png
+#. Connect to the database using the OpenGeo Explorer by right-clicking the :guilabel:`PostGIS connections` item in the tree and selecting :guilabel:`New connection`.
 
-Click on the layer that correspond to the PostGIS-based layer that we have just created, and select *Seed...*. You will see a dialog to define the seeding to perform, where you should set the seeding parameters, for instance as shown in the figure below.
+   .. image:: img/new_pg_connection.png
 
-.. image:: seed_dialog.png
+#. Set the parameters of the connection and click :guilabel:`OK`. The database should appear in the tree.
 
-Click on *OK* and the seeding request will be sent to your GWC instance. The description panel of the GWC layer will change to reflect that a seeding operation has been launched. 
+   .. image:: img/connection.png
 
-.. image:: seed.png
+#. Now click the schema where you want to import your data, and select :guilabel:`Import files...`. The following dialog will appear:
 
-The description is not updated automatically, but you can click on the *update* hyperlink to refresh it and see how it progresses, or the *kill* one to abort the seeding operation.
+   .. image:: img/import_to_postgis.png
 
+#. Click the button in the upper part of the dialog to select the files to import. Select the ``pt1.shp``, ``pt2.shp``, and ``pt3.shp`` files. Set the name of the destination table to :guilabel:`elevation`, and check the :guilabel:`Add to table (do not overwrite)` box. This will cause all files to be imported to a single table named ``elevation`` and not as three separate tables. The dialog should look like this.
 
+   .. image:: img/import_to_postgis2.png
 
+#. Click :guilabel:`OK` and the data will be imported.
 
+#. To create a GeoServer layer from that table, drag and drop the table onto the workspace item, just like when importing the shapefile.
 
+#. The resulting GeoServer layer will have no style associated. You can solve that by dropping a style onto the layer.
+
+Caching
+-------
+
+Once data is in our GeoServer catalog, we can use the OpenGeo Explorer panel to seed the tile cache of a particular layer.
+
+#. In the :guilabel:`GeoWebCache` entry of the tree, you should have something like this:
+
+   .. image:: img/gwc.png
+
+#. Click the layer that corresponds to the PostGIS-based layer (``elevation``) that was created in the previous section. Right-click and select :guilabel:`Seed...`. You will see a dialog to define the seeding to perform, where you should set the seeding parameters, for example as shown in the figure below:
+
+   .. image:: img/seed_dialog.png
+
+#. Click :guilabel:`OK` and the seeding request will be sent. The description panel of the layer entry will change to reflect that a seeding operation has been launched.
+
+   .. image:: img/seed.png
+
+#. The description is not updated automatically, but you can click the :guilabel:`Update` link to refresh it and see how it progresses, or the :guilabel:`Kill` link to abort the seeding operation.
 
 
 

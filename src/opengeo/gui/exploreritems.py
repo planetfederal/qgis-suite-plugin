@@ -12,11 +12,11 @@ class TreeItem(QtGui.QTreeWidgetItem):
             self.setIcon(0, icon)   
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)               
             
-    def refreshContent(self):
+    def refreshContent(self, explorer):
         self.takeChildren()        
         if hasattr(self.element, "refresh"):
             self.element.refresh()
-        self.populate()    
+        explorer.run(self.populate, None, [])                
        
     def descriptionWidget(self, tree, explorer):                
         text = self.getDescriptionHtml(tree, explorer)
@@ -75,12 +75,15 @@ class TreeItem(QtGui.QTreeWidgetItem):
     
     def acceptDroppedItem(self, tree, explorer, item):
         return []
-    
-    def startDropEvent(self):
-        self.uris = []
         
-    def finishDropEvent(self, tree, explorer):
-        return []
+    def acceptDroppedItems(self, tree, explorer, items):
+        explorer.setProgressMaximum(len(items))
+        toUpdate = []
+        for i, item in enumerate(items):
+            toUpdate.extend(self.acceptDroppedItem(tree, explorer, item))
+            explorer.setProgress(i + 1)
+        explorer.resetActivity()
+        return toUpdate
             
-    def acceptDroppedUri(self, explorer, uri):
-        pass
+    def acceptDroppedUris(self, tree, explorer, uris):
+        return []

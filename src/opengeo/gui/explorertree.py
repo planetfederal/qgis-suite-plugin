@@ -16,8 +16,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.header().hide()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showTreePopupMenu)
+        self.itemExpanded.connect(self.treeItemExpanded)
         self.itemClicked.connect(self.treeItemClicked) 
-        self.setDragDropMode(QtGui.QTreeWidget.DragDrop)                
+        self.setDragDropMode(QtGui.QTreeWidget.DragDrop)  
+        self.setAutoScroll(True)              
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.catalogs = {}
@@ -47,12 +49,16 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
             if (isinstance(item, TreeItem) and hasattr(item, 'populate')): 
                 icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")           
                 refreshAction = QtGui.QAction(icon, "Refresh", self.explorer)
-                refreshAction.triggered.connect(item.refreshContent)
+                refreshAction.triggered.connect(lambda: item.refreshContent(self.explorer))
                 actions.append(refreshAction) 
             self.explorer.setToolbarActions(actions)
     
     def lastClickedItem(self):
-        return self.lastClicked
+        return self.lastClicked                   
+        
+    def treeItemExpanded(self, item):
+        if item is not None and not item.childCount():            
+            item.refreshContent(self.explorer)      
     
     def showTreePopupMenu(self,point):
         allTypes = self.getSelectionTypes()                
@@ -86,9 +92,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         if not isinstance(self.selectedItem, TreeItem):
             return                  
         menu = QtGui.QMenu()
-        if (isinstance(self.selectedItem, TreeItem) and hasattr(self.selectedItem, 'populate')):            
-            refreshAction = QtGui.QAction("Refresh", None)
-            refreshAction.triggered.connect(self.selectedItem.refreshContent)
+        if (isinstance(self.selectedItem, TreeItem) and hasattr(self.selectedItem, 'populate')):
+            refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")               
+            refreshAction = QtGui.QAction(refreshIcon, "Refresh", None)
+            refreshAction.triggered.connect(lambda: self.selectedItem.refreshContent(self.explorer))
             menu.addAction(refreshAction) 
         point = self.mapToGlobal(point)    
         actions = self.selectedItem.contextMenuActions(self, self.explorer)
@@ -100,9 +107,9 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         allItems = []
         iterator = QtGui.QTreeWidgetItemIterator(self)
         value = iterator.value()
-        while value:
+        while value:            
             if hasattr(value, 'element'):
-                if hasattr(value.element, 'name') and hasattr(element, 'name'):
+                if hasattr(value.element, 'name') and hasattr(element, 'name'):                                    
                     if  value.element.name == element.name and value.element.__class__ == element.__class__:
                         allItems.append(value)
                 elif value.element == element:
@@ -130,79 +137,46 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         for item in items:
             if isinstance(item, GsLayerItem):                
                 layer = item.element
-                uri = gsutils.mimeUri(layer)                                
+                uri = gsutils.mimeUri(layer)                                                       
                 stream.writeQString(uri)
             elif isinstance(item, PgTableItem):
-                table = item.element
-                uri = pgutils.mimeUri(table)                          
+                table = item.element                
+                uri = pgutils.mimeUri(table)                        
                 stream.writeQString(uri)                
   
         mimeData.setData(self.QGIS_URI_MIME, encodedData)        
         return mimeData
         
     def dropEvent(self, event):
+        items = []
+        destinationItem=self.itemAt(event.pos())  
+        if destinationItem is None: 
+            return                  
         if isinstance(event.source(), self.__class__):
-            self.dropExplorerItemEvent(event)
-        else:
-            destinationItem=self.itemAt(event.pos())        
-            mimeData = event.mimeData()
-            elements = []            
-            for mimeFormat in mimeData.formats():                
-                if mimeFormat != self.QGIS_URI_MIME:
-                    continue            
-                encoded = mimeData.data(mimeFormat)
-                stream = QtCore.QDataStream(encoded, QtCore.QIODevice.ReadOnly)
-                while not stream.atEnd():
-                    mimeUri = stream.readQString()
-                    elements.append(mimeUri)            
-            if elements:
-                destinationItem.startDropEvent()
-                self.explorer.progress.setMaximum(len(elements))
-                toUpdate = set()
-                for i, element in enumerate(elements):
-                    destinationItem.acceptDroppedUri(self.explorer, element)                                                                            
-                    self.explorer.progress.setValue(i)                
-                toUpdate = destinationItem.finishDropEvent(self, self.explorer)
-                for item in toUpdate:
-                    item.refreshContent()        
-                self.explorer.resetActivity()
-                event.acceptProposedAction()    
- 
-    
-    def dropExplorerItemEvent(self, event):        
-        destinationItem=self.itemAt(event.pos())
-        draggedTypes = {item.__class__ for item in event.source().selectedItems()}
-        if len(draggedTypes) > 1:
-            return            
-        
-        selected = self.selectedItems()
-        self.explorer.progress.setMaximum(len(selected))
-        i = 0
-        toUpdate = set()
-        for item in selected:
-            updatable = destinationItem.acceptDroppedItem(self, self.explorer, item)
-            if updatable is not None:  
-                toUpdate.update(updatable)                                      
-            i += 1
-            self.explorer.progress.setValue(i)
-        
-        for item in toUpdate:
-            item.refreshContent()        
-        self.explorer.progress.setValue(0)
-        event.acceptProposedAction()
-        
-        
-
-        
-     
-                    
-        
-        
-
-        
-                    
+            draggedTypes = {item.__class__ for item in event.source().selectedItems()}
+            if len(draggedTypes) > 1:
+                return            
             
+            items = self.selectedItems()                                    
+            toUpdate = destinationItem.acceptDroppedItems(self, self.explorer, items)
+        else:            
+    
+            data = event.mimeData()
+            elements = []   
 
+            if data.hasUrls():
+                for u in data.urls():
+                    filename = u.toLocalFile()
+                    if filename != "":
+                        elements.append(filename) 
 
-
-                 
+            if data.hasFormat(self.QGIS_URI_MIME):
+                for uri in QgsMimeDataUtils.decodeUriList(data):
+                    elements.append(uri) 
+                                              
+            toUpdate = destinationItem.acceptDroppedUris(self, self.explorer, elements)   
+                                                                                                                                                
+        for item in toUpdate:
+            item.refreshContent(self.explorer)        
+        self.explorer.resetActivity()
+        event.acceptProposedAction()    

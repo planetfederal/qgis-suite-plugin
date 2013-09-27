@@ -2,9 +2,9 @@ from PyQt4.QtCore import *
 from qgis.core import *
 from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
-
 import os
 from opengeo.gui.explorerwidget import ExplorerWidget
+from opengeo import config
 
 INFO = 0
 ERROR = 1
@@ -12,12 +12,15 @@ CONSOLE_OUTPUT = 2
     
 class OpenGeoExplorer(QtGui.QDockWidget):
 
-    def __init__(self, parent = None, singletab = False):
+    def __init__(self, parent = None, singletab = True):
         super(OpenGeoExplorer, self).__init__()  
         self.singletab = singletab      
         self.initGui()
         
-    def initGui(self):    
+    def initGui(self):
+        self.explorerWidget = None 
+        self.progressMaximum = 0   
+        self.isProgressVisible = False
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)  
         self.dockWidgetContents = QtGui.QWidget()
         self.setWindowTitle('OpenGeo explorer')
@@ -29,26 +32,21 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
         self.toolbar.setVisible(self.singletab)
         self.setToolbarActions([])
-        self.splitter.addWidget(self.explorerWidget)         
-        self.tabbedPanel = QtGui.QTabWidget()                      
+        self.splitter.addWidget(self.explorerWidget)                             
         self.log = QtGui.QTextEdit()        
-        self.tabbedPanel.addTab(QtGui.QWidget(), "Description")
-        self.tabbedPanel.addTab(self.log, "Log")
-        self.splitter.addWidget(self.tabbedPanel);
-        self.tabbedPanel.setVisible(True)
-        self.progress = QtGui.QProgressBar()
-        self.progress.setMinimum(0)
-        self.progress.setMaximum(100)
-        self.progress.setValue(0)                       
+        self.description = QtGui.QWidget()
+        self.descriptionLayout = QtGui.QVBoxLayout()
+        self.descriptionLayout.setSpacing(2)
+        self.descriptionLayout.setMargin(0)
+        self.description.setLayout(self.descriptionLayout)
+        self.splitter.addWidget(self.description)
+        self.setDescriptionWidget()
+        self.progress = None
         self.layout = QtGui.QVBoxLayout()
         self.layout.setSpacing(2)
-        self.layout.setMargin(0)     
-        self.status = QtGui.QLabel()   
-        self.status.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)                                             
+        self.layout.setMargin(0)                                               
         self.layout.addWidget(self.toolbar)
-        self.layout.addWidget(self.splitter)
-        #self.layout.addWidget(self.status)
-        self.layout.addWidget(self.progress)        
+        self.layout.addWidget(self.splitter)     
         self.setLayout(self.layout)
         self.dockWidgetContents.setLayout(self.layout)
         self.setWidget(self.dockWidgetContents)  
@@ -63,8 +61,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         else:
             self.splitter.setOrientation(Qt.Vertical)                
 
-    def setToolbarActions(self, actions):        
-        icon = None#QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
+    def setToolbarActions(self, actions):                
         self.toolbar.clear()
         for action in actions:
             if action.icon().isNull():
@@ -74,37 +71,46 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")                         
             refreshAction = QtGui.QAction(refreshIcon, "Refresh", self)
             refreshAction.triggered.connect(self.explorerWidget.refreshContent)
-            self.toolbar.addAction(refreshAction)
+            actions.append(refreshAction)
              
-        for action in actions:                              
-            self.toolbar.addAction(action)
+        for action in actions:   
+            button = QtGui.QPushButton()
+            button.setIcon(action.icon())
+            button.setToolTip(action.text())
+            button.setEnabled(action.isEnabled())
+            button.clicked.connect(action.trigger)                           
+            self.toolbar.addWidget(button)
             
         self.toolbar.update()
-        
-            
+                    
     def refreshContent(self):
         self.explorerWidget.refreshContent()
         self.refreshDescription()
         
     def catalogs(self):        
+        if self.explorerWidget is None:
+            return {}
         return self.explorerWidget.catalogs()
+    
+    def pgDatabases(self):
+        return self.explorerWidget.pgDatabases()
         
     def updateQgisContent(self):
         self.explorerWidget.updateQgisContent()
                    
     def run(self, command, msg, refresh, *params):
-        error = False                                
-        self.status.setText(msg)
+        error = False                                   
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))        
         thread = ExplorerThread(command, *params)                
         def finish():
             QtGui.QApplication.restoreOverrideCursor()
             for item in refresh:
                 if item is not None:
-                    item.refreshContent()
+                    item.refreshContent(self)
             if None in refresh:
-                self.refreshContent()
-            self.setInfo("Operation <i>" + msg + "</i> correctly executed")
+                self.refreshContent()            
+            if msg is not None and not self.isProgressVisible:
+                self.setInfo("Operation <i>" + msg + "</i> correctly executed")                
         def error(msg):
             QtGui.QApplication.restoreOverrideCursor()            
             self.setInfo(msg, ERROR)   
@@ -112,34 +118,55 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         thread.finish.connect(finish)
         thread.error.connect(error)                                         
         thread.start()
-        thread.wait()
-        self.status.setText("")        
+        thread.wait()      
         self.refreshDescription()
         
         return error
         
-    def resetActivity(self):
-        self.status.setText("")
-        self.progress.setValue(0)
+    def resetActivity(self):               
+        config.iface.messageBar().clearWidgets()
+        self.isProgressVisible = False
+        self.progress = None  
+        self.progressMaximum = 0                    
         
-    def setStatus(self, text):
-        self.status.setText(text)
+    def setProgress(self, value):
+        if self.progress is not None:
+            self.progress.setValue(value)        
+        
+    def setProgressMaximum(self, value, msg = ""):
+        self.progressMaximum = value
+        self.isProgressVisible = True
+        self.progressMessageBar = config.iface.messageBar().createMessage(msg)
+        self.progress = QtGui.QProgressBar()
+        self.progress.setMaximum(self.progressMaximum)
+        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        self.progressMessageBar.layout().addWidget(self.progress) 
+        config.iface.messageBar().pushWidget(self.progressMessageBar, config.iface.messageBar().INFO)   
         
     def setInfo(self, msg, msgtype = INFO):
         if msgtype == ERROR:
-            self.log.append('<span style="color:red">ERROR: ' + msg + '</span>')
-            self.tabbedPanel.setCurrentIndex(1)            
-        elif msgtype == INFO:
-            self.log.append('<qt><span style="color:blue">INFO: ' + msg + '</span></qt>')
+            if self.progressMaximum != 0:
+                self.resetActivity()
+            config.iface.messageBar().pushMessage("Error", msg, 
+                                                  level = config.iface.messageBar().CRITICAL,                                                  
+                                                  duration = 3)            
         else:
-            self.log.append('<span style="color:grey">INFO: ' + msg + '</span>')
+            config.iface.messageBar().pushMessage("Info", msg, 
+                                                  level = config.iface.messageBar().INFO,
+                                                  duration = 3)
+                   
             
-    def setDescriptionWidget(self, widget):
-        isVisible = self.tabbedPanel.currentIndex() == 0
-        self.tabbedPanel.removeTab(0)
-        self.tabbedPanel.insertTab(0, widget, "Description")
-        if isVisible:
-            self.tabbedPanel.setCurrentIndex(0)
+    def setDescriptionWidget(self, widget = None):                
+        item = self.descriptionLayout.itemAt(0)        
+        if item:
+            self.descriptionLayout.removeItem(item)
+            item.widget().close()
+        if widget is None:                    
+            widget = QtGui.QTextBrowser()
+            widget.setHtml(u'<div style="background-color:#ffffcc;"><h1>No description available</h1></div><ul>') 
+                                  
+        self.descriptionLayout.addWidget(widget)
+        
         
 
     def refreshDescription(self):
@@ -148,5 +175,5 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             try:      
                 self.explorerWidget.currentTree().treeItemClicked(item, 0)
             except:
-                self.setDescriptionWidget(QtGui.QWidget())        
+                self.setDescriptionWidget(None)        
     

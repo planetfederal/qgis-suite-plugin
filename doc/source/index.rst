@@ -6,6 +6,8 @@ OpenGeo Suite QGIS plugin
 .. toctree::
    :maxdepth: 2
 
-   quickstart/index
-   manual/index
+   intro
+   quickstart
+   actions
+   console
 

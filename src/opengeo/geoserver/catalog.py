@@ -8,7 +8,6 @@ from opengeo.geoserver.support import prepare_upload_bundle, url
 from opengeo.geoserver.layergroup import LayerGroup, UnsavedLayerGroup
 from opengeo.geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
-#import opengeo.httplib2
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 from urlparse import urlparse
@@ -81,6 +80,22 @@ class Catalog(object):
             return content
         else:
             return "Cannot get information about catalog.\n"
+    
+    def gsversion(self):
+        about_url = self.service_url + "/about/version.xml"
+        response, content = self.http.request(about_url, "GET")
+        if response.status == 200:
+            dom = XML(content)
+            resources = dom.findall("resource")
+            for resource in resources:
+                if resource.attrib["name"] == "GeoServer":
+                    try:
+                        v = resource.find("Version").text
+                        return v
+                    except:
+                        pass
+        
+        return "2.2.x" # just to inform that version < 2.3.x
          
 
     def delete(self, config_object, purge=False, recurse=False):
@@ -282,6 +297,10 @@ class Catalog(object):
     def create_pg_featurestore(self, name, workspace=None, overwrite=False, 
                                host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):
         '''creates a postgis-based datastore'''
+        
+        if user == "" and passwd == "":
+            raise Exception("Both username and password are empty strings. Use a different user/passwd combination")
+        
         if workspace is None:
             workspace = self.get_default_workspace()
         try:
@@ -367,11 +386,9 @@ class Catalog(object):
         "</featureType>")
         
         headers, response = self.http.request(ds_url, "POST", xml, headers)
-
                
         if headers.status != 201 and headers.status != 200:            
             raise UploadError(response)
-
 
         
     def create_shp_featurestore(self, name, data, workspace=None, overwrite=False, charset=None):

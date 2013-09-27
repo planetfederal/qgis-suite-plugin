@@ -136,7 +136,12 @@ class ResourceInfo(object):
         self.dom = self.catalog.get_xml(self.href)
 
     def clear(self):
+        name = None
+        if 'name' in self.dirty:
+            name = self.dirty['name']
         self.dirty = dict()
+        if name is not None:
+            self.dirty['name'] = name
 
     def refresh(self):
         self.clear()

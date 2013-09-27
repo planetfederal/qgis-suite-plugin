@@ -376,8 +376,10 @@ class GeoDB:
 
     def delete_table(self, table, schema=None):
         """ delete table from the database """
-        table_name = self._table_name(schema, table)
-        sql = "DROP TABLE %s" % table_name
+        if schema is None:            
+            sql = "SELECT DropGeometryTable('%s')" % table
+        else:
+            sql = "SELECT DropGeometryTable('%s', '%s')" % (schema,table)
         self._exec_sql_and_commit(sql)
 
     def empty_table(self, table, schema=None):
@@ -603,8 +605,9 @@ class GeoDB:
         except psycopg2.Error, e:
             raise DbError(e.message, e.cursor.query)
 
-    def _exec_sql_and_commit(self, sql):        
-        """ tries to execute and commit some action, on error it rolls back the change """
+    def _exec_sql_and_commit(self, sql):  
+        print sql      
+        """ tries to execute and commit some action, on error it rolls back the change """                
         try:
             c = self.con.cursor()
             self._exec_sql(c, sql)
@@ -617,8 +620,8 @@ class GeoDB:
         """ quote identifier if needed """
         identifier = unicode(identifier) # make sure it's python unicode string
         # is it needed to quote the identifier?
-        if self.re_ident_ok.match(identifier) is not None:
-            return identifier
+        #if self.re_ident_ok.match(identifier) is not None:
+            #return identifier
         # it's needed - let's quote it (and double the double-quotes)
         return u'"%s"' % identifier.replace('"', '""')
 

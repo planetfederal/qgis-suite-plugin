@@ -108,7 +108,7 @@ class PgConnectionItem(TreeItem):
         
     def _getDescriptionHtml(self, tree, explorer):  
         if not self.element.isValid:
-            html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
+            html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (PostGIS database)</h1></div></br>'  
             html += ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
                     'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')     
             return html
@@ -371,9 +371,10 @@ class PgTableItem(TreeItem):
         
     def deleteTables(self, explorer, items):
         explorer.setProgressMaximum(len(items), "Delete tables")
-        for i, item in enumerate(items):            
+        for i, item in enumerate(items):  
+            print item.element.name          
             explorer.run(item.element.conn.geodb.delete_table, 
-                          None, #"Delete table '" + item.element.name + "'",
+                          None, 
                           [item.parent()], 
                           item.element.name, item.element.schema)
             explorer.setProgress(i+1)

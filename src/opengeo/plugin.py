@@ -24,8 +24,15 @@ class OpenGeoPlugin:
         self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateQgisContent)
 
     def initGui(self):
+        
+        actions = self.iface.mainWindow().menuBar().actions()
+        
         self.menu = QMenu(self.iface.mainWindow())
         self.menu.setTitle("OpenGeo")
+        for action in actions:
+            if action.text() == 'OpenGeo':
+                self.menu = action.menu()
+                break            
         
         icon = QIcon(os.path.dirname(__file__) + "/images/opengeo.png")
         self.explorerAction = QAction(icon, "OpenGeo Explorer", self.iface.mainWindow())

@@ -18,6 +18,6 @@ class ExplorerThread(QThread):
             self.method(*self.args)
             self.finish.emit()
         except Exception, e:          
-            print traceback.format_exc()  
-            self.error.emit(unicode(e))
+            #print traceback.format_exc()  
+            self.error.emit(traceback.format_exc())
             

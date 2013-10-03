@@ -101,19 +101,25 @@ class GsTreeItem(TreeItem):
         elements[0:0] = dependent 
         elements.extend(unused)   
         explorer.setProgressMaximum(len(elements), "Deleting elements")   
-        for element in elements:
+        for progress, element in enumerate(elements):
             explorer.setProgress(progress)    
             if isinstance(element, GwcLayer):
                 explorer.run(element.delete,
                      None,
                      [])                      
-            else:                                     
-                explorer.run(element.catalog.delete,
-                     None,
-                     [], 
-                     element, isinstance(element, Style))  
-            progress += 1
-        explorer.setProgress(progress)
+            else:  
+                try:                                   
+                    explorer.run(element.catalog.delete,
+                         None,
+                         [], 
+                         element, isinstance(element, Style))
+                except FailedRequestError:
+                    pass
+                    #ignore this. Might happen when deleting a group that doesn't exist 
+                    #because it has been removed previously                    
+                except:
+                    raise
+        explorer.setProgress(len(elements))
         for item in toUpdate:
             if item is not None:
                 item.refreshContent(explorer)
@@ -192,8 +198,9 @@ class GsCatalogsItem(GsTreeItem):
     def addGeoServerCatalog(self, explorer):         
         dlg = DefineCatalogDialog()
         dlg.exec_()                        
-        if dlg.ok:
+        if dlg.ok:            
             try:
+                QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
                 cat = Catalog(dlg.url, dlg.username, dlg.password)               
                 v = cat.gsversion()
                 supported = v.startswith("2.3") or v.startswith("2.4")
@@ -211,28 +218,19 @@ class GsCatalogsItem(GsTreeItem):
                 while name in self._catalogs.keys():
                     name = dlg.getName() + "_" + str(i)
                     i += 1
-                item = self.getGeoServerCatalogItem(cat, name, explorer)
-                if item is not None:
+                geoserverItem = GsCatalogItem(cat, name)
+                geoserverItem.populate()                
+                if geoserverItem is not None:
                     self._catalogs[name] = cat
-                    self.addChild(item)
+                    self.addChild(geoserverItem)
                     self.setExpanded(True)            
-            except Exception, e:
-                explorer.setInfo(str(e), 1)
+            except:                
+                explorer.setInfo("Could not connect to catalog:\n" + traceback.format_exc(), 1)
                 return
-        
-        
-    def getGeoServerCatalogItem(self, cat, name, explorer):    
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
-        try:    
-            geoserverItem = GsCatalogItem(cat, name)
-            geoserverItem.populate()
-            QtGui.QApplication.restoreOverrideCursor()
-            explorer.setInfo("Catalog '" + name + "' correctly created")
-            return geoserverItem
-        except Exception, e:   
-            traceback.print_exc()         
-            QtGui.QApplication.restoreOverrideCursor()
-            explorer.setInfo("Could not create catalog:" + str(e), 1)                          
+            finally:
+                QtGui.QApplication.restoreOverrideCursor()
+                
+                                      
             
 class GsLayersItem(GsTreeItem): 
     def __init__(self, catalog):

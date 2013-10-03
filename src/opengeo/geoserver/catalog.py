@@ -81,7 +81,7 @@ class Catalog(object):
         else:
             return "Cannot get information about catalog.\n"
     
-    def gsversion(self):
+    def gsversion(self):        
         about_url = self.service_url + "/about/version.xml"
         response, content = self.http.request(about_url, "GET")
         if response.status == 200:
@@ -94,8 +94,14 @@ class Catalog(object):
                         return v
                     except:
                         pass
+                
+        try:
+            self.get_workspaces()#This will raise an exception if the catalog is not available
+            return "2.2.x" # just to inform that version < 2.3.x
+        except Exception, e:
+            raise e
         
-        return "2.2.x" # just to inform that version < 2.3.x
+        
          
 
     def delete(self, config_object, purge=False, recurse=False):

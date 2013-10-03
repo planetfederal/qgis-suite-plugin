@@ -12,11 +12,11 @@ The plugin is installed using the plugin manager.
 
 - Add the following repository to the list of plugin repositories:
 
-	.. image:: doc/source/manual/plugin_repo.png
+	.. image:: doc/source/img/actions/plugin_repo.png
 
 - Now the OpenGeo Suite plugin should be available and ready to be installed. You can look for it in the list of installable plugins in the  plugin manager.
 	
-	.. image:: doc/source/manual/plugin_install.png
+	.. image:: doc/source/img/actions/plugin_install.png
 
 - Click on *Install plugin*. The plugin will be downloaded and installed.
 
@@ -34,4 +34,4 @@ The plugin repository is updated frequently- However, it is not guaranteed that 
 Usage
 ------
 
-The plugin functionality is accessed through the GeoServer Explorer, which is documented `here <./doc/source/manual/gui.rst>`_
+Usage is documented `here <./doc/source/intro.rst>`_

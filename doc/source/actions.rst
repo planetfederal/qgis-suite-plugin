@@ -268,8 +268,6 @@ Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer 
 
 Dragging and dropping a PostGIS table will cause a new layer to be added to the QGIS project, based on that table.
 
-Dragging and dropping a GeoGit tree will not cause a new QGIS layer to be created. The *Add to project* menu has to be used instead on the GeoGit tree.
-
 
 
 

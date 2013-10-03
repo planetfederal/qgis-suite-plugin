@@ -1,11 +1,10 @@
 [general]
 name=OpenGeo
 description=OpenGeo utilities for QGIS
-category=Analysis
 version=0.2
 qgisMinimumVersion=2.0
 author=Victor Olaya
-email=volayaf@opengeo.org
-website=www.opengeo.org
+email=volayaf@boundlessgeo.org.com
+website=www.boundlessgeo.com
 icon=images/opengeo.png
 class_name=OpenGeoPlugin

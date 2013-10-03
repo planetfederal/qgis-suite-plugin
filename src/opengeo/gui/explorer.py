@@ -6,7 +6,8 @@ from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
 from opengeo.gui.explorerwidget import ExplorerWidget
 from opengeo import config
-from raven import Client
+from opengeo.raven import Client
+from qgis.utils import pluginMetadata
 
 INFO = 0
 ERROR = 1
@@ -155,8 +156,9 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             button = QtGui.QPushButton(widget)
             button.setText("Report error")
             def reportError():
-                print msg
-                self.ravenClient.captureMessage(msg)
+                version = "Plugin version: " + pluginMetadata("opengeo", "version")
+                message = msg + "\n" + version                            
+                self.ravenClient.captureMessage(message)
                 self.resetActivity()
             button.pressed.connect(reportError)
             widget.layout().addWidget(button)

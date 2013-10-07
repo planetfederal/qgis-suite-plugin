@@ -302,7 +302,8 @@ class PgTreePanel(QtGui.QWidget):
             finally:                            
                 settings.endGroup() 
         for conn in connections:
-            self.comboBox.addItem(conn.name, conn)
+            name = conn.name if conn.isValid else conn.name + " [could not connect to DB]"
+            self.comboBox.addItem(name, conn)
         if connections:
             self.connection = connections[0]
     
@@ -323,10 +324,8 @@ class PgTreePanel(QtGui.QWidget):
         
     def refreshContent(self):
         if self.connection is None:
-            return
-        
-        if not self.connection.isValid:
-            raise Exception("Test    ")
+            return        
+        if not self.connection.isValid:            
             dlg = UserPasswdDialog()
             dlg.exec_()
             if dlg.user is None:

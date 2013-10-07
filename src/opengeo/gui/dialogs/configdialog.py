@@ -67,7 +67,9 @@ class ConfigDialog(QDialog):
         generalItem = self._getItem("General", icon, generalParams)        
         self.tree.addTopLevelItem(generalItem)
         
-        gsParams = [("UseRestApi", "Always use REST API for uploads", True)]
+        gsParams = [("UseRestApi", "Always use REST API for uploads", True),
+                    ("PreuploadRasterModel", "Raster pre-upload hook model file", ""),
+                    ("PreuploadVectorModel", "Vector pre-upload hook model file", ""),]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/geoserver.png")
         gsItem = self._getItem("GeoServer", icon, gsParams)        
         self.tree.addTopLevelItem(gsItem)

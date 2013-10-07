@@ -153,16 +153,26 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             if self.progressMaximum != 0:
                 self.resetActivity()
             widget = config.iface.messageBar().createMessage("Error", firstLine)            
-            button = QtGui.QPushButton(widget)
-            button.setText("Report error")
+            sendButton = QtGui.QPushButton(widget)
+            sendButton.setText("Report error")
+            showButton = QtGui.QPushButton(widget)
+            showButton.setText("View more")
             def reportError():
                 version = "Plugin version: " + pluginMetadata("opengeo", "version")
                 message = msg + "\n" + version                            
                 self.ravenClient.captureMessage(message)
                 self.resetActivity()
-            button.pressed.connect(reportError)
-            widget.layout().addWidget(button)
-            config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL)
+            def showMore():                
+                dlg = QgsMessageOutput.createMessageOutput()
+                dlg.setTitle('Error')
+                dlg.setMessage(msg, QgsMessageOutput.MessageHtml)
+                dlg.showMessage()
+            sendButton.pressed.connect(reportError)
+            showButton.pressed.connect(showMore)
+            widget.layout().addWidget(sendButton)
+            widget.layout().addWidget(showButton)
+            config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
+                                                 duration = 15)
                         
         else:
             config.iface.messageBar().pushMessage("Info", firstLine, 

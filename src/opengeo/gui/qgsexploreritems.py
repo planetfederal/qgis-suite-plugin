@@ -52,7 +52,7 @@ class QgsProjectItem(TreeItem):
     def publishProject(self, tree, explorer):        
         layers = qgislayers.getAllLayers()                
         dlg = PublishProjectDialog(explorer.catalogs())
-        dlg.exec_()     
+        dlg.exec_()   
         catalog  = dlg.catalog
         if catalog is None:
             return
@@ -64,7 +64,7 @@ class QgsProjectItem(TreeItem):
             explorer.setProgress(progress)            
             ogcat = OGCatalog(catalog)                 
             if not explorer.run(ogcat.publishLayer,
-                     None, #"Publish layer '" + layer.name() + "'",
+                     None, 
                      [],
                      layer, workspace, True):
                 explorer.setProgress(0)
@@ -84,7 +84,8 @@ class QgsProjectItem(TreeItem):
             layergroup = catalog.create_layergroup(groupName, names, names)
             explorer.run(catalog.save, "Create global layer group", 
                      [], layergroup)                
-        tree.findAllItems(catalog)[0].refreshContent(explorer)                                                
+        tree.findAllItems(catalog)[0].refreshContent(explorer)     
+                                             
                     
 class QgsLayerItem(TreeItem): 
     def __init__(self, layer ): 

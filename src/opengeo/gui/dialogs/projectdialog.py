@@ -11,10 +11,12 @@ class PublishProjectDialog(QtGui.QDialog):
         self.initGui()
         
         
-    def initGui(self):                         
+    def initGui(self):   
+                              
         layout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
-        self.setWindowTitle('Publish project')                         
+        self.setWindowTitle('Publish project')
+                                 
         verticalLayout = QtGui.QVBoxLayout()        
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -65,10 +67,11 @@ class PublishProjectDialog(QtGui.QDialog):
         
         self.groupGroupBox = QtGui.QGroupBox()
         self.groupGroupBox.setLayout(verticalLayout)
-        
+
         layout.addWidget(self.destGroupBox)
-        layout.addWidget(self.groupGroupBox)                      
+        layout.addWidget(self.groupGroupBox)                     
         layout.addWidget(buttonBox)
+        
         self.setLayout(layout)
 
         self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)

@@ -17,6 +17,17 @@ from opengeo.geoserver import utils
 from opengeo.geoserver.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from opengeo.gsimporter.client import Client
+from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
+from processing.parameters.ParameterRaster import ParameterRaster
+from processing.parameters.ParameterVector import ParameterVector
+from processing.outputs.OutputVector import OutputVector
+from processing.outputs.OutputRaster import OutputRaster
+from processing.gui.UnthreadedAlgorithmExecutor import UnthreadedAlgorithmExecutor
+from processing.core.SilentProgress import SilentProgress
+from processing.tools.dataobjects import getObjectFromUri as load
+from processing.modeler.Providers import Providers
+import traceback
+
     
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
@@ -81,8 +92,7 @@ class OGCatalog(object):
                     
         try:
             settings = QSettings()
-            restApi = bool(settings.value("/OpenGeo/Settings/GeoServer/UseRestApi", True, bool))
-            restAPi = True #ignore this add the moment #TODO:change this
+            restApi = bool(settings.value("/OpenGeo/Settings/GeoServer/UseRestApi", True, bool))            
             if layer.type() == layer.RasterLayer:                
                 path = self.getDataFromLayer(layer)
                 if restApi:
@@ -134,15 +144,15 @@ class OGCatalog(object):
                    'try renaming the file or deleting the store in '
                    'GeoServer.' % (layer.name(), str(e)))
             e.args = (msg,)
-            raise
+            raise e
     
     
         # Verify the resource was created
-        resource = self.catalog.get_resource(layer.name())
+        resource = self.catalog.get_resource(name)
         if resource is not None:
-            assert resource.name == layer.name()
+            assert resource.name == name
         else:
-            msg = ('could not create layer %s.' % layer.name())
+            msg = ('could not create layer %s.' % name)
             raise Exception(msg)
        
         if resource.latlon_bbox is None:
@@ -177,7 +187,7 @@ class OGCatalog(object):
         settings.endGroup()
         return connName  
               
-    def publishGroup(self, name, workspace=None, overwrite=False, overwriteLayers = False):
+    def publishGroup(self, name, workspace = None, overwrite = False, overwriteLayers = False):
         
         ''' 
         Publishes a group in the given catalog
@@ -214,9 +224,8 @@ class OGCatalog(object):
                            abstract=None, permissions=None, keywords=()):
         '''
         Publishes a QGIS layer. 
-        It creates the corresponding store and the layer itself 
-        If the layer is a group layer, it publishes all the layers individually and then creates 
-        the layer group in the server
+        It creates the corresponding store and the layer itself.
+        If a pre-upload hook is set, its runs it and publishes the resulting layer  
         
         layer: the layer to publish, whether as a QgsMapLayer object or its name in the QGIS TOC.
             
@@ -233,12 +242,13 @@ class OGCatalog(object):
         '''
         
         if isinstance(layer, basestring):
-            layer = layers.resolveLayer(layer)          
+            layer = layers.resolveLayer(layer)    
         
         name = name if name is not None else layer.name()
           
         sld = self.publishStyle(layer, overwrite, name)
             
+        layer = self.preprocess(layer)            
         self.upload(layer, workspace, overwrite, name)      
     
         if sld is not None:
@@ -246,6 +256,38 @@ class OGCatalog(object):
             publishing = self.catalog.get_layer(name)        
             publishing.default_style = self.catalog.get_style(name)
             self.catalog.save(publishing)
+            
+    def preprocess(self, layer):        
+        if layer.type() == layer.RasterLayer:
+            modelFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterModel", ""))
+            try:
+                model = ModelerAlgorithm()
+                model.openModel(modelFile)                
+                model.provider = Providers.providers['model']
+            except:
+                return layer
+            if (len(model.parameters) == 1 and isinstance(model.parameters[0], ParameterRaster) 
+                    and len(model.outputs) == 1 and isinstance(model.outputs[0], OutputRaster)):
+                model.parameters[0].setValue(layer)
+                if UnthreadedAlgorithmExecutor.runalg(model, SilentProgress()):
+                    return load(model.outputs[0].value)            
+            return layer
+        elif layer.type() == layer.VectorLayer: 
+            modelFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadVectorModel", ""))
+            try:                
+                model = ModelerAlgorithm()
+                model.openModel(modelFile)
+                model.provider = Providers.providers['model']
+            except:                
+                return layer                        
+            if (len(model.parameters) == 1 and isinstance(model.parameters[0], ParameterVector) 
+                    and len(model.outputs) == 1 and isinstance(model.outputs[0], OutputVector)):
+                model.parameters[0].setValue(layer)
+                if UnthreadedAlgorithmExecutor.runalg(model, SilentProgress()):
+                    return load(model.outputs[0].value)            
+            return layer        
+        else:
+            return layer
             
     def addLayerToProject(self, name):
         '''

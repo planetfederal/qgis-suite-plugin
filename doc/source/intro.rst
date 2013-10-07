@@ -7,7 +7,7 @@ The OpenGeo Suite Explorer is used to configure the components of the OpenGeo Su
 Version support and limitations
 ********************************
 
-This plugin is targeted at the elements of the OpenGeo Suite, and it is tested with the versions of those element included in the latest release of the Suite (4.0). However, you can use most of the functionality if you are using individual installations of elements such as GeoServer and PostGIS.
+This plugin is targeted at the elements of OpenGeo Suite, and it is tested with the versions of those element included in the latest release of the Suite (4.0). However, you can use most of the functionality if you are using individual installations of elements such as GeoServer and PostGIS.
 
 The current version of the plugin is targeted at GeoServer 2.3.x. If you are using an older version, you might encounter some problems, and some elements might not be correctly configured due to differences in the way they are handled by GeoServer or in changes in the REST API that the plugin uses to communicate with GeoServer. Although most things should work fine if connecting to a GeoServer 2.2.x catalog, the following are some of the incompatibilities that have been detected.
 
@@ -75,6 +75,63 @@ The description tab can also show tables where parameters can be edited. The one
 Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above. Also, when you select an element in the tree, buttons in the toolbar in the upper part of the explorer window are updated to show the available actions for that element. These actions correspond to the ones shown in the context menu when you right--click on the element, so you have different ways of accesing the same funcionality. As it was explained before, the *Description* panel is also interactive.
 
 To start working with the explorer and know more about how to use it, check the :ref:`quickstart` page. For a more complete reference, a detailed description of all the available actions for each kind of element in the Explorer tree is available at the :ref:`actions` section.
+
+Reporting errors
+*****************
+
+When an error is found, a message is shown in the QGIS message bar.
+
+.. image:: img/intro/error-bar.png
+	:align: center
+
+This error might be caused by a wrong usage (for instance, if you are trying to connect to a catalog that does not exist), or by a bug in the plugin. To help us fix this second case, you can report the error by clicking on the *Report error* button that appears in the message bar. This will cause the full error stack trace to be sent automatically, so we can check it and find out the cause of the error. No personal information is sent along with it.
+
+To check the stack trace yourself, click on the *View more* button.
+
+If no button is pushed, the message bar will remain visible for 15 seconds. You can close it using the close icon on its right--hand side.
+
+
+Configuration
+**************
+
+Along with the menu entry that starts the Explorer, you will find an entry that opens the configuration window, which looks as shown next.
+
+.. image:: img/intro/config.png
+	:align: center
+
+Use the parameters in this dialog to configure the Explorer to your particular needs. The properties that can be configured are described in detail below.
+
+Tabbed vs single-tab interface
+------------------------------
+
+By default, the Explorer shows all categories (GeoServer, PostGIS) in a single panel, as branches in a tree. If you enable the multi-tab user interface, each category is put in a separate tab, and each tab contains a panel with a tree of elements belonging to the corresponding category, as shown in the next figure.
+
+.. image:: img/intro/multi-tab.png
+	:align: center
+
+
+Functionality can be accessed in the same way as in the default interface, by right clicking on an element or selecting it and using the buttons that will appear in the toolbar on the upper part of the panel. Drag & drop functionality is limited to elements within the same category. 
+
+In case they exist, subcategories (such as layers, workspaces, etc., in the case of a GeoServer catalog) can be switched using the buttons on the lower part of the panel.
+
+When you change the type of UI by changing the corresponding value in the configuration dialog, the Explorer interface is not automatically changed. Restarting QGIS is needed for the change to take effect.
+
+Using the GeoServer importer API
+--------------------------------
+
+By default, layers are uploaded to a GeoServer catalog using the GeoServer REST API. As an alternative, the importer API can be used to provide a better and more responsive upload, specially in the case of large uploads with multiple layers or when large layers are being uploaded.
+
+OpenGeo Suite 4.0 includes the importer API by default, but an independent GeoServer instance normally does not contain it, even if it is a recent version that is supported by the Explorer plugin. Make sure that you are running OpenGeo Suite or that you have manually installed the importer API on your GeoServer before setting this configuration parameter. 
+
+Pre-upload Processing hooks
+------------------------------
+
+If you need to preprocess you data before it is uploaded, you can set up a pre-upload hook that will be run on any layer before it is sent to GeoServer. Instead of the original layer, the result of that hook will be uploaded.
+
+Pre-uppload hooks are defined separately for raster and vector layers. In both cases, they are defined as the path to a Processing model. That model will be loaded and executed to obtain the final layer to upload. Processing models are not covered in this text. Please refer to the Processing chapter in the QGIS manual to know more about them.
+
+In the case of raster layers, the model must have a single input of type raster layer and a single output, also of type raster layer. In the case of vector layers, both input and output must be of type vector layer. If the selected model does not exist or does not have the required characteristics, it will just be ignored, and the original layer will be uploaded without any preprocessing.
+
 
 
 

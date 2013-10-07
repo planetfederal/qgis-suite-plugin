@@ -144,6 +144,28 @@ Once data is in our GeoServer catalog, we can use the OpenGeo Explorer panel to 
 
 #. The description is not updated automatically, but you can click the :guilabel:`Update` link to refresh it and see how it progresses, or the :guilabel:`Kill` link to abort the seeding operation.
 
+Preprocessing data before publishing
+-------------------------------------
+
+The layers to upload require sometimes additional preprocessing, for instance if they are not the optimal format to provide the best performance once they are published. This preprocessing can be performed independently before publishing, but can also be included as part of the publishing operation itself. The OpenGeo explorer integrates with the QGIS processing framework and allows to define a process to be run on any layer before uploading it, publishing the resulting processed layer instead.
+
+Processes are defined using the QGIS processing graphical modeler, and the process to use is specified in the Explorer configuration.
+
+The example project contains a raster layer. If you published it as we have already seen, just dragging and dropping onto a workspace (we have only worked with vector layers so far, but raster layers are published in exactly the same way), the layer is published as is, with no modification. We can add a preprocessing hook that ensures that all uploaded raster layers have internal tiling and overviews/pyramids (both of which are not found in the example raster layer), which will result in a better performance when serving them from GeoServer.
+
+#. Open the OpenGeo explorer configuration dialog using the corresponing menu entry in the OpenGeo menu.
+
+   .. image:: img/quickstart/config.png
+
+#. Find the :guilabel:`Raster preprocessing hook model file` parameter. The data file that you downloaded contains an example model named ``raster_hook.model`` that adds tiling and pyramids to a raster layer. Locate it and enter the path to it as value of the parameter. This will cause the model to be run before the data is uploaded, and the resulting output to be imported instead of the original layer.
+
+#. Upload the example raster layer. The preprocessing hook will be run before the upload. To disable it for future uploads, just go to the configuration and change the value of the corresponding value to an empty string, so it doesn't point to any valid model file.
+
+The sample data zip file contains another example model that can be used for vector layers. It will export the selected features to a new layer, so only those features will be later uploaded. If the layer you are uploading is not open in QGIS (such as when you export dragging it directly rom the QGIS browser), the hook will have no effect at all (since it is not open, a selection does not exist). If, however, the layer is loaded and a selection exists, only the selected features will be uploaded. If no features are selected, the whole layer will be uploaded. The correspoding model file is named ``vector_hook.model`` and to use it you should enter the path to it in the :guilabel:`Vector preprocessing hook model file` parameter in the config dialog.
+
+
+
+
 
 
 

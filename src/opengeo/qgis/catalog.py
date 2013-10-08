@@ -42,8 +42,8 @@ class OGCatalog(object):
     
     def __init__(self, catalog):
         self.catalog = catalog
-        #we also create a Client object pointing to the same url
-        self.client = Client(catalog.service_url, catalog.username, catalog.password)
+        #we also create a Client object pointing to the same url        
+        self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
     
     def publishStyle(self, layer, overwrite = False, name = None):
         '''
@@ -63,7 +63,7 @@ class OGCatalog(object):
         '''
         Returns the data corresponding to a given layer, ready to be passed to the
         method in the Catalog class for uploading to the server.
-        If needed, it performs and export to ensure that the file format is supported 
+        If needed, it performs an export to ensure that the file format is supported 
         by the upload API to be used for import. In that case, the data returned
         will point to the exported copy of the data, not the original data source
         '''
@@ -100,8 +100,9 @@ class OGCatalog(object):
                                               path,
                                               workspace=workspace,
                                               overwrite=overwrite)                            
-                else:
-                    self.client.upload(path)
+                else:                    
+                    session = self.client.upload(path)
+                    session.commit()      
                 
             elif layer.type() == layer.VectorLayer:
                 provider = layer.dataProvider()
@@ -126,7 +127,9 @@ class OGCatalog(object):
                                               workspace=workspace,
                                               overwrite=overwrite)
                     else:
-                        self.client.upload(path['shp'])                          
+                        shpFile = path['shp']                        
+                        session = self.client.upload(shpFile)
+                        session.commit()                          
                     
             else:
                 msg = layer.name() + ' is not a valid raster or vector layer'
@@ -257,7 +260,11 @@ class OGCatalog(object):
             publishing.default_style = self.catalog.get_style(name)
             self.catalog.save(publishing)
             
-    def preprocess(self, layer):        
+    def preprocess(self, layer):    
+        '''
+        Preprocesses the layer with the corresponding preprocess hook and returns the path to the 
+        resulting layer. If no preprocessing is performed, it returns the input layer itself
+        '''    
         if layer.type() == layer.RasterLayer:
             modelFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterModel", ""))
             try:

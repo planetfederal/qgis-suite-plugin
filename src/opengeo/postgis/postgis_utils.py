@@ -605,8 +605,7 @@ class GeoDB:
         except psycopg2.Error, e:
             raise DbError(e.message, e.cursor.query)
 
-    def _exec_sql_and_commit(self, sql):  
-        print sql      
+    def _exec_sql_and_commit(self, sql):          
         """ tries to execute and commit some action, on error it rolls back the change """                
         try:
             c = self.con.cursor()

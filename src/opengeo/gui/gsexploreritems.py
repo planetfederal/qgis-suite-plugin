@@ -58,7 +58,8 @@ class GsTreeItem(TreeItem):
         
     def deleteElements(self, selected, tree, explorer):                
         elements = []
-        unused = []
+        uniqueStyles = []
+        workspacesToUpdate = []
         for item in selected:
             elements.append(item.element)
             if isinstance(item, GsStoreItem):
@@ -66,10 +67,9 @@ class GsTreeItem(TreeItem):
                     subitem = item.child(idx)
                     elements.insert(0, subitem.element)
             elif isinstance(item, GsLayerItem):
-                uniqueStyles = self.uniqueStyles(item.element)
-                for style in uniqueStyles:
-                    if style.name == item.element.name:
-                        unused.append(style)      
+                uniqueStyles.extend(self.uniqueStyles(item.element)) 
+                workspace = item.element.resource.workspace
+                workspacesToUpdate.extend(tree.findAllItems(workspace))                                              
         toUpdate = set(item.parent() for item in selected)                
         progress = 0        
         dependent = self.getDependentElements(elements)
@@ -91,15 +91,26 @@ class GsTreeItem(TreeItem):
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
         
-                
-        unusedToUpdate = set() 
-        for e in unused:                
-            items = tree.findAllItems(e); 
-            unusedToUpdate.add(item.parent())                       
-        toUpdate.update(unusedToUpdate)
-        
+        settings = QSettings()
+        deleteStyle = bool(settings.value("/OpenGeo/Settings/GeoServer/DeleteStyle", True, bool))
+        recurse = bool(settings.value("/OpenGeo/Settings/GeoServer/Recurse", True, bool)) 
+
         elements[0:0] = dependent 
-        elements.extend(unused)   
+        if recurse:
+            toUpdate.update(workspacesToUpdate)            
+        if deleteStyle:
+            elements.extend(uniqueStyles)  
+            stylesEntriesToUpdate = set() 
+            for e in uniqueStyles:                
+                items = tree.findAllItems(e);
+                for item in items:
+                    #the item representing the layer we are deleting will be here, but we have to ignore it
+                    #and update only the "styles" item
+                    if isinstance(item.parent(), GsStylesItem):
+                        stylesEntriesToUpdate.add(item.parent())
+                        break                       
+            toUpdate.update(stylesEntriesToUpdate) 
+        print toUpdate
         explorer.setProgressMaximum(len(elements), "Deleting elements")   
         for progress, element in enumerate(elements):
             explorer.setProgress(progress)    
@@ -108,17 +119,14 @@ class GsTreeItem(TreeItem):
                      None,
                      [])                      
             else:  
-                try:                                   
-                    explorer.run(element.catalog.delete,
-                         None,
-                         [], 
-                         element, isinstance(element, Style))
-                except FailedRequestError:
-                    pass
-                    #ignore this. Might happen when deleting a group that doesn't exist 
-                    #because it has been removed previously                    
+                #we run this delete operation this way, to ignore the error in case we are trying to delete
+                #something that doesn't exist which might happen if a previous deletion has purged the element
+                #we now want to delete. It is deleted already anyway, so we should not raise any exception
+                try:
+                    element.catalog.delete(element, recurse = recurse, purge = True)
                 except:
-                    raise
+                    pass
+                
         explorer.setProgress(len(elements))
         for item in toUpdate:
             if item is not None:

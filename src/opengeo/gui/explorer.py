@@ -8,6 +8,7 @@ from opengeo.gui.explorerwidget import ExplorerWidget
 from opengeo import config
 from opengeo.raven import Client
 from qgis.utils import pluginMetadata
+import traceback
 
 INFO = 0
 ERROR = 1
@@ -103,16 +104,38 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.explorerWidget.updateQgisContent()
                    
     def run(self, command, msg, refresh, *params):
-        error = False                                   
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))        
-        thread = ExplorerThread(command, *params)                
-        def finish():
-            QtGui.QApplication.restoreOverrideCursor()
+        noerror = True
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
+        try:
+            command(*params)            
             for item in refresh:
                 if item is not None:
                     item.refreshContent(self)
             if None in refresh:
                 self.refreshContent()            
+            print self.isProgressVisible
+            if msg is not None and not self.isProgressVisible:
+                self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
+        except Exception, e:    
+            self.setInfo(traceback.format_exc(), ERROR)
+            noerror = False
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+            self.refreshDescription()
+                               
+        return noerror
+    
+    def thread_run(self, command, msg, refresh, *params):
+        error = False                                   
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))        
+        thread = ExplorerThread(command, *params)                
+        def finish():            
+            for item in refresh:
+                if item is not None:
+                    item.refreshContent(self)
+            if None in refresh:
+                self.refreshContent()            
+            print self.isProgressVisible
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                
         def error(msg):

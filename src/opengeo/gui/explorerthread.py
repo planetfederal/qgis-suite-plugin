@@ -17,7 +17,6 @@ class ExplorerThread(QThread):
         try:                    
             self.method(*self.args)
             self.finish.emit()
-        except Exception, e:          
-            #print traceback.format_exc()  
+        except Exception, e:                      
             self.error.emit(traceback.format_exc())
             

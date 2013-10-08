@@ -34,14 +34,12 @@ def parse_response(args, parent=None):
     :param parent: if present, set the parent of any returned object
     :returns: a Session, Task or list of Session or Task
     '''
-    headers, response = args
-    print response
+    headers, response = args    
     try:
         resp = json.loads(response)
     except ValueError,ex:
         _logger.warn('invalid JSON response: %s',response)
-        raise ex
-    print resp        
+        raise ex       
     if "import" in resp:
         return Session(json=resp['import'], parent=parent)
     elif "task" in resp:
@@ -87,8 +85,7 @@ class _UploadBase(object):
     def save(self, deep=False):
         raise Exception('not implemented')
 
-    def _bind_json(self, json):
-        print str(json)
+    def _bind_json(self, json):        
         # generally, not required for override. instead use _bind_custom_json
         # if possible
         if not isinstance(json, dict):

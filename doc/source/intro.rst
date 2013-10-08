@@ -132,6 +132,13 @@ Pre-uppload hooks are defined separately for raster and vector layers. In both c
 
 In the case of raster layers, the model must have a single input of type raster layer and a single output, also of type raster layer. In the case of vector layers, both input and output must be of type vector layer. If the selected model does not exist or does not have the required characteristics, it will just be ignored, and the original layer will be uploaded without any preprocessing.
 
+Other parameters
+-----------------
+
+- *Delete style when deleting layer*. If a GeoServer layer is deleted and is the only layer using a given style, the style will be also deleted if this parameters is checked
+
+- *Delete resource when deleting layer*. If this parameter is checked, the resource that is part of a layer will also be deleted from its corresponding store if the layer is deleted.
+
 
 
 

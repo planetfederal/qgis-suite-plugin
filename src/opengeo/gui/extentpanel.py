@@ -17,8 +17,7 @@ class ExtentSelectionPanel(QtGui.QWidget):
         self.horizontalLayout = QtGui.QHBoxLayout(self)
         self.horizontalLayout.setSpacing(2)
         self.horizontalLayout.setMargin(0)
-        self.text = QtGui.QLineEdit()
-        #self.text.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)        
+        self.text = QtGui.QLineEdit()        
         if hasattr(self.text, 'setPlaceholderText'):
             self.text.setPlaceholderText("[xmin,xmax,ymin,ymax] Leave blank to use full extent")
         self.horizontalLayout.addWidget(self.text)
@@ -30,7 +29,7 @@ class ExtentSelectionPanel(QtGui.QWidget):
         canvas = config.iface.mapCanvas()
         self.prevMapTool = canvas.mapTool()
         self.tool = RectangleMapTool(canvas)
-        self.connect(self.tool, SIGNAL("rectangleCreated()"), self.fillCoords)
+        self.tool.rectangleCreated.connect(self.fillCoords)
 
     def selectOnCanvas(self):
         canvas = config.iface.mapCanvas()

@@ -371,8 +371,7 @@ class PgTableItem(TreeItem):
         
     def deleteTables(self, explorer, items):
         explorer.setProgressMaximum(len(items), "Delete tables")
-        for i, item in enumerate(items):  
-            print item.element.name          
+        for i, item in enumerate(items):                      
             explorer.run(item.element.conn.geodb.delete_table, 
                           None, 
                           [item.parent()], 

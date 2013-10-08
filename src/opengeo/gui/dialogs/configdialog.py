@@ -69,7 +69,9 @@ class ConfigDialog(QDialog):
         
         gsParams = [("UseRestApi", "Always use REST API for uploads", True),
                     ("PreuploadRasterModel", "Raster pre-upload hook model file", ""),
-                    ("PreuploadVectorModel", "Vector pre-upload hook model file", ""),]
+                    ("PreuploadVectorModel", "Vector pre-upload hook model file", ""),
+                    ("DeleteStyle", "Delete style when deleting layer", True),
+                    ("Recurse", "Delete resource when deleting layer", True)]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/geoserver.png")
         gsItem = self._getItem("GeoServer", icon, gsParams)        
         self.tree.addTopLevelItem(gsItem)

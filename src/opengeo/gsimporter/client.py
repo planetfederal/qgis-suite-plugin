@@ -202,8 +202,6 @@ class _Client(object):
             method = 'PUT'
         else:
             url = self.url("imports")
-        print url
-        print method
         
         return parse_response(self._request(url, method, data, headers))
         

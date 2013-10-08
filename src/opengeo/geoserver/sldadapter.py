@@ -19,8 +19,7 @@ def adaptQgsToGs(sld, layer):
         s = ("<MinScaleDenominator>" + str(layer.minimumScale()) + 
         "</MinScaleDenominator><MaxScaleDenominator>" + str(layer.maximumScale()) + "</MaxScaleDenominator>")
         sld = sld.replace("<se:Rule>", "<se:Rule>" + s)      
-    labeling = layer.customProperty("labeling/enabled")
-    print labeling
+    labeling = layer.customProperty("labeling/enabled")    
     labeling = str(labeling).lower() == str(True).lower()
     if labeling:
         s = getLabelingAsSld(layer)

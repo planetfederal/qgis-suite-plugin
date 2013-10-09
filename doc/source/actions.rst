@@ -14,6 +14,9 @@ Below you can find more detailed information about commands available depending 
 GeoServer
 ----------
 
+- GeoServer Catalog item.
+
+	- *Clean (remove unused elements). Cleans all styles in the catalog that are not used by any layer, and all stores that are not published through any layer.
 
 - GeoServer Feature type/Coverage item.
 
@@ -24,6 +27,8 @@ GeoServer
 - GeoServer workspace item.
 
 	- *New workspace...*. Adds a new workspace.
+
+	- *Clean (remove unused stores)*. Removes all data stores that are not published through any layer in the catalog.
 
 - GeoServer workspace item.
 
@@ -49,6 +54,15 @@ GeoServer
 
 	.. image:: img/actions/define_group.png
 		:align: center
+
+- GeoServer styles item
+
+	- *New style from QGIS layer*. Creates a new style in the GeoServer catalog, using the style of a QGIS layer. The QGIS layer to use and the name of the style to create in the GeoServer catalog are specified in the following dialog.
+
+	.. image:: img/actions/new_style.png
+		:align: center
+
+	- *Clean (remove unused styles)*. Removes all styles that are not being used by any layer
 
 - GeoServer style item (under layer item).
 

@@ -635,15 +635,3 @@ class GeoDB:
         else:
             return u"%s.%s" % (self._quote(schema), self._quote(table))
 
-
-def tableUri(table):
-        geodb = table.conn.geodb
-        uri = QgsDataSourceURI()    
-        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)    
-        uri.setDataSource(table.schema, table.name, table.geomfield) 
-        return uri.uri()
-             
-def mimeUri(table):
-    if isinstance(table, Table):        
-        uri = tableUri(table)                             
-        return ':'.join(["vector", "postgres", table.name, uri])

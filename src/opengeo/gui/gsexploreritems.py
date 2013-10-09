@@ -5,7 +5,6 @@ from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
 from opengeo.geoserver.store import DataStore
 from opengeo.geoserver.resource import Coverage, FeatureType
-from opengeo.geoserver.gwc import Gwc, GwcLayer, SeedingStatusParsingError
 from dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.geoserver.style import Style
 from opengeo.geoserver.layer import Layer
@@ -14,11 +13,10 @@ from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.exploreritems import TreeItem
 from dialogs.groupdialog import LayerGroupDialog
 from dialogs.workspacedialog import DefineWorkspaceDialog
-from dialogs.gwclayer import SeedGwcLayerDialog, EditGwcLayerDialog
 from opengeo.geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.qgsexploreritems import QgsLayerItem, QgsGroupItem,\
     QgsStyleItem
-from opengeo.geoserver.catalog import FailedRequestError, Catalog
+from opengeo.geoserver.catalog import Catalog
 from opengeo.gui.pgexploreritems import PgTableItem
 import traceback
 from opengeo.geoserver.wps import Wps
@@ -26,6 +24,7 @@ from dialogs.crsdialog import CrsSelectionDialog
 from opengeo.geoserver.settings import Settings
 from opengeo.gui.parametereditor import ParameterEditor
 from dialogs.sldeditor import SldEditorDialog
+from opengeo.gui.gwcexploreritems import GwcLayersItem
 
 class GsTreeItem(TreeItem):
     
@@ -114,19 +113,13 @@ class GsTreeItem(TreeItem):
         explorer.setProgressMaximum(len(elements), "Deleting elements")   
         for progress, element in enumerate(elements):
             explorer.setProgress(progress)    
-            if isinstance(element, GwcLayer):
-                explorer.run(element.delete,
-                     None,
-                     [])                      
-            else:  
-                #we run this delete operation this way, to ignore the error in case we are trying to delete
-                #something that doesn't exist which might happen if a previous deletion has purged the element
-                #we now want to delete. It is deleted already anyway, so we should not raise any exception
-                try:
-                    element.catalog.delete(element, recurse = recurse, purge = True)
-                except:
-                    pass
-                
+            #we run this delete operation this way, to ignore the error in case we are trying to delete
+            #something that doesn't exist which might happen if a previous deletion has purged the element
+            #we now want to delete. It is deleted already anyway, so we should not raise any exception
+            try:
+                element.catalog.delete(element, recurse = recurse, purge = True)
+            except:
+                pass                
         explorer.setProgress(len(elements))
         for item in toUpdate:
             if item is not None:
@@ -436,14 +429,19 @@ class GsStylesItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")     
         createStyleFromLayerAction = QtGui.QAction(icon, "New style from QGIS layer...", explorer)
         createStyleFromLayerAction.triggered.connect(lambda: self.createStyleFromLayer(explorer))
-        return [createStyleFromLayerAction] 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
+        cleanAction = QtGui.QAction(icon, "Clean (remove unused styles)", explorer)
+        cleanAction.triggered.connect(lambda: self.cleanStyles(explorer))
+        return [createStyleFromLayerAction, cleanAction] 
            
+    def cleanStyles(self):
+        pass
     
     def createStyleFromLayer(self, explorer):  
-        dlg = StyleFromLayerDialog(explorer.catalogs().keys())
+        dlg = StyleFromLayerDialog()
         dlg.exec_()      
         if dlg.layer is not None:
-            ogcat = OGCatalog(explorer.catalogs()[dlg.catalog])        
+            ogcat = OGCatalog(self.catalog)        
             explorer.run(ogcat.publishStyle, 
                      "Create style from layer '" + dlg.layer + "'",
                      [self],
@@ -504,7 +502,14 @@ class GsCatalogItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")      
         removeCatalogAction = QtGui.QAction(icon, "Remove", explorer)
         removeCatalogAction.triggered.connect(lambda: self.removeCatalog(explorer))
-        return[removeCatalogAction] 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
+        cleanAction = QtGui.QAction(icon, "Clean (remove unused elements)", explorer)
+        cleanAction.triggered.connect(lambda: self.cleanCatalog(explorer))
+        return[removeCatalogAction, cleanAction] 
+        
+    def cleanCatalog(self, explorer):
+        ogcat = OGCatalog(self.catalog)        
+        explorer.run(ogcat.clean, "Clean (remove unused element)", [self.workspacesItem, self.stylesItem])
         
     def removeCatalog(self, explorer):
         del explorer.catalogs()[self.text(0)]
@@ -1014,8 +1019,14 @@ class GsWorkspaceItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")                            
         deleteWorkspaceAction = QtGui.QAction(icon, "Delete", explorer)
         deleteWorkspaceAction.triggered.connect(lambda: self.deleteWorkspace(tree, explorer))
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
+        cleanAction = QtGui.QAction(icon, "Clean (remove unused stores)", explorer)
+        cleanAction.triggered.connect(lambda: self.cleanWorkspace(explorer))
         return[setAsDefaultAction, deleteWorkspaceAction]
         
+    def cleanWorkspace(self, explorer):
+        pass
+    
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
         deleteSelectedAction = QtGui.QAction(icon, "Delete", explorer)
@@ -1112,156 +1123,7 @@ class GsResourceItem(GsTreeItem):
     def deleteResource(self, tree, explorer):
         self.deleteElements([self], tree, explorer)      
 
-#### GWC ####
 
-class GwcLayersItem(GsTreeItem): 
-    def __init__(self, catalog):
-        self.catalog = catalog
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/gwc.png")
-        GsTreeItem.__init__(self, None, icon, "GeoWebCache layers")                                    
-        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
-
-    def populate(self):
-        catalog = self.parentCatalog()
-        self.element = Gwc(catalog)        
-        layers = self.element.layers()
-        for layer in layers:
-            item = GwcLayerItem(layer)
-            self.addChild(item)
-
-    def acceptDroppedItem(self, tree, explorer, item):  
-        if isinstance(item, GsLayerItem):      
-            if createGwcLayer(explorer, item.element):
-                return [self]
-        return []
-    
-    def contextMenuActions(self, tree, explorer):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
-        addGwcLayerAction = QtGui.QAction(icon, "New GWC layer...", explorer)
-        addGwcLayerAction.triggered.connect(lambda: self.addGwcLayer(tree, explorer))
-        return [addGwcLayerAction]        
-               
-     
-    def addGwcLayer(self, tree, explorer):
-        cat = self.parentCatalog()
-        layers = cat.get_layers()              
-        dlg = EditGwcLayerDialog(layers, None)
-        dlg.exec_()        
-        if dlg.gridsets is not None:
-            layer = dlg.layer
-            gwc = Gwc(layer.catalog)
-            
-            #TODO: this is a hack that assumes the layer belongs to the same workspace
-            typename = layer.resource.workspace.name + ":" + layer.name
-            
-            gwclayer = GwcLayer(gwc, typename, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
-            catItem = tree.findAllItems(cat)[0]            
-            explorer.run(gwc.addLayer,
-                              "Create GWC layer '" + layer.name + "'",
-                              [catItem.gwcItem],
-                              gwclayer)             
-                            
-
-          
-                
-class GwcLayerItem(GsTreeItem): 
-    def __init__(self, layer):          
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")        
-        GsTreeItem.__init__(self, layer, icon)
-        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
-        
-    def contextMenuActions(self, tree, explorer):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
-        editGwcLayerAction = QtGui.QAction(icon, "Edit...", explorer)
-        editGwcLayerAction.triggered.connect(lambda: self.editGwcLayer(explorer))
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/seed.png")          
-        seedGwcLayerAction = QtGui.QAction(icon, "Seed...", explorer)
-        seedGwcLayerAction.triggered.connect(lambda: self.seedGwcLayer(explorer))        
-        emptyGwcLayerAction = QtGui.QAction("Empty", explorer)
-        emptyGwcLayerAction.triggered.connect(lambda: self.emptyGwcLayer(explorer)) 
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")                         
-        deleteLayerAction = QtGui.QAction(icon, "Delete", explorer)
-        deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
-        return[editGwcLayerAction, seedGwcLayerAction, emptyGwcLayerAction, deleteLayerAction]
-
-    def acceptDroppedItem(self, tree, explorer, item):  
-        if isinstance(item, GsLayerItem):      
-            if createGwcLayer(explorer, item.element):
-                return [self.parent()]
-        return []
-        
-    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
-        deleteSelectedAction = QtGui.QAction(icon, "Delete", explorer)
-        deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
-        return [deleteSelectedAction]
-    
-
-    def _getDescriptionHtml(self, tree, explorer):                        
-        html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
-        html += '<p><b>Seeding status</b></p>'     
-        try:
-            state = self.element.getSeedingState()
-            if state is None:
-                html += "<p>No seeding tasks exist for this layer</p>"
-            else:
-                html += "<p>This layer is being seeded. Processed {} tiles of {}</p>".format(state[0], state[1])
-                html += '<p><a href="update">update</a> - <a href="kill">kill</a></p>'
-        except SeedingStatusParsingError:
-            html += '<p>Cannot determine running seeding tasks for this layer</p>'
-        actions = self.contextMenuActions(tree, explorer)
-        html += "<p><b>Available actions</b></p><ul>"
-        for action in actions:
-            if action.isEnabled():
-                html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
-        html += '</ul>'
-        return html 
-        
-    
-    def linkClicked(self, tree, explorer, url):
-        TreeItem.linkClicked(self,tree, explorer, url)        
-        if url.toString() == 'kill':
-            try:
-                self.element.killSeedingTasks()
-            except FailedRequestError:
-                #TODO:
-                return
-        text = self.getDescriptionHtml(tree, explorer)
-        self.description.setHtml(text)
-        
-          
-    def deleteLayer(self, tree, explorer):
-        self.deleteElements([self], tree, explorer)      
-        
-        
-    def emptyGwcLayer(self, explorer):
-        layer = self.element   
-        #TODO: confirmation dialog??    
-        explorer.run(layer.truncate,
-                          "Truncate GWC layer '" + layer.name + "'",
-                          [],
-                          )            
-    def seedGwcLayer(self, explorer):
-        layer = self.element   
-        dlg = SeedGwcLayerDialog(layer)
-        dlg.show()
-        dlg.exec_()
-        if dlg.format is not None:
-            explorer.run(layer.seed,
-                              "Request seed for GWC layer '" + layer.name + "' ",
-                              [],
-                              dlg.operation, dlg.format, dlg.gridset, dlg.minzoom, dlg.maxzoom, dlg.extent)
-    
-    def editGwcLayer(self, explorer):
-        layer = self.element   
-        dlg = EditGwcLayerDialog([layer], layer)
-        dlg.exec_()
-        if dlg.gridsets is not None:
-            explorer.run(layer.update,
-                              "Update GWC layer '" + layer.name + "'",
-                              [],
-                              dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
-            
             
 ########### WPS #####################
             
@@ -1421,22 +1283,3 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
              "Add style '" + style.name + "' to layer '" + layer.name + "'",
              [layerItem],
              layer)  
-         
-        
-def createGwcLayer(explorer, layer):                
-    dlg = EditGwcLayerDialog([layer], None)
-    dlg.exec_()        
-    if dlg.gridsets is not None:
-        gwc = Gwc(layer.catalog)
-        
-        #TODO: this is a hack that assumes the layer belongs to the same workspace
-        typename = layer.resource.workspace.name + ":" + layer.name
-        
-        gwclayer = GwcLayer(gwc, typename, dlg.formats, dlg.gridsets, dlg.metaWidth, dlg.metaHeight)
-        explorer.run(gwc.addLayer,
-                          "Create GWC layer '" + layer.name + "'",
-                          [],
-                          gwclayer)  
-        return True
-    else:
-        return False                 

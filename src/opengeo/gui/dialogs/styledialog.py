@@ -3,9 +3,8 @@ from opengeo.qgis import layers
 
 class StyleFromLayerDialog(QtGui.QDialog):
     
-    def __init__(self, catalogs, parent = None):
-        super(StyleFromLayerDialog, self).__init__(parent)
-        self.catalogs = catalogs
+    def __init__(self, parent = None):
+        super(StyleFromLayerDialog, self).__init__(parent)        
         self.layer = None        
         self.name = None
         self.initGui()
@@ -20,30 +19,24 @@ class StyleFromLayerDialog(QtGui.QDialog):
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        
         layerLabel = QtGui.QLabel('Layer')
+        layerLabel.setMinimumWidth(150)
         self.layerBox = QtGui.QComboBox()
         self.alllayers = [layer.name() for layer in layers.getAllLayers()]
         self.layerBox.addItems(self.alllayers)
+        self.layerBox.setMinimumWidth(250)
         horizontalLayout.addWidget(layerLabel)
         horizontalLayout.addWidget(self.layerBox)
         layout.addLayout(horizontalLayout)
-        
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)        
-        catalogLabel = QtGui.QLabel('Catalog')
-        self.catalogBox = QtGui.QComboBox()        
-        self.catalogBox.addItems(self.catalogs)
-        horizontalLayout.addWidget(catalogLabel)
-        horizontalLayout.addWidget(self.catalogBox)
-        layout.addLayout(horizontalLayout)
-        
+               
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        
         nameLabel = QtGui.QLabel('Name')
+        nameLabel.setMinimumWidth(150)
         self.nameBox = QtGui.QLineEdit()
         self.nameBox.setText('')
         self.nameBox.setPlaceholderText("[Use layer name]")
+        self.nameBox.setMinimumWidth(250)
         horizontalLayout.addWidget(nameLabel)
         horizontalLayout.addWidget(self.nameBox)
         layout.addLayout(horizontalLayout)
@@ -51,16 +44,15 @@ class StyleFromLayerDialog(QtGui.QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        buttonBox.accepted.connect(self.okPressed)
+        buttonBox.rejected.connect(self.cancelPressed)
         
-        self.resize(400,200)               
+        self.resize(400,150)               
     
     def okPressed(self):
         self.layer = self.layerBox.currentText()
         self.name = unicode(self.nameBox.text())
-        self.name = self.name if not self.name.strip() == "" else self.layer
-        self.catalog = self.catalogs[self.catalogBox.currentIndex()]
+        self.name = self.name if not self.name.strip() == "" else self.layer        
         self.close()
 
     def cancelPressed(self):
@@ -103,8 +95,8 @@ class AddStyleToLayerDialog(QtGui.QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        buttonBox.accepted.connect(self.okPressed)
+        buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,200)               
     
@@ -157,8 +149,8 @@ class PublishStyleDialog(QtGui.QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        buttonBox.accepted.connect(self.okPressed)
+        buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,200)               
     

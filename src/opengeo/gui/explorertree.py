@@ -2,8 +2,7 @@ from PyQt4.QtCore import *
 from qgis.core import *
 from opengeo.gui.gsexploreritems import *
 from opengeo.gui.qgsexploreritems import *
-from opengeo.geoserver import utils as gsutils
-from opengeo.postgis import postgis_utils as pgutils
+from opengeo.qgis import uri as uri_utils
 
 
 class ExplorerTreeWidget(QtGui.QTreeWidget):
@@ -137,11 +136,11 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         for item in items:
             if isinstance(item, GsLayerItem):                
                 layer = item.element
-                uri = gsutils.mimeUri(layer)                                                       
+                uri = uri_utils.layerMimeUri(layer)                                                       
                 stream.writeQString(uri)
             elif isinstance(item, PgTableItem):
                 table = item.element                
-                uri = pgutils.mimeUri(table)                        
+                uri = uri_utils.tableMimeUri(table)                        
                 stream.writeQString(uri)                
   
         mimeData.setData(self.QGIS_URI_MIME, encodedData)        

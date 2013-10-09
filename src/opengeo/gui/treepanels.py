@@ -1,15 +1,14 @@
 import os
 from PyQt4 import QtGui, QtCore
-from opengeo.gui.gsexploreritems import GsCatalogsItem, \
-    GsLayerItem, GsWorkspaceItem, GsStyleItem, GsGroupItem,\
-    GwcLayerItem, GsProcessItem, GsLayersItem, GsGroupsItem, GsStylesItem,\
-    GsWorkspacesItem, GwcLayersItem, GsProcessesItem
+from opengeo.gui.gsexploreritems import GsLayerItem,\
+    GsWorkspaceItem, GsStyleItem, GsGroupItem,\
+    GsProcessItem, GsLayersItem, GsGroupsItem, GsStylesItem,\
+    GsWorkspacesItem, GsProcessesItem
 from opengeo.qgis import layers as qgislayers
 from opengeo.gui.explorertree import ExplorerTreeWidget
 from opengeo.geoserver.gwc import Gwc
 from opengeo.postgis.connection import PgConnection
-from opengeo.gui.pgexploreritems import PgConnectionsItem, PgSchemaItem,\
-    PgConnectionItem
+from opengeo.gui.pgexploreritems import PgConnectionsItem, PgSchemaItem
 from opengeo.gui.qgsexploreritems import QgsProjectItem, QgsGroupItem,\
     QgsLayerItem, QgsStyleItem
 from opengeo.geoserver.wps import Wps
@@ -17,6 +16,7 @@ from dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.dialogs.userpasswd import UserPasswdDialog
 from opengeo.gui.dialogs.pgconnectiondialog import NewPgConnectionDialog
 from opengeo.geoserver.catalog import Catalog
+from opengeo.gui.gwcexploreritems import GwcLayerItem, GwcLayersItem
 
 class GsTreePanel(QtGui.QWidget):
     

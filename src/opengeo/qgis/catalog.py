@@ -3,7 +3,10 @@
 '''
 Main functions for plugin functionality.
 This is supposed to contain the functions to be called when using plugin 
-functionality from the QGIS console
+functionality from the QGIS console.
+
+It is basically a wrapper for a Catalog object, with some extra functionality 
+and methods to interact with GIS objects
 '''
 
 import os
@@ -13,10 +16,11 @@ from PyQt4.QtCore import *
 from opengeo.qgis import layers, exporter
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
-from opengeo.geoserver import utils
 from opengeo.geoserver.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
-from opengeo.gsimporter.client import Client
+from opengeo.qgis import uri as uri_utils
+from opengeo.qgis.utils import tempFilename
+from opengeo.geoserver.importerclient import Client
 from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
 from processing.parameters.ParameterRaster import ParameterRaster
 from processing.parameters.ParameterVector import ParameterVector
@@ -26,9 +30,7 @@ from processing.gui.UnthreadedAlgorithmExecutor import UnthreadedAlgorithmExecut
 from processing.core.SilentProgress import SilentProgress
 from processing.tools.dataobjects import getObjectFromUri as load
 from processing.modeler.Providers import Providers
-import traceback
 
-    
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
     catalog = GSCatalog(service_url, username, password, disable_ssl_certificate_validation)
@@ -44,6 +46,23 @@ class OGCatalog(object):
         self.catalog = catalog
         #we also create a Client object pointing to the same url        
         self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
+        
+    def clean(self):
+        self.cleanUnusedStyles()
+        self.cleanUnusedStores()
+        
+    def cleanUnusedStyles(self):
+        allStyles = set()
+        styles = self.catalog.get_styles()
+        layers = self.catalog.get_layers()        
+        for layer in layers:
+            allStyles.add(layer.default_style)
+            allStyles.update(filter(lambda s: s is not None, layer.styles))
+        print allStyles
+        
+    def cleanUnusedStores(self):
+        pass
+            
     
     def publishStyle(self, layer, overwrite = False, name = None):
         '''
@@ -308,7 +327,7 @@ class OGCatalog(object):
             raise Exception ("A layer with the name '" + name + "' was not found in the catalog")
             
         resource = layer.resource        
-        uri = utils.layerUri(layer)                        
+        uri = uri_utils.layerUri(layer)                        
         if resource.resource_type == "featureType":                    
             qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
             err = False

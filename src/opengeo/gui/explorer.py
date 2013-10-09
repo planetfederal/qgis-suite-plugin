@@ -112,8 +112,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 if item is not None:
                     item.refreshContent(self)
             if None in refresh:
-                self.refreshContent()            
-            print self.isProgressVisible
+                self.refreshContent()                        
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
         except Exception, e:    
@@ -134,8 +133,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 if item is not None:
                     item.refreshContent(self)
             if None in refresh:
-                self.refreshContent()            
-            print self.isProgressVisible
+                self.refreshContent()                        
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                
         def error(msg):

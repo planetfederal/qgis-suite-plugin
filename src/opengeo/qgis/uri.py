@@ -21,7 +21,7 @@ def layerUri(layer):
         uri.setParam ( "identifier", identifier)
         return str(uri.encodedUri())
          
-def mimeUri(element):
+def layerMimeUri(element):
     if isinstance(element, Layer):
         layer = element
         uri = layerUri(layer)
@@ -36,3 +36,15 @@ def mimeUri(element):
         escapedUri = uri.replace( ":", "\\:" );         
         mimeUri = ':'.join([layertype, provider, escapedName, escapedUri])        
         return mimeUri
+    
+def tableUri(table):
+        geodb = table.conn.geodb
+        uri = QgsDataSourceURI()    
+        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)    
+        uri.setDataSource(table.schema, table.name, table.geomfield) 
+        return uri.uri()
+             
+def tableMimeUri(table):
+    if isinstance(table, Table):        
+        uri = tableUri(table)                             
+        return ':'.join(["vector", "postgres", table.name, uri])    

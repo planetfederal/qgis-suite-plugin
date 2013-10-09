@@ -1,12 +1,9 @@
 import logging
-from api import parse_response
-from api import RequestFailed
-from api import BadRequest
-from api import NotFound
+from importerapi import *
 from urlparse import urlparse
 from urllib import urlencode
 import os
-import _util
+import util
 import pprint
 import json
 import mimetypes
@@ -69,7 +66,7 @@ class Client(object):
         """
         files = [ fpath ]
         if fpath.lower().endswith(".shp"):
-            files = _util.shp_files(fpath)
+            files = util.shp_files(fpath)
 
         return self.upload_files(files, use_url, import_id, mosaic)
 

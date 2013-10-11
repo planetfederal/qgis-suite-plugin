@@ -17,6 +17,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.itemExpanded.connect(self.treeItemExpanded)
         self.itemClicked.connect(self.treeItemClicked) 
+        self.itemDoubleClicked.connect(self.treeItemDoubleClicked)
         self.setDragDropMode(QtGui.QTreeWidget.DragDrop)  
         self.setAutoScroll(True)              
         self.setAcceptDrops(True)
@@ -52,6 +53,15 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                 actions.append(refreshAction) 
             self.explorer.setToolbarActions(actions)
     
+    def treeItemDoubleClicked(self, item, column):        
+        if not isinstance(item, TreeItem):
+            return                  
+        actions = item.contextMenuActions(self, self.explorer)
+        for action in actions:
+            if "edit" in action.text().lower():
+                action.trigger()
+                return
+        
     def lastClickedItem(self):
         return self.lastClicked                   
         

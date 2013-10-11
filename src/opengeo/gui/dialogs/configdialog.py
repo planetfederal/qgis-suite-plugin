@@ -7,7 +7,8 @@ from qgis.gui import QgsFilterLineEdit
 
 class ConfigDialog(QDialog):
 
-    def __init__(self):
+    def __init__(self, explorer):
+        self.explorer = explorer
         QDialog.__init__(self)
         self.setupUi()        
         if hasattr(self.searchBox, 'setPlaceholderText'):
@@ -62,14 +63,15 @@ class ConfigDialog(QDialog):
         self.items = {}
         self.tree.clear()
 
-        generalParams = [("SingleTabUI", "Use single tab UI (requires restart)", True)]
+        generalParams = [("SingleTabUI", "Use single tab UI (requires restart)", True),
+                         ("ShowDescription", "Show description", True)]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/opengeo.png")
         generalItem = self._getItem("General", icon, generalParams)        
         self.tree.addTopLevelItem(generalItem)
         
         gsParams = [("UseRestApi", "Always use REST API for uploads", True),
-                    ("PreuploadRasterModel", "Raster pre-upload hook model file", ""),
-                    ("PreuploadVectorModel", "Vector pre-upload hook model file", ""),
+                    ("PreuploadRasterHook", "Raster pre-upload hook file", ""),
+                    ("PreuploadVectorHook", "Vector pre-upload hook file", ""),
                     ("DeleteStyle", "Delete style when deleting layer", True),
                     ("Recurse", "Delete resource when deleting layer", True)]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/geoserver.png")
@@ -97,7 +99,8 @@ class ConfigDialog(QDialog):
             if hasattr(value, 'saveValue'):
                 value.saveValue()              
             iterator += 1
-            value = iterator.value()                    
+            value = iterator.value()  
+        self.explorer.refreshContent()                  
         QDialog.accept(self)
 
 class TreeSettingItem(QTreeWidgetItem):

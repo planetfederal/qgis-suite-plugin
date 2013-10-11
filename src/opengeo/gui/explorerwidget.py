@@ -23,9 +23,7 @@ class ExplorerWidget(QtGui.QWidget):
         else:
             self.tabbedPanel = QtGui.QTabWidget()                                                               
             self.tabbedPanel.setVisible(True)
-            verticalLayout.addWidget(self.tabbedPanel)  
-            #self.toolbar = QtGui.QToolBar()
-            #self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)                      
+            verticalLayout.addWidget(self.tabbedPanel)                    
         self.setLayout(verticalLayout)
         self.fillData()
         
@@ -41,7 +39,7 @@ class ExplorerWidget(QtGui.QWidget):
             self.tree.addTopLevelItem(self.qgsItem) 
         else:                                
             gsIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
-            pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")
+            pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")
             qgsIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png") 
             self.gsPanel = GsTreePanel(self.explorer) 
             self.qgsPanel = QgsTreePanel(self.explorer)

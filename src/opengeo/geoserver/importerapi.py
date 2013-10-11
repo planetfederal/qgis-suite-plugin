@@ -233,9 +233,9 @@ class Task(_UploadBase):
         _binding('id'),
         _binding('href'),
         _binding('state'),
-        #_binding('progress'),
+        _binding('progress'),
         #_binding('updateMode'),
-        #_binding('data', binding=Data),
+        _binding('data', binding=Data),
         _binding('target', binding=Target),
         # a missing layer probably indicates an undetected format
         _binding('layer', binding=Layer, expected=False),
@@ -335,9 +335,9 @@ class Session(_UploadBase):
     _object_name = 'import'
     _bindings = (
         _binding("id"),
-        #_binding("href"),
+        _binding("href"),
         _binding("state"),
-        #_binding("archive", expected=False, ro=False),
+        _binding("archive", expected=False, ro=False),
         _binding("tasks", expected=False, binding=Task),
     )
 

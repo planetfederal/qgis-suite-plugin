@@ -26,7 +26,6 @@ class DefineCatalogDialog(QtGui.QDialog):
         horizontalLayout.addWidget(self.nameBox)
         verticalLayout.addLayout(horizontalLayout)
         
-        
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        

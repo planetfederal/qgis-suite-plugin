@@ -43,9 +43,11 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.descriptionLayout = QtGui.QVBoxLayout()
         self.descriptionLayout.setSpacing(2)
         self.descriptionLayout.setMargin(0)
-        self.description.setLayout(self.descriptionLayout)
+        self.description.setLayout(self.descriptionLayout)        
         self.splitter.addWidget(self.description)
         self.setDescriptionWidget()
+        showDescription = QSettings().value("/OpenGeo/Settings/General/ShowDescription", True, bool)  
+        self.description.setVisible(showDescription)
         self.progress = None
         self.layout = QtGui.QVBoxLayout()
         self.layout.setSpacing(2)
@@ -60,8 +62,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         
     def dockStateChanged(self, floating):        
         if floating:
-            self.resize(800, 450)
-            #self.move((self.parent().width() - self.width() / 2), (self.parent().height() - self.height() / 2))
+            self.resize(800, 450)            
             self.splitter.setOrientation(Qt.Horizontal)
         else:
             self.splitter.setOrientation(Qt.Vertical)                
@@ -89,6 +90,8 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.toolbar.update()
                     
     def refreshContent(self):
+        showDescription = QSettings().value("/OpenGeo/Settings/General/ShowDescription", True, bool)  
+        self.description.setVisible(showDescription)
         self.explorerWidget.refreshContent()
         self.refreshDescription()
         
@@ -116,7 +119,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
         except Exception, e:    
-            self.setInfo(traceback.format_exc(), ERROR)
+            self.setInfo(str(e) + "\n" + traceback.format_exc(), ERROR)
             noerror = False
         finally:
             QtGui.QApplication.restoreOverrideCursor()

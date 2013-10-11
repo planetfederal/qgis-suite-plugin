@@ -10,7 +10,7 @@ from dialogs.pgconnectiondialog import NewPgConnectionDialog
 from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
 
-pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/pg.png")   
+pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")   
  
 class PgConnectionsItem(TreeItem):
 
@@ -138,9 +138,9 @@ class PgConnectionItem(TreeItem):
                 for i, filename in enumerate(dlg.toImport):
                     explorer.setProgress(i)
                     explorer.run(self.element.importFileOrLayer,
-                    None, #"Import " + filename + "  into database " + self.element.name,
-                    [],
-                    filename, dlg.schema, dlg.tablename, not dlg.add)
+                                None, 
+                                [],
+                                filename, dlg.schema, dlg.tablename, not dlg.add)
                 explorer.resetActivity()        
             return [self]
         else:
@@ -163,9 +163,9 @@ class PgConnectionItem(TreeItem):
                 for i, layer in enumerate(dlg.toImport):  
                     explorer.setProgress(i)                  
                     explorer.run(self.element.importFileOrLayer, 
-                    None, #"Import" + layer.name() + " into database " + self.element.name,
-                    [],
-                    layer, dlg.schema, dlg.tablename, not dlg.add)                                            
+                                None, 
+                                [],
+                                layer, dlg.schema, dlg.tablename, not dlg.add)                                            
                 explorer.resetActivity()
                 toUpdate.add(self)
         
@@ -180,9 +180,9 @@ class PgConnectionItem(TreeItem):
             for i, filename in enumerate(dlg.toImport):
                 explorer.setProgress(i)
                 explorer.run(self.element.importFileOrLayer, 
-                None, #"Import" + filename + " into database " + self.element.name,
-                [],
-                filename, dlg.schema, dlg.tablename, not dlg.add)
+                            None, 
+                            [],
+                            filename, dlg.schema, dlg.tablename, not dlg.add)
             explorer.resetActivity()
         self.refreshContent(explorer)
           
@@ -219,7 +219,7 @@ class PgSchemaItem(TreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/rename.png") 
         renameAction= QtGui.QAction(icon, "Rename...", explorer)
         renameAction.triggered.connect(lambda: self.renameSchema(explorer))
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import.png")
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis_import.png")
         importAction = QtGui.QAction(icon, "Import files...", explorer)
         importAction.triggered.connect(lambda: self.importIntoSchema(explorer))                            
         return [newTableAction, deleteAction, renameAction, importAction]
@@ -232,9 +232,9 @@ class PgSchemaItem(TreeItem):
             for i, filename in enumerate(dlg.toImport):
                 explorer.setProgress(i)
                 explorer.run(self.element.conn.importFileOrLayer, 
-                None, #"Import " + filename + " into database " + self.element.conn.name,
-                [],
-                filename, dlg.schema, dlg.tablename, not dlg.add)
+                            None, 
+                            [],
+                            filename, dlg.schema, dlg.tablename, not dlg.add)
             explorer.resetActivity()
         self.refreshContent(explorer)
         

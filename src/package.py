@@ -6,7 +6,6 @@ import ConfigParser
 from datetime import date
 import os
 import re
-import subprocess
 import xmlrpclib
 import zipfile
 
@@ -29,7 +28,6 @@ def createPackage(pluginName):
     cfg = ConfigParser.SafeConfigParser()
     cfg.optionxform=str
     cfg.read(metadataFile)
-    originalVersion = cfg.get("general", "version")
     cfg.set("general", "version", "0.1-" + date.today().strftime("%Y%m%d"))
 
     # Add files to package
@@ -64,10 +62,8 @@ def upload(packagePath):
 if __name__ == '__main__':
     pluginName = os.path.basename(SOURCES_DIR)
     createPackage(pluginName)
-    #===========================================================================
-    # pkg = os.path.join(PACKAGE_DIR, pluginName + ".zip")
-    # upload(pkg)
-    # # Cleanup
-    # os.remove(pkg)
-    # os.remove(os.path.join(PACKAGE_DIR, "metadata.txt"))
-    #===========================================================================
+    pkg = os.path.join(PACKAGE_DIR, pluginName + ".zip")
+    upload(pkg)
+    # Cleanup
+    os.remove(pkg)
+    os.remove(os.path.join(PACKAGE_DIR, "metadata.txt"))

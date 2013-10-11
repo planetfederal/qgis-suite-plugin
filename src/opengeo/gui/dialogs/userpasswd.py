@@ -10,7 +10,7 @@ class UserPasswdDialog(QtGui.QDialog):
         
     def initGui(self):                         
         self.setWindowTitle('Database credentials')
-        layout = QtGui.QVBoxLayout()                                
+        verticalLayout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
                 
         horizontalLayout = QtGui.QHBoxLayout()
@@ -20,7 +20,7 @@ class UserPasswdDialog(QtGui.QDialog):
         self.usernameBox = QtGui.QLineEdit()        
         horizontalLayout.addWidget(usernameLabel)
         horizontalLayout.addWidget(self.usernameBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -30,10 +30,16 @@ class UserPasswdDialog(QtGui.QDialog):
         self.passwordBox.setEchoMode(QtGui.QLineEdit.Password)       
         horizontalLayout.addWidget(passwordLabel)
         horizontalLayout.addWidget(self.passwordBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
                
+        self.groupBox = QtGui.QGroupBox()
+        self.groupBox.setTitle("user/password")
+        self.groupBox.setLayout(verticalLayout)
         
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.groupBox) 
         layout.addWidget(buttonBox)
+        
         self.setLayout(layout)
 
         self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)

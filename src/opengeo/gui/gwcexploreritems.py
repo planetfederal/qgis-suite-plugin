@@ -25,7 +25,8 @@ class GwcLayersItem(TreeItem):
         if isinstance(item, GsLayerItem):      
             if createGwcLayer(explorer, item.element):
                 return [self]
-        return []
+        else:
+            return []
     
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
@@ -81,7 +82,8 @@ class GwcLayerItem(TreeItem):
         if isinstance(item, GsLayerItem):      
             if createGwcLayer(explorer, item.element):
                 return [self.parent()]
-        return []
+        else:
+            return []
         
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")

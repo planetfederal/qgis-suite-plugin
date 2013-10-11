@@ -11,7 +11,7 @@ class NewPgConnectionDialog(QDialog):
         self.setupUi()
 
     def setupUi(self):
-        #self.resize(400, 300)        
+        #self.resize(400, 200)        
         self.setWindowTitle('Create new PostGIS connection')
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)

@@ -94,9 +94,7 @@ def getStyleAsSld(layer):
         errorMsg = ""
                 
         layer.writeSld(namedLayerNode, document, errorMsg)    
-        
-                            
-        
+
         return unicode(document.toString(4))
     elif layer.type() == layer.RasterLayer: 
         #QGIS does not support SLD for raster layers, so we have this workaround
@@ -110,3 +108,13 @@ def getStyleAsSld(layer):
         return sld
     else:
         return None
+    
+def getGeomTypeFromSld(sld):
+    #TODO
+    if "PointSymbolizer" in sld:
+        return "Point"
+    elif "LineSymbolizer" in sld:
+        return "LineString"
+    else:
+        return "Polygon"
+    return "Polygon"

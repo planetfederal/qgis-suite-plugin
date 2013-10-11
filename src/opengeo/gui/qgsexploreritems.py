@@ -9,6 +9,7 @@ from opengeo.gui.catalogselector import selectCatalog
 from dialogs.layerdialog import PublishLayersDialog, PublishLayerDialog
 from dialogs.projectdialog import PublishProjectDialog
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
+from opengeo import config
                 
 class QgsProjectItem(TreeItem): 
     def __init__(self): 
@@ -278,13 +279,13 @@ class QgsGroupItem(TreeItem):
                 progress += 1                
                 explorer.setProgress(progress)
             explorer.resetActivity()      
-        names = [layer.name() for layer in group]      
-        layergroup = cat.create_layergroup(groupname, names, names)
-        explorer.run(cat.save, "Create layer group from group '" + groupname + "'", 
-                 [], layergroup)        
-        for item in toUpdate:
-            item.refreshContent(explorer)
-                         
+        names = [layer.name() for layer in group]
+        def _createGroup():      
+            layergroup = cat.create_layergroup(groupname, names, names)
+            cat.save(layergroup)
+        explorer.run(_createGroup, "Create layer group from group '" + groupname + "'", 
+                     toUpdate)    
+       
                
 class QgsStyleItem(TreeItem): 
     def __init__(self, layer): 
@@ -297,7 +298,10 @@ class QgsStyleItem(TreeItem):
         publishStyleAction = QtGui.QAction(icon, "Publish...", explorer)
         publishStyleAction.triggered.connect(lambda: self.publishStyle(tree, explorer))
         publishStyleAction.setEnabled(len(explorer.catalogs()) > 0)
-        return [publishStyleAction]    
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
+        editAction = QtGui.QAction(icon, "Edit...", explorer)
+        editAction.triggered.connect(lambda: config.iface.showLayerProperties(self.element))   
+        return [publishStyleAction, editAction]    
         
     def publishStyle(self, tree, explorer):
         dlg = PublishStyleDialog(explorer.catalogs().keys())

@@ -41,3 +41,17 @@ def name(named):
     else:
         raise ValueError("Can't interpret %s as a name or a configuration object" % named)
     
+def getLayerFromStyle(style):
+    '''Tries to find out which layer is using a given style.
+    Returns none if cannot find a layer using the style'''
+    cat = style.catalog
+    layers = cat.get_layers()
+    for layer in layers:
+        if layer.default_style.name == style.name:
+            return layer
+        alternateStyles = layer.styles
+        for alternateStyle in alternateStyles:
+            if style.name == alternateStyle.name:
+                return layer
+    
+    

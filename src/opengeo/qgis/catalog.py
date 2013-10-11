@@ -16,12 +16,13 @@ from PyQt4.QtCore import *
 from opengeo.qgis import layers, exporter
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
-from opengeo.geoserver.sldadapter import adaptGsToQgs,\
+from opengeo.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from opengeo.geoserver.importerclient import Client
 from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
+from processing.script.ScriptAlgorithm import ScriptAlgorithm
 from processing.parameters.ParameterRaster import ParameterRaster
 from processing.parameters.ParameterVector import ParameterVector
 from processing.outputs.OutputVector import OutputVector
@@ -49,27 +50,81 @@ class OGCatalog(object):
         
     def clean(self):
         self.cleanUnusedStyles()
-        self.cleanUnusedStores()
+        self.cleanUnusedResources()
         
     def cleanUnusedStyles(self):
-        allStyles = set()
+        usedStyles = set()
         styles = self.catalog.get_styles()
         layers = self.catalog.get_layers()        
         for layer in layers:
-            allStyles.add(layer.default_style)
-            allStyles.update(filter(lambda s: s is not None, layer.styles))
-        print allStyles
-        
-    def cleanUnusedStores(self):
-        pass
+            usedStyles.add(layer.default_style.name)
+            usedStyles.update([s.name for s in layer.styles if s is not None])
+                
+        toDelete = [s for s in styles if s.name not in usedStyles]         
+        for style in toDelete:            
+            style.catalog.delete(style, purge = True)   
             
+    def cleanUnusedResources(self):
+        usedResources = set()
+        resources = self.catalog.get_resources()
+        layers = self.catalog.get_layers()        
+        for layer in layers:
+            usedResources.add(layer.resource.name)
+            
+        toDelete = [r for r in resources if r.name not in usedResources]         
+        for resource in toDelete:                      
+            resource.catalog.delete(resource)
+            
+        for store in self.catalog.get_stores():
+            if len(store.get_resources()) == 0:
+                self.catalog.delete(store)
+                
+    def consolidateStyles(self):
+        used = {}
+        allstyles = self.catalog.get_styles()
+        for style in allstyles:
+            sld = style.sld_body.replace("<sld:Name>%s</sld:Name>" % style.name, "")
+            if sld in used.keys():
+                used[sld].append(style)
+            else:
+                used[sld] = [style]
+                
+        print used
+                
+        for sld, styles in used.iteritems():            
+            if len(styles) == 1:
+                continue
+            #find the layers that use any of the secondary styles in the list, and make them use the first one
+            styleNames = [s.name for s in styles[1:]]
+            layers = self.catalog.get_layers()
+            for layer in layers:  
+                changed = False                              
+                if layer.default_style.name in styleNames:
+                    layer.default_style = styles[0]
+                    changed = True                    
+                alternateStyles = layer.styles
+                newAlternateStyles = set()
+                for alternateStyle in alternateStyles:                    
+                    if alternateStyle.name in styleNames:
+                        newAlternateStyles.add(styles[0])
+                    else:
+                        newAlternateStyles.add(alternateStyle)
+                newAlternateStyles = list(newAlternateStyles)
+                if newAlternateStyles != alternateStyles:
+                    layer.styles = newAlternateStyles
+                    changed = True                    
+                if changed:
+                    self.catalog.save(layer) 
+                        
+        
+        
+
     
     def publishStyle(self, layer, overwrite = False, name = None):
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
         it will overwrite a style with that name in case it exists
-        '''
-        
+        '''        
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)         
         sld = getGsCompatibleSld(layer) 
@@ -284,37 +339,43 @@ class OGCatalog(object):
         Preprocesses the layer with the corresponding preprocess hook and returns the path to the 
         resulting layer. If no preprocessing is performed, it returns the input layer itself
         '''    
-        if layer.type() == layer.RasterLayer:
-            modelFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterModel", ""))
+        if layer.type() == layer.RasterLayer:                        
             try:
-                model = ModelerAlgorithm()
-                model.openModel(modelFile)                
-                model.provider = Providers.providers['model']
+                hookFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterHook", ""))
+                alg = self.getAlgorithmFromHookFile(hookFile)                
+                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterRaster) 
+                    and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputRaster)):
+                    alg.parameters[0].setValue(layer)
+                    if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
+                        return load(alg.outputs[0].value)
+                    return layer
+            except:
+                return layer                                    
+        elif layer.type() == layer.VectorLayer: 
+            try:
+                hookFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", ""))
+                alg = self.getAlgorithmFromHookFile(hookFile)                
+                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterVector) 
+                    and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputVector)):
+                    alg.parameters[0].setValue(layer)
+                    if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
+                        return load(alg.outputs[0].value)
+                    return layer
             except:
                 return layer
-            if (len(model.parameters) == 1 and isinstance(model.parameters[0], ParameterRaster) 
-                    and len(model.outputs) == 1 and isinstance(model.outputs[0], OutputRaster)):
-                model.parameters[0].setValue(layer)
-                if UnthreadedAlgorithmExecutor.runalg(model, SilentProgress()):
-                    return load(model.outputs[0].value)            
-            return layer
-        elif layer.type() == layer.VectorLayer: 
-            modelFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadVectorModel", ""))
-            try:                
-                model = ModelerAlgorithm()
-                model.openModel(modelFile)
-                model.provider = Providers.providers['model']
-            except:                
-                return layer                        
-            if (len(model.parameters) == 1 and isinstance(model.parameters[0], ParameterVector) 
-                    and len(model.outputs) == 1 and isinstance(model.outputs[0], OutputVector)):
-                model.parameters[0].setValue(layer)
-                if UnthreadedAlgorithmExecutor.runalg(model, SilentProgress()):
-                    return load(model.outputs[0].value)            
-            return layer        
-        else:
-            return layer
             
+    def getAlgorithmFromHookFile(self, hookFile):
+        if hookFile.endswith('py'):
+            script = ScriptAlgorithm(hookFile)
+            script.provider = Providers.providers['script']
+            return script
+        elif hookFile.endswith('model'):
+            model = ModelerAlgorithm()
+            model.openModel(hookFile)                
+            model.provider = Providers.providers['model']
+            return model
+        else:
+            raise Exception ("Wrong hook file")
     def addLayerToProject(self, name):
         '''
         Adds a new layer to the current project based on a layer in a GeoServer catalog
@@ -330,18 +391,18 @@ class OGCatalog(object):
         uri = uri_utils.layerUri(layer)                        
         if resource.resource_type == "featureType":                    
             qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
-            err = False
+            ok = True
             try:
                 sld = layer.default_style.sld_body  
                 sld = adaptGsToQgs(sld)              
                 sldfile = tempFilename("sld") 
                 with open(sldfile, 'w') as f:
                     f.write(sld)             
-                err, msg = qgslayer.loadSldStyle(sldfile)                                             
+                msg, ok = qgslayer.loadSldStyle(sldfile)                                                        
             except Exception, e:       
-                err = True
+                ok = False
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
-            if err:
+            if not ok:
                raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")        
         elif resource.resource_type == "coverage":                        
             qgslayer = QgsRasterLayer(uri, name, "wcs" )            

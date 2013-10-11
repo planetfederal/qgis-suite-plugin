@@ -25,6 +25,11 @@ from opengeo.geoserver.settings import Settings
 from opengeo.gui.parametereditor import ParameterEditor
 from dialogs.sldeditor import SldEditorDialog
 from opengeo.gui.gwcexploreritems import GwcLayersItem
+from opengeo import config
+from opengeo.qgis.utils import tempFilename
+from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
+    getGsCompatibleSld
+from opengeo.geoserver.util import getLayerFromStyle
 
 class GsTreeItem(TreeItem):
     
@@ -274,6 +279,8 @@ class GsLayersItem(GsTreeItem):
                 publishDraggedLayer(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
+        else:
+            return []
                         
 class GsGroupsItem(GsTreeItem): 
     def __init__(self, catalog):
@@ -297,7 +304,9 @@ class GsGroupsItem(GsTreeItem):
             if workspace is None:
                 workspace = self.getDefaultWorkspace()
             publishDraggedGroup(explorer, item, catalog, workspace)
-            return tree.findAllItems(catalog)       
+            return tree.findAllItems(catalog)     
+        else:
+            return []  
     
     def contextMenuActions(self, tree, explorer): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")           
@@ -360,7 +369,9 @@ class GsWorkspacesItem(GsTreeItem):
             if workspace is not None:
                 publishDraggedTable(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
-            return toUpdate           
+            return toUpdate   
+        else:
+            return []        
         
     def acceptDroppedUris(self, tree, explorer, uris):                        
         if uris:
@@ -407,7 +418,7 @@ class GsStylesItem(GsTreeItem):
         self.catalog = catalog 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
         GsTreeItem.__init__(self, None, icon, "GeoServer Styles")
-        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled) 
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled) 
                     
     def populate(self):
         styles = self.parentCatalog().get_styles()
@@ -416,14 +427,17 @@ class GsStylesItem(GsTreeItem):
             self.addChild(styleItem)
 
     def acceptDroppedItem(self, tree, explorer, item):
-        if isinstance(item, QgsLayerItem):
+        if isinstance(item, QgsStyleItem):
             catalog = self.parentCatalog()
             workspace = self.getDefaultWorkspace()
             toUpdate = []
             if workspace is not None:
-                publishDraggedLayer(explorer, item.element, workspace)
+                catalogItem = tree.findAllItems(catalog)[0]
+                publishDraggedStyle(explorer, item.element.name(), catalogItem)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
+        else:
+            return []
         
     def contextMenuActions(self, tree, explorer):   
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")     
@@ -432,10 +446,19 @@ class GsStylesItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
         cleanAction = QtGui.QAction(icon, "Clean (remove unused styles)", explorer)
         cleanAction.triggered.connect(lambda: self.cleanStyles(explorer))
-        return [createStyleFromLayerAction, cleanAction] 
+        consolidateStylesAction = QtGui.QAction(icon, "Consolidate styles", explorer)
+        consolidateStylesAction.triggered.connect(lambda: self.consolidateStyles(tree, explorer))
+        return [createStyleFromLayerAction, cleanAction, consolidateStylesAction] 
            
-    def cleanStyles(self):
-        pass
+    def consolidateStyles(self, tree, explorer):
+        catalog = self.parentCatalog()
+        catalogItem = tree.findAllItems(catalog)[0]
+        ogcat = OGCatalog(self.catalog)
+        explorer.run(ogcat.consolidateStyles, "Consolidate styles", [self, catalogItem.layersItem])
+        
+    def cleanStyles(self, explorer):
+        ogcat = OGCatalog(self.catalog)
+        explorer.run(ogcat.cleanUnusedStyles, "Clean (remove unused styles)", [self])
     
     def createStyleFromLayer(self, explorer):  
         dlg = StyleFromLayerDialog()
@@ -496,7 +519,9 @@ class GsCatalogItem(GsTreeItem):
             catalog = self.element
             workspace = self.getDefaultWorkspace()                
             publishDraggedTable(explorer, item.element, workspace)            
-            return [self]         
+            return [self]  
+        else:
+            return []       
         
     def contextMenuActions(self, tree, explorer):  
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")      
@@ -582,9 +607,11 @@ class GsLayerItem(GsTreeItem):
                 publishDraggedLayer(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
+        else:
+            return []
     
     def _getDescriptionHtml(self, tree, explorer):                        
-        html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GeoServer layer)</h1></div></br>'  
+        html = u'<div style="background-color:#ffffcc;"><img src="d:\\img.png"/><h1>&nbsp; ' + self.text(0) + ' (GeoServer layer)</h1></div></br>'  
         html += '<p><h3><b>Properties</b></h3></p><ul>'
         html += '<li><b>Name: </b>' + str(self.element.name) + '</li>\n'
         html += '<li><b>Title: </b>' + str(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'     
@@ -859,7 +886,9 @@ class GsGroupItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):                        
         if isinstance(item, GsLayerItem):
             addDraggedLayerToGroup(explorer, item.element, self)
-            return [self]            
+            return [self] 
+        else:
+            return []           
             
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
@@ -896,7 +925,8 @@ class GsStyleItem(GsTreeItem):
         name = style.name if not isDefault else style.name + " [default style]"
         GsTreeItem.__init__(self, style, icon, name)
         self.isDefault = isDefault     
-        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)        
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | 
+                      QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)        
         
     def contextMenuActions(self, tree, explorer):   
         actions = []
@@ -909,30 +939,45 @@ class GsStyleItem(GsTreeItem):
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
             removeStyleFromLayerAction = QtGui.QAction(icon, "Remove style from layer", explorer)
             removeStyleFromLayerAction.triggered.connect(lambda: self.removeStyleFromLayer(tree, explorer))
-            removeStyleFromLayerAction.setEnabled(not self.isDefault)            
+            removeStyleFromLayerAction.setEnabled(not self.isDefault)                        
             actions.append(removeStyleFromLayerAction)                           
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
+            editStyleAction = QtGui.QAction(icon, "Edit...", explorer)
+            editStyleAction.triggered.connect(lambda: self.editStyle(tree, explorer, self.parent().element))
+            actions.append(editStyleAction)
         else:                      
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
             deleteStyleAction = QtGui.QAction(icon, "Delete", explorer)
             deleteStyleAction.triggered.connect(lambda: self.deleteStyle(tree, explorer))
             actions.append(deleteStyleAction)
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
-        editStyleAction = QtGui.QAction(icon, "Edit SLD...", explorer)
-        editStyleAction.triggered.connect(lambda: self.editStyle(tree, explorer))                    
-        actions.append(editStyleAction)               
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
+            editStyleAction = QtGui.QAction(icon, "Edit...", explorer)
+            editStyleAction.triggered.connect(lambda: self.editStyle(tree, explorer))
+            actions.append(editStyleAction) 
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit_sld.png")
+        editSLDAction = QtGui.QAction(icon, "Edit SLD...", explorer)
+        editSLDAction.triggered.connect(lambda: self.editSLD(tree, explorer))                    
+        actions.append(editSLDAction)               
         return actions 
     
     
     def acceptDroppedItem(self, tree, explorer, item): 
+        print type(item)
+        print type(self.parent())
         if isinstance(item, (GsStyleItem, QgsStyleItem)):  
             if isinstance(self.parent(), GsLayerItem):
                 destinationItem = self.parent()
                 addDraggedStyleToLayer(tree, explorer, item, destinationItem)
                 return [destinationItem]
             elif isinstance(self.parent(), GsStylesItem) and isinstance(item, QgsStyleItem):
-                destinationItem = self.parent()
-                publishDraggedStyle(explorer, item.element.name(), destinationItem)
-                return [destinationItem]              
+                catalog = self.parentCatalog()
+                catalogItem = tree.findAllItems(catalog)[0]                
+                publishDraggedStyle(explorer, item.element.name(), catalogItem)
+                return [catalogItem] 
+            else:
+                return [] 
+        else:
+            return []            
     
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -940,7 +985,33 @@ class GsStyleItem(GsTreeItem):
         deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def editStyle(self, tree, explorer):
+    def editStyle(self, tree, explorer, gslayer = None): 
+        if gslayer is None:
+            gslayer = getLayerFromStyle(self.element)               
+        sld = self.element.sld_body            
+        sld = adaptGsToQgs(sld)              
+        sldfile = tempFilename("sld") 
+        with open(sldfile, 'w') as f:
+            f.write(sld)
+        geomtype = getGeomTypeFromSld(sld)        
+        uri = geomtype                                          
+        if gslayer is not None:
+            fields = gslayer.resource.attributes
+            fieldsdesc = ['field=%s:double' % f for f in fields if "geom" not in f]
+            fieldsstring = '&'.join(fieldsdesc)
+            uri += "?" + fieldsstring                        
+        print uri                                
+        layer = QgsVectorLayer(uri, "tmp", "memory")        
+        pr = layer.dataProvider()
+        print "fields:", len(pr.fields())            
+        layer.loadSldStyle(sldfile)
+        oldSld = getGsCompatibleSld(layer)            
+        config.iface.showLayerProperties(layer)
+        newSld = getGsCompatibleSld(layer)
+        if newSld != oldSld:
+            explorer.run(self.element.update_body, "Update style", [], newSld)                 
+    
+    def editSLD(self, tree, explorer):        
         dlg = SldEditorDialog(self.element, explorer)
         dlg.exec_()
         
@@ -1008,7 +1079,9 @@ class GsWorkspaceItem(GsTreeItem):
             if workspace is not None:
                 publishDraggedTable(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
-            return toUpdate        
+            return toUpdate  
+        else:
+            return []      
                                     
                                      
     def contextMenuActions(self, tree, explorer):
@@ -1020,12 +1093,13 @@ class GsWorkspaceItem(GsTreeItem):
         deleteWorkspaceAction = QtGui.QAction(icon, "Delete", explorer)
         deleteWorkspaceAction.triggered.connect(lambda: self.deleteWorkspace(tree, explorer))
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
-        cleanAction = QtGui.QAction(icon, "Clean (remove unused stores)", explorer)
+        cleanAction = QtGui.QAction(icon, "Clean (remove unused resources)", explorer)
         cleanAction.triggered.connect(lambda: self.cleanWorkspace(explorer))
-        return[setAsDefaultAction, deleteWorkspaceAction]
+        return[setAsDefaultAction, deleteWorkspaceAction, cleanAction]
         
     def cleanWorkspace(self, explorer):
-        pass
+        ogcat = OGCatalog(self.catalog)
+        explorer.run(ogcat.cleanUnusedResources, "Clean (remove unused resources)", [self])
     
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -1083,7 +1157,9 @@ class GsStoreItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):  
         if isinstance(item, QgsLayerItem):      
             publishDraggedLayer(explorer, item.element, self.element.workspace)
-            return tree.findAllItems(self.element.catalog)        
+            return tree.findAllItems(self.element.catalog)  
+        else:
+            return []      
     
     def contextMenuActions(self, tree, explorer): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")       
@@ -1113,6 +1189,8 @@ class GsResourceItem(GsTreeItem):
         if isinstance(item, QgsLayerItem):      
             publishDraggedLayer(explorer, item.element, self.element.workspace)
             return tree.findAllItems(self.element.catalog)
+        else:
+            return []
     
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -1180,7 +1258,7 @@ class GsSettingItem(GsTreeItem):
             
 ###################################################3
                         
-def publishDraggedGroup(self, explorer, groupItem, catalog, workspace):        
+def publishDraggedGroup(explorer, groupItem, catalog, workspace):        
     groupName = groupItem.element
     groups = qgislayers.getGroups()   
     group = groups[groupName]           
@@ -1242,12 +1320,7 @@ def _publishTable(table, catalog = None, workspace = None):
 
 def publishDraggedStyle(explorer, layerName, catalogItem):
     ogcat = OGCatalog(catalogItem.element)
-    toUpdate = []
-    for idx in range(catalogItem.childCount()):
-        subitem = catalogItem.child(idx)
-        if isinstance(subitem, GsStylesItem):
-            toUpdate.append(subitem)
-            break                
+    toUpdate = [catalogItem.stylesItem]                    
     explorer.run(ogcat.publishStyle,
              "Publish style from layer '" + layerName + "'",
              toUpdate,

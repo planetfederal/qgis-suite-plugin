@@ -5,8 +5,8 @@ Available commands and actions
 
 This document contains a listing of available actions in the OpenGeo Explorer.
 
-Actions
-********
+Context menu actions
+*********************
 
 Below you can find more detailed information about commands available depending on the type of element you click onto in the OpenGeo Explorer, and a more detailed explanation about how to use them.
 
@@ -62,20 +62,37 @@ GeoServer
 	.. image:: img/actions/new_style.png
 		:align: center
 
-	- *Clean (remove unused styles)*. Removes all styles that are not being used by any layer
+	- *Clean (remove unused styles)*. Removes all styles that are not being used by any layer.
 
-- GeoServer style item (under layer item).
+	- *Consolidate styles*. Searches for layers in the catalog that have different styles that correspond to the same simbology. This might happens when uploading layers with the same style, since each uploaded layer will have its own layer with the same name as the layer, and all of them will share the same SLD code. This command find those styles that represent the same symbology, and in the layers that use them, replaces the corresponding styles with the first style in the list of redundant ones. After the command has been run, only one style of those that are identical will be in use, while the remaining ones will not be used by any layer. Those unused styles are not removed, but calling the *Clean (remove unused styles)* comand will remove then from the catalog.
 
-	- *Set as default style*. Sets the style as the default style for the layer
+- GeoServer style item.
 
-	- *Add style to layer*. A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer
+	- *Edit...*. Opens the QGIS symbology editor to edit the style of the layer. Create your symbology and accept the dialog to close. This will cause the style to be updated. Notice that the QGIS interface for defining a symbology is used to edit a GeoServer style, but since the layer that uses the style is not available, some restrictions exist:
 
- 		Style items also have an *Edit SLD...* option. By clicking on it you can directly edit the content of the corresponding SLD, using a dialog with an XML editor, such as the one shown below.
+		If the style item is under a layer item, the Explorer will get the attribute names of the layer, so you can use them for defining your symbology rules. The min and max values of those attributes in the layer are, however, not available, so you will not be able to use them to define ranges or categories.
 
- 		.. image:: img/actions/editsld.png
- 			:align: center
+		If the style item is not under the layer item, the Explorer  will try to find out if the style is used by any layer, and will use that layer in case it can find it. If several layers are using a style, the first one of them will be used. If no layer is found (no layer is using that style), the style will be opened for editing, but no field names will be available. You will be editing the style as if it corresponded to a QGIS layer with no attributes.
 
- 		Clicking on *OK* will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message returned by GeoServer will be shown in the QGIS message bar.
+		Labeling is not supported in this case when fetching the SLD style to edit. That means that you can add labeling to the style you define, and it will get correctly uploaded to the catalog, but if the style you are editing has some kind of labeling defined, it will not appear on the QGIS style editor, which will always has labeling disabled.
+
+	- *Edit SLD...* option. By clicking on it you can directly edit the content of the corresponding SLD, using a dialog with an XML editor, such as the one shown below.
+
+		.. image:: editsld.png
+			:align: center
+
+		Clicking on *OK* will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message returned by GeoServer will be shown in the QGIS message bar.
+
+		.. image:: sld_error.png
+			:align: center
+
+	If the layer is under a layer item, the following additional options are available.
+
+		- *Set as default style*. Sets the style as the default style for the layer.
+
+		- *Add style to layer*. A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer.
+
+		- *Remove style from layer*. Removes a style from the list of alternatives styles of the layer. Not enabled for the default style of the layer. 		
 
 - Settings item. The *Settings* item contains no children. Instead, when you click on it, it will display all configurable parameters in the description panel. You can edit them there and then press the *Save* button to upload changes to the corresponding catalog and update it.
 
@@ -191,7 +208,7 @@ The following actions are available for items in the PostGIS branch.
 
 
 QGIS project
-*************
+--------------
 
 - QGIS layer item
 
@@ -248,6 +265,11 @@ Configure the catalog and workspace you want to upload each layer to, and a mult
 
 Another task than can be done with a multiple selection is creating a new group. Just select a set of layers, right--click on them and select *Create group...*. A new group will be created with those layers, using the default style of each of them.
 
+Double-clicking on tree items
+******************************
+
+Cetain items respond to double-clicking. If the corresponding element can be edit, the edition can be started by double clicking on it instead of using the corresponding context menu entry. For instance, double clicking on a GeoServer group item will open the dialog to define the layers that are included in that group.
+
 Drag & drop operations
 ***********************
 
@@ -263,7 +285,7 @@ Below you can find more information about the operations that can be performed t
 - Dragging a GeoServer or QGIS style item onto a GeoServer layer. It adds the style to the list of alternative styles of the layer.
 - Dragging a QGIS style into the *Styles* element of a catalog or a catalog item itself. It adds the style to that catalog.
 - Dragging a QGIS style into a GeoServer layer element. It publishes the style to the catalog the layer belongs to, and then adds the style to the list of alternative styles of the layer.
-- Dragging a QGIS group element into a GeoServer element. If the element belongs to a workspace or it is a workspace itself, the group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to that workspace. Otherwise, the default workspace will be used.
+- Dragging a QGIS group element into the *Groups*, *Workspaces*, *Layers* of a catalog, or the catalog item itself. The group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to the default workspace. If dropped on a workspace item, that workspace will be used as destination.
 - Dragging a GeoServer layer item onto the *GeoWebCache layers* item of the same catalog. It will add the corresponding cached layer for the dragged layer.
 - Dragging a QGIS layer into a PostGIS connection or schema item. It will import the layer into the corresponding PostGIS database. The import dialog is shown before importing.
 - Draggin a PostGIS table item into a GeoServer catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of dropping onto a catalog item

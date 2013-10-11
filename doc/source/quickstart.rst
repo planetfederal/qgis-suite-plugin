@@ -94,6 +94,19 @@ The sample data contains a shapefile named :file:`pt4.shp` that was not included
 
 #. Having switched the style for our ``pt4`` layer to use the one from ``pt1``, we can now remove the original ``pt4`` style. This can be done by right-clicking the style and selecting :guilabel:`Remove style from layer`. You can also delete it from the catalog itself (as it is not used by any other layer) by clicking the ``pt4`` element in the :guilabel:`Styles` branch and then selecting the :guilabel:`Delete` action.
 
+Editing a style
+---------------
+
+One of the most interesting features of the Explorer is that you can use the QGIS interface to create your styles, without having to edit the SLD code manually. The sample project has already a style for each one of its layers, which was uploaded when we published the project to the GeoServer catalog. You can modify the style and then reimport it into the catalog, but you can directly edit any GeoServer style without actually having to have it open in QGIS as the style of a project layer.
+
+To edit the style of the landuse layer (the one in the catalog that we have just uploaded, not the QGIS project one), locate the layer in the GeoServer tree, in the *Layers* branch. Under it, you should see the list of styles associated to the layer. Right click on it and select the :guilabel:`Edit...` option
+
+..image:: img/quickstart/edit_style.png
+
+This will open the QGIS symbology dialog, where you can make the changes you want to your style. When you close it, the style in your GeoServer catalog will be updated.
+
+
+
 Publishing from PostGIS
 -----------------------
 
@@ -157,11 +170,11 @@ The example project contains a raster layer. If you published it as we have alre
 
    .. image:: img/quickstart/config.png
 
-#. Find the :guilabel:`Raster preprocessing hook model file` parameter. The data file that you downloaded contains an example model named ``raster_hook.model`` that adds tiling and pyramids to a raster layer. Locate it and enter the path to it as value of the parameter. This will cause the model to be run before the data is uploaded, and the resulting output to be imported instead of the original layer.
+#. Find the :guilabel:`Raster preprocessing hook file` parameter. The data file that you downloaded contains an example model named ``raster_hook.model`` that adds tiling and pyramids to a raster layer. Locate it and enter the path to it as value of the parameter. This will cause the model to be run before the data is uploaded, and the resulting output to be imported instead of the original layer.
 
 #. Upload the example raster layer. The preprocessing hook will be run before the upload. To disable it for future uploads, just go to the configuration and change the value of the corresponding value to an empty string, so it doesn't point to any valid model file.
 
-The sample data zip file contains another example model that can be used for vector layers. It will export the selected features to a new layer, so only those features will be later uploaded. If the layer you are uploading is not open in QGIS (such as when you export dragging it directly rom the QGIS browser), the hook will have no effect at all (since it is not open, a selection does not exist). If, however, the layer is loaded and a selection exists, only the selected features will be uploaded. If no features are selected, the whole layer will be uploaded. The correspoding model file is named ``vector_hook.model`` and to use it you should enter the path to it in the :guilabel:`Vector preprocessing hook model file` parameter in the config dialog.
+The sample data zip file contains another example hook that can be used for vector layers. This time, it is not a model file, but a python script (the Explorer support both ways of definign a Processing algorithm), and it will export the selected features to a new layer, so only those features will be later uploaded. If the layer you are uploading is not open in QGIS (such as when you export dragging it directly from the QGIS browser), the hook will have no effect at all (since it is not open, a selection does not exist). If, however, the layer is loaded and a selection exists, only the selected features will be uploaded. If no features are selected, the whole layer will be uploaded. The corresponding script file is named ``vector_hook.py`` and to use it you should enter the path to it in the :guilabel:`Vector preprocessing hook file` parameter in the config dialog.
 
 
 

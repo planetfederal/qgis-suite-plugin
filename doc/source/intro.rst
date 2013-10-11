@@ -128,9 +128,9 @@ Pre-upload Processing hooks
 
 If you need to preprocess you data before it is uploaded, you can set up a pre-upload hook that will be run on any layer before it is sent to GeoServer. Instead of the original layer, the result of that hook will be uploaded.
 
-Pre-uppload hooks are defined separately for raster and vector layers. In both cases, they are defined as the path to a Processing model. That model will be loaded and executed to obtain the final layer to upload. Processing models are not covered in this text. Please refer to the Processing chapter in the QGIS manual to know more about them.
+Pre-upload hooks are defined separately for raster and vector layers. In both cases, they are defined as the path to a Processing model (.model) or script (.py) file. That algorithm defined by that hook file will be loaded and executed to obtain the final layer to upload. Creation of Processing models and scripts is not covered in this text. Please refer to the `Processing chapter in the QGIS manual <http://qgis.org/es/docs/user_manual/processing/index.html>`_  to know more about it.
 
-In the case of raster layers, the model must have a single input of type raster layer and a single output, also of type raster layer. In the case of vector layers, both input and output must be of type vector layer. If the selected model does not exist or does not have the required characteristics, it will just be ignored, and the original layer will be uploaded without any preprocessing.
+In the case of raster layers, the hook algorithm must have a single input of type raster layer and a single output, also of type raster layer. In the case of vector layers, both input and output must be of type vector layer. If the selected model does not exist or does not have the required characteristics, it will just be ignored, and the original layer will be uploaded without any preprocessing.
 
 Other parameters
 -----------------

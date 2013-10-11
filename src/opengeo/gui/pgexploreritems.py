@@ -12,7 +12,12 @@ from opengeo.gui.qgsexploreritems import QgsLayerItem
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")   
  
-class PgConnectionsItem(TreeItem):
+class PgTreeItem(TreeItem):
+    
+    def iconPath(self):
+        return os.path.dirname(__file__) + "/../images/postgis.png"
+        
+class PgConnectionsItem(PgTreeItem):
 
     def __init__(self):             
         TreeItem.__init__(self, None, pgIcon, "PostGIS connections")
@@ -62,7 +67,8 @@ class PgConnectionsItem(TreeItem):
             self.addChild(item)
             
                   
-class PgConnectionItem(TreeItem): 
+class PgConnectionItem(PgTreeItem): 
+    
     def __init__(self, conn):                      
         TreeItem.__init__(self, conn, pgIcon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)          
@@ -108,8 +114,8 @@ class PgConnectionItem(TreeItem):
         
     def _getDescriptionHtml(self, tree, explorer):  
         if not self.element.isValid:
-            html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (PostGIS database)</h1></div></br>'  
-            html += ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
+            #html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' </h1></div></br>'  
+            html = ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
                     'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')     
             return html
         else:
@@ -197,7 +203,8 @@ class PgConnectionItem(TreeItem):
                          [self], 
                          text) 
                     
-class PgSchemaItem(TreeItem): 
+class PgSchemaItem(PgTreeItem): 
+    
     def __init__(self, schema): 
         pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/namespace.png")                        
         TreeItem.__init__(self, schema, pgIcon)
@@ -312,7 +319,7 @@ class PgSchemaItem(TreeItem):
         
         return toUpdate                  
         
-class PgTableItem(TreeItem): 
+class PgTableItem(PgTreeItem): 
     def __init__(self, table):                               
         TreeItem.__init__(self, table, self.getIcon(table))
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)

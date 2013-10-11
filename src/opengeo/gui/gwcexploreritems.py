@@ -5,7 +5,12 @@ from opengeo.geoserver.catalog import FailedRequestError
 from opengeo.gui.exploreritems import TreeItem
 import os
 
-class GwcLayersItem(TreeItem): 
+class GwcTreeItem(TreeItem):
+    
+    def iconPath(self):
+        return os.path.dirname(__file__) + "/../images/gwc.png"
+                                             
+class GwcLayersItem(GwcTreeItem): 
     def __init__(self, catalog):
         self.catalog = catalog
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/gwc.png")
@@ -57,7 +62,7 @@ class GwcLayersItem(TreeItem):
 
           
                 
-class GwcLayerItem(TreeItem): 
+class GwcLayerItem(GwcTreeItem): 
     def __init__(self, layer):          
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")        
         TreeItem.__init__(self, layer, icon)
@@ -93,8 +98,8 @@ class GwcLayerItem(TreeItem):
     
 
     def _getDescriptionHtml(self, tree, explorer):                        
-        html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
-        html += '<p><b>Seeding status</b></p>'     
+        #html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
+        html = '<p><b>Seeding status</b></p>'     
         try:
             state = self.element.getSeedingState()
             if state is None:
@@ -121,8 +126,11 @@ class GwcLayerItem(TreeItem):
             except FailedRequestError:
                 #TODO:
                 return
-        text = self.getDescriptionHtml(tree, explorer)
-        self.description.setHtml(text)
+        try:
+            text = self.getDescriptionHtml(tree, explorer)
+            self.description.setHtml(text)
+        except:
+            explorer.setDescriptionWidget()
         
           
     def deleteLayer(self, explorer):

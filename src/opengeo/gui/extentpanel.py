@@ -29,7 +29,7 @@ class ExtentSelectionPanel(QtGui.QWidget):
         canvas = config.iface.mapCanvas()
         self.prevMapTool = canvas.mapTool()
         self.tool = RectangleMapTool(canvas)
-        self.tool.rectangleCreated.connect(self.fillCoords)
+        self.connect(self.tool, SIGNAL('rectangleCreated()'), self.fillCoords)        
 
     def selectOnCanvas(self):
         canvas = config.iface.mapCanvas()

@@ -187,6 +187,9 @@ class GsTreeItem(TreeItem):
             if subdependent:
                 dependent[0:0] = subdependent
         return dependent
+    
+    def iconPath(self):
+        return os.path.dirname(__file__) + "/../images/geoserver.png"
                                      
     
 class GsCatalogsItem(GsTreeItem):    
@@ -610,16 +613,14 @@ class GsLayerItem(GsTreeItem):
         else:
             return []
     
-    def _getDescriptionHtml(self, tree, explorer):                        
-        html = u'<div style="background-color:#ffffcc;"><img src="d:\\img.png"/><h1>&nbsp; ' + self.text(0) + ' (GeoServer layer)</h1></div></br>'  
-        html += '<p><h3><b>Properties</b></h3></p><ul>'
+    def _getDescriptionHtml(self, tree, explorer):  
+        html = '<p><h3><b>Properties</b></h3></p><ul>'
         html += '<li><b>Name: </b>' + str(self.element.name) + '</li>\n'
         html += '<li><b>Title: </b>' + str(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'     
         html += '<li><b>Abstract: </b>' + str(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
         html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')        
         bbox = self.element.resource.latlon_bbox
-        if bbox is not None:
-            #html += '<li><b>Bounding box (lat/lon): </b> &nbsp;<a href="modify:zoomtobbox">Zoom to this bbox</a></li>\n<ul>'        
+        if bbox is not None:                    
             html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'
             html += '<li> N:' + str(bbox[3]) + '</li>'
             html += '<li> S:' + str(bbox[2]) + '</li>'

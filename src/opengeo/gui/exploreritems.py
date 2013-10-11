@@ -19,8 +19,11 @@ class TreeItem(QtGui.QTreeWidgetItem):
         explorer.run(self.populate, None, [])                
        
     def descriptionWidget(self, tree, explorer):                
-        text = self.getDescriptionHtml(tree, explorer)
-        self.description = QtGui.QTextBrowser()
+        text = self.getDescriptionHtml(tree, explorer)                
+        class MyBrowser(QtGui.QTextBrowser):
+            def loadResource(self, type, name):                
+                return None
+        self.description = MyBrowser()                
         self.description.setOpenLinks(False)        
         def linkClicked(url):
             self.linkClicked(tree, explorer, url)
@@ -30,6 +33,10 @@ class TreeItem(QtGui.QTreeWidgetItem):
     
     def getDescriptionHtml(self, tree, explorer):
         html = self._getDescriptionHtml(tree, explorer)
+        img = ""
+        if hasattr(self, "iconPath"):
+            img = '<img src="' + self.iconPath() + '"/>'
+        header = u'<div style="background-color:#C7DBFC;"><h1>&nbsp; ' + img + "&nbsp;" + self.text(0) + '</h1></div>'
         html = u"""
             <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
             <html>
@@ -44,19 +51,21 @@ class TreeItem(QtGui.QTreeWidgetItem):
             </style>
             </head>
             <body>
-            %s <br>
+            %s %s <br>
             </body>
             </html>
-            """ % html  
+            """ % (header, html)  
         return html      
         
-    def _getDescriptionHtml(self, tree, explorer): 
-        html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + '</h1></div><ul>'               
+    def _getDescriptionHtml(self, tree, explorer):
+        html = "<br>"
         actions = self.contextMenuActions(tree, explorer)
-        for action in actions:
-            if action.isEnabled():
-                html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
-        html += '</ul>'
+        if actions:
+            html = "<p><b>Actions:</b></p><ul>" 
+            for action in actions:
+                if action.isEnabled():
+                    html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
+            html += '</ul>'
         return html 
     
     def linkClicked(self, tree, explorer, url):

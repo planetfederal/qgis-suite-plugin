@@ -11,14 +11,19 @@ from dialogs.projectdialog import PublishProjectDialog
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
                 
-class QgsProjectItem(TreeItem): 
+class QgsTreeItem(TreeItem):
+    
+    def iconPath(self):
+        return os.path.dirname(__file__) + "/../images/qgis.png"
+        
+class QgsProjectItem(QgsTreeItem): 
     def __init__(self): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
         TreeItem.__init__(self, None, icon, "QGIS project")        
                  
     def populate(self):                    
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        layersItem = TreeItem(None, icon, "QGIS Layers")        
+        layersItem = QgsTreeItem(None, icon, "QGIS Layers")        
         layersItem.setIcon(0, icon)
         layers = qgislayers.getAllLayers()
         for layer in layers:
@@ -26,7 +31,7 @@ class QgsProjectItem(TreeItem):
             layersItem.addChild(layerItem)
         self.addChild(layersItem)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        groupsItem = TreeItem(None, icon, "QGIS Groups")        
+        groupsItem = QgsTreeItem(None, icon, "QGIS Groups")        
         groups = qgislayers.getGroups()
         for group in groups:
             groupItem = QgsGroupItem(group)                                
@@ -34,7 +39,7 @@ class QgsProjectItem(TreeItem):
             groupItem.populate()
         self.addChild(groupsItem)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        stylesItem = TreeItem(None, icon, "QGIS Styles")               
+        stylesItem = QgsTreeItem(None, icon, "QGIS Styles")               
         stylesItem.setIcon(0, icon)
         styles = qgislayers.getVectorLayers()
         for style in styles:
@@ -88,7 +93,7 @@ class QgsProjectItem(TreeItem):
         tree.findAllItems(catalog)[0].refreshContent(explorer)     
                                              
                     
-class QgsLayerItem(TreeItem): 
+class QgsLayerItem(QgsTreeItem): 
     def __init__(self, layer ): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         TreeItem.__init__(self, layer, icon)   
@@ -225,7 +230,7 @@ class QgsLayerItem(TreeItem):
                  self.element, dlg.workspace, True)
 
              
-class QgsGroupItem(TreeItem): 
+class QgsGroupItem(QgsTreeItem): 
     def __init__(self, group): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
         TreeItem.__init__(self, group , icon)   
@@ -287,7 +292,7 @@ class QgsGroupItem(TreeItem):
                      toUpdate)    
        
                
-class QgsStyleItem(TreeItem): 
+class QgsStyleItem(QgsTreeItem): 
     def __init__(self, layer): 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
         TreeItem.__init__(self, layer, icon, "Style of layer '" + layer.name() + "'") 

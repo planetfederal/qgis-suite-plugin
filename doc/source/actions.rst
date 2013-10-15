@@ -293,12 +293,12 @@ Below you can find more information about the operations that can be performed t
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 
-You can also drag elements from elements outside of the explorer itself. For instance, you can open the QGIS browser, select some files with vector data and drag and drop them into a PostGIS element in the explorer. That will cause the data in those files to be imported into the corresponding PostGIS database.
+You can also drag elements from elements outside of the explorer itself. For instance, you can open the QGIS browser, select some files with vector data and drag and drop them into a PostGIS database or Geoserver catalog element in the explorer. That will cause the data in those files to be imported into the corresponding database or catalog. Format conversion will be performed automatically if needed.
 
 .. image:: img/actions/dragdrop_external.png
 	:align: center
 
-In general, any operation that can be performed dragging a QGIS layer item within the Explorer tree can also be performed draggin an element in the QGIS browser that represents a layer.
+In general, any operation that can be performed dragging a QGIS layer item within the Explorer tree can also be performed dragging an element in the QGIS browser that represents a layer.
 
 Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer layers can be dropped onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the *Add to QGIS project* menu option, already described. Notice that, however, the style of the layer will not be used in this case, and the layer that will be added to the QGIS project will have a default style assigned to it.
 

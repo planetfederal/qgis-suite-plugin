@@ -21,17 +21,22 @@ from opengeo.qgis.sldadapter import adaptGsToQgs,\
 from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from opengeo.geoserver.importerclient import Client
-from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
-from processing.script.ScriptAlgorithm import ScriptAlgorithm
-from processing.parameters.ParameterRaster import ParameterRaster
-from processing.parameters.ParameterVector import ParameterVector
-from processing.outputs.OutputVector import OutputVector
-from processing.outputs.OutputRaster import OutputRaster
-from processing.gui.UnthreadedAlgorithmExecutor import UnthreadedAlgorithmExecutor
-from processing.core.SilentProgress import SilentProgress
-from processing.tools.dataobjects import getObjectFromUri as load
-from processing.modeler.Providers import Providers
 
+try:
+    from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
+    from processing.script.ScriptAlgorithm import ScriptAlgorithm
+    from processing.parameters.ParameterRaster import ParameterRaster
+    from processing.parameters.ParameterVector import ParameterVector
+    from processing.outputs.OutputVector import OutputVector
+    from processing.outputs.OutputRaster import OutputRaster
+    from processing.gui.UnthreadedAlgorithmExecutor import UnthreadedAlgorithmExecutor
+    from processing.core.SilentProgress import SilentProgress
+    from processing.tools.dataobjects import getObjectFromUri as load
+    from processing.modeler.Providers import Providers
+    processingOk = True
+except:
+    processingOk = False
+    
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
     catalog = GSCatalog(service_url, username, password, disable_ssl_certificate_validation)
@@ -337,6 +342,9 @@ class OGCatalog(object):
         Preprocesses the layer with the corresponding preprocess hook and returns the path to the 
         resulting layer. If no preprocessing is performed, it returns the input layer itself
         '''    
+        if not processingOk:
+            return layer
+        
         if layer.type() == layer.RasterLayer:                        
             try:
                 hookFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterHook", ""))

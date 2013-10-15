@@ -69,12 +69,16 @@ class ConfigDialog(QDialog):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/opengeo.png")
         generalItem = self._getItem("General", icon, generalParams)        
         self.tree.addTopLevelItem(generalItem)
-        
-        gsParams = [("UseRestApi", "Always use REST API for uploads", True),
-                    ("PreuploadRasterHook", "Raster pre-upload hook file", ""),
-                    ("PreuploadVectorHook", "Vector pre-upload hook file", ""),
+                        
+        gsParams = [("UseRestApi", "Always use REST API for uploads", True),                    
                     ("DeleteStyle", "Delete style when deleting layer", True),
                     ("Recurse", "Delete resource when deleting layer", True)]
+        try:
+            import processing.tools.dataobjects
+            gsParams.extend([("PreuploadRasterHook", "Raster pre-upload hook file", ""),
+                            ("PreuploadVectorHook", "Vector pre-upload hook file", "")])
+        except:
+            pass
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/geoserver.png")
         gsItem = self._getItem("GeoServer", icon, gsParams)        
         self.tree.addTopLevelItem(gsItem)

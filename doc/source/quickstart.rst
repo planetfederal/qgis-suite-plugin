@@ -101,7 +101,7 @@ One of the most interesting features of the Explorer is that you can use the QGI
 
 To edit the style of the landuse layer (the one in the catalog that we have just uploaded, not the QGIS project one), locate the layer in the GeoServer tree, in the *Layers* branch. Under it, you should see the list of styles associated to the layer. Right click on it and select the :guilabel:`Edit...` option
 
-..image:: img/quickstart/edit_style.png
+.. image:: img/quickstart/edit_style.png
 
 This will open the QGIS symbology dialog, where you can make the changes you want to your style. When you close it, the style in your GeoServer catalog will be updated.
 

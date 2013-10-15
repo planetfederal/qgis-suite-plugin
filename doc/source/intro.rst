@@ -56,7 +56,7 @@ The *PostGIS databases* branch contains a list of all available PostGIS connecti
 
 In the lower part to will see a panel which shows the description of the currently selected item. When the explorer window is docked, the description panel is found on its lower the lower part. If you undock the window, it will be placed on the right--hand side of it, to make better use of the available space. The image below shows the undocked configuration.
 
-.. image:: img/intro/log.png
+.. image:: img/intro/undocked.png
 	:align: center
 
 The description panel shows information about the currently selected element, but also contains links to actions that affect or are related to the current element. As an example, below you can see the description panel corresponding to a GeoServer layer element.

@@ -87,9 +87,7 @@ class OGCatalog(object):
             if sld in used.keys():
                 used[sld].append(style)
             else:
-                used[sld] = [style]
-                
-        print used
+                used[sld] = [style]                        
                 
         for sld, styles in used.iteritems():            
             if len(styles) == 1:

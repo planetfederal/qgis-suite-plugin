@@ -113,8 +113,7 @@ class GsTreeItem(TreeItem):
                     if isinstance(item.parent(), GsStylesItem):
                         stylesEntriesToUpdate.add(item.parent())
                         break                       
-            toUpdate.update(stylesEntriesToUpdate) 
-        print toUpdate
+            toUpdate.update(stylesEntriesToUpdate)         
         explorer.setProgressMaximum(len(elements), "Deleting elements")   
         for progress, element in enumerate(elements):
             explorer.setProgress(progress)    
@@ -962,9 +961,7 @@ class GsStyleItem(GsTreeItem):
         return actions 
     
     
-    def acceptDroppedItem(self, tree, explorer, item): 
-        print type(item)
-        print type(self.parent())
+    def acceptDroppedItem(self, tree, explorer, item):         
         if isinstance(item, (GsStyleItem, QgsStyleItem)):  
             if isinstance(self.parent(), GsLayerItem):
                 destinationItem = self.parent()
@@ -1003,8 +1000,7 @@ class GsStyleItem(GsTreeItem):
             uri += "?" + fieldsstring                        
         print uri                                
         layer = QgsVectorLayer(uri, "tmp", "memory")        
-        pr = layer.dataProvider()
-        print "fields:", len(pr.fields())            
+        pr = layer.dataProvider()            
         layer.loadSldStyle(sldfile)
         oldSld = getGsCompatibleSld(layer)            
         config.iface.showLayerProperties(layer)

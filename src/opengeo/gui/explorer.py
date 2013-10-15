@@ -13,13 +13,20 @@ import traceback
 INFO = 0
 ERROR = 1
 CONSOLE_OUTPUT = 2   
+
+RAVEN_URL = "http://4e1139200ac1427cb9b114e89ef7d355:133be0de55a145f6b29f0ee6d529733d@qgis.opengeo.org:9000/2"
     
 class OpenGeoExplorer(QtGui.QDockWidget):
 
     def __init__(self, parent = None, singletab = True):
         super(OpenGeoExplorer, self).__init__()  
         self.singletab = singletab
-        self.ravenClient = Client(dsn="http://4e1139200ac1427cb9b114e89ef7d355:133be0de55a145f6b29f0ee6d529733d@qgis.opengeo.org:9000/2")      
+        dsn = QSettings().value("/OpenGeo/Settings/General/RavenUrl", "")
+        dsn = dsn if dsn.strip() != "" else RAVEN_URL 
+        try:
+            self.ravenClient = Client(dsn=dsn)
+        except:
+            self.ravenClient = Client(dsn=RAVEN_URL)
         self.initGui()
         
     def initGui(self):
@@ -183,8 +190,8 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             showButton.setText("View more")
             def reportError():
                 version = "Plugin version: " + pluginMetadata("opengeo", "version")
-                message = msg + "\n" + version                            
-                self.ravenClient.captureMessage(message)
+                message = unicode(msg, errors = "ignore") + "\n" + version                            
+                self.ravenClient.captureMessage(message)                
                 self.resetActivity()
             def showMore():                
                 dlg = QgsMessageOutput.createMessageOutput()
@@ -196,8 +203,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             widget.layout().addWidget(sendButton)
             widget.layout().addWidget(showButton)
             config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
-                                                 duration = 15)
-                        
+                                                 duration = 15)                        
         else:
             config.iface.messageBar().pushMessage("Info", firstLine, 
                                                   level = QgsMessageBar.INFO,

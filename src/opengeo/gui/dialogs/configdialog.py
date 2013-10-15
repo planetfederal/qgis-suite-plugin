@@ -64,7 +64,8 @@ class ConfigDialog(QDialog):
         self.tree.clear()
 
         generalParams = [("SingleTabUI", "Use single tab UI (requires restart)", True),
-                         ("ShowDescription", "Show description", True)]
+                         ("ShowDescription", "Show description panel", True),
+                         ("RavenUrl", "Alternative URL for error reporting (requires restart)","")]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/opengeo.png")
         generalItem = self._getItem("General", icon, generalParams)        
         self.tree.addTopLevelItem(generalItem)

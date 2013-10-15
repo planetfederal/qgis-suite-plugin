@@ -49,7 +49,7 @@ class OpenGeoPlugin:
         self.explorer.hide()
         
         icon = QIcon(os.path.dirname(__file__) + "/images/config.png")
-        self.configAction = QAction(icon, "Settings", self.iface.mainWindow())
+        self.configAction = QAction(icon, "OpenGeo Explorer settings", self.iface.mainWindow())
         self.configAction.triggered.connect(self.openSettings)
         self.menu.addAction(self.configAction)
 

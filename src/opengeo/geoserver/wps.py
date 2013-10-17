@@ -30,5 +30,5 @@ class Wps(object):
                                                  (headers,response))
         response = response.replace('ows:','')
         dom = XML(response)                
-        processes = [p.text for p in dom.getiterator() if 'Title' in p.tag]        
+        processes = [p.text for p in dom.iter() if 'Title' in p.tag]        
         return processes

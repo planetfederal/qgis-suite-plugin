@@ -38,7 +38,7 @@ class Gwc(object):
         dom = XML(response)        
         layers = []
         for layer in dom.getchildren():
-            els = layer.getchildren()                    
+            els = list(layer)#.getchildren()                    
             layers.append(self.layer(els[0].text))
         return layers 
     

@@ -3,7 +3,7 @@ from qgis.core import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
-from opengeo.geoserver.store import DataStore
+from opengeo.geoserver.store import DataStore, CoverageStore
 from opengeo.geoserver.resource import Coverage, FeatureType
 from dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.geoserver.style import Style
@@ -283,6 +283,9 @@ class GsLayersItem(GsTreeItem):
             return toUpdate  
         else:
             return []
+        
+    def acceptDroppedUris(self, tree, explorer, uris):  
+        return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.getDefaultWorkspace(), explorer, tree)           
                         
 class GsGroupsItem(GsTreeItem): 
     def __init__(self, catalog):
@@ -376,29 +379,7 @@ class GsWorkspacesItem(GsTreeItem):
             return []        
         
     def acceptDroppedUris(self, tree, explorer, uris):                        
-        if uris:
-            catalog = self.parentCatalog()
-            files = []
-            for uri in uris:
-                if isinstance(uri, basestring):
-                    file.append(uri)                    
-                else:                                       
-                    files.append(uri.uri)  
-            workspace = self.getDefaultWorkspace() 
-            explorer.setProgressMaximum(len(uris))                            
-            for i, filename in enumerate(files):
-                layerName = QtCore.QFileInfo(filename).completeBaseName()
-                layer = QgsVectorLayer(filename, layerName, "ogr")                                       
-                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
-                    layer.deleteLater()
-                    explorer.setInfo("Error reading file {} or it is not a valid vector layer file".format(filename), 1)                                
-                else:
-                    publishDraggedLayer(explorer, layer, workspace)
-                explorer.setProgress(i + 1)
-            explorer.resetActivity()                    
-            return [tree.findAllItems(catalog)[0]]
-        else:
-            return []
+        return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.getDefaultWorkspace(), explorer, tree)
                             
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")        
@@ -547,30 +528,8 @@ class GsCatalogItem(GsTreeItem):
     def _getDescriptionHtml(self, tree, explorer):                        
         return self.catalog.about()
     
-    def acceptDroppedUris(self, tree, explorer, uris):       
-        if uris:
-            catalog = self.element
-            files = []
-            for uri in uris:
-                if isinstance(uri, basestring):
-                    files.append(uri)                    
-                else:                                       
-                    files.append(uri.uri)           
-            workspace = self.getDefaultWorkspace()  
-            explorer.setProgressMaximum(len(files))                           
-            for i, filename in enumerate(files):
-                layerName = QtCore.QFileInfo(filename).completeBaseName()
-                layer = QgsVectorLayer(filename, layerName, "ogr")                                            
-                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
-                    layer.deleteLater()
-                    explorer.setInfo("Error reading file {} or it is not a valid vector layer file".format(filename), 1)                                
-                else:
-                    publishDraggedLayer(explorer, layer, workspace)
-                explorer.setProgress(i + 1)
-            explorer.resetActivity()
-            return [tree.findAllItems(catalog)[0]]
-        else:
-            return []       
+    def acceptDroppedUris(self, tree, explorer, uris):  
+        return addDraggedUrisToWorkspace(uris, self.element, self.getDefaultWorkspace(), explorer, tree)                    
            
                                 
 class GsLayerItem(GsTreeItem): 
@@ -986,6 +945,9 @@ class GsStyleItem(GsTreeItem):
     def editStyle(self, tree, explorer, gslayer = None): 
         if gslayer is None:
             gslayer = getLayerFromStyle(self.element)               
+        if gslayer is not None:
+            if not hasattr(gslayer.resource, "attributes"):
+                QtGui.QMessageBox.warning(explorer, "Edit style", "Editing raster layer styles is currently not supported")
         sld = self.element.sld_body            
         sld = adaptGsToQgs(sld)              
         sldfile = tempFilename("sld") 
@@ -1113,28 +1075,8 @@ class GsWorkspaceItem(GsTreeItem):
                  [self.parent()],
                  self.element.name)
         
-    def acceptDroppedUris(self, tree, explorer, uris):    
-        if uris:
-            catalog = self.parentCatalog()                                                              
-            workspace = self.element   
-            explorer.setProgressMaximum(len(uris))                                     
-            for i, uri in enumerate(uris):                
-                if isinstance(uri, basestring):
-                    layerName = QtCore.QFileInfo(uri).completeBaseName()
-                    layer = QgsVectorLayer(uri, layerName, "ogr")
-                else:                                       
-                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)    
-                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
-                    layer.deleteLater()
-                    name = uri if isinstance(uri, basestring) else uri.uri 
-                    explorer.setInfo("Error reading file {} or it is not a valid vector layer file".format(name), 1)                                
-                else:
-                    publishDraggedLayer(explorer, layer, workspace)
-                explorer.setProgress(i + 1)
-            explorer.resetActivity()                
-            return [tree.findAllItems(catalog)[0]]
-        else:
-            return []        
+    def acceptDroppedUris(self, tree, explorer, uris):            
+        return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.element, explorer, tree)      
                                      
 class GsStoreItem(GsTreeItem): 
     def __init__(self, store):
@@ -1353,3 +1295,38 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
              "Add style '" + style.name + "' to layer '" + layer.name + "'",
              [layerItem],
              layer)  
+
+def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
+    if uris:        
+        explorer.setProgressMaximum(len(uris))                                     
+        for i, uri in enumerate(uris):  
+            if isinstance(uri, basestring):
+                print "1"
+                layerName = QtCore.QFileInfo(uri).completeBaseName()
+                layer = QgsRasterLayer(uri, layerName)
+            else:       
+                print "2"                                
+                layer = QgsRasterLayer(uri.uri, uri.name)
+            print "3"
+            if not layer.isValid() or layer.type() != QgsMapLayer.RasterLayer:                                                  
+                if isinstance(uri, basestring):                
+                    print "a"
+                    layerName = QtCore.QFileInfo(uri).completeBaseName()
+                    layer = QgsVectorLayer(uri, layerName, "ogr")
+                else:   
+                    print "b"                                    
+                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)
+                print "c"
+                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
+                    layer.deleteLater()
+                    name = uri if isinstance(uri, basestring) else uri.uri 
+                    explorer.setInfo("Error reading file {} or it is not a valid layer file".format(name), 1)   
+                else:
+                    publishDraggedLayer(explorer, layer, workspace)                                                 
+            else:
+                publishDraggedLayer(explorer, layer, workspace)
+            explorer.setProgress(i + 1)
+        explorer.resetActivity()                
+        return [tree.findAllItems(catalog)[0]]
+    else:
+        return []  

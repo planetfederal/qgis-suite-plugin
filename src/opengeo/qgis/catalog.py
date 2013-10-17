@@ -58,6 +58,7 @@ class OGCatalog(object):
         self.cleanUnusedResources()
         
     def cleanUnusedStyles(self):
+        '''cleans styles that are not used by any layer'''
         usedStyles = set()
         styles = self.catalog.get_styles()
         layers = self.catalog.get_layers()        
@@ -70,6 +71,7 @@ class OGCatalog(object):
             style.catalog.delete(style, purge = True)   
             
     def cleanUnusedResources(self):
+        '''cleans resources that are not published through any layer in the catalog'''
         usedResources = set()
         resources = self.catalog.get_resources()
         layers = self.catalog.get_layers()        
@@ -85,6 +87,10 @@ class OGCatalog(object):
                 self.catalog.delete(store)
                 
     def consolidateStyles(self):
+        '''
+        Deletes styles that are redundant and just keeps one copy of them 
+        in the catalog, configuring the corresponding layers to use that copy
+        '''
         used = {}
         allstyles = self.catalog.get_styles()
         for style in allstyles:
@@ -123,7 +129,7 @@ class OGCatalog(object):
         
 
     
-    def publishStyle(self, layer, overwrite = False, name = None):
+    def publishStyle(self, layer, overwrite = True, name = None):
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
         it will overwrite a style with that name in case it exists
@@ -329,8 +335,8 @@ class OGCatalog(object):
         sld = self.publishStyle(layer, overwrite, name)
             
         layer = self.preprocess(layer)            
-        self.upload(layer, workspace, overwrite, name)      
-    
+        self.upload(layer, workspace, overwrite, name)  
+
         if sld is not None:
             #assign style to created store  
             publishing = self.catalog.get_layer(name)        

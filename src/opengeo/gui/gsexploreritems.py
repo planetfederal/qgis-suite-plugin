@@ -30,6 +30,7 @@ from opengeo.qgis.utils import tempFilename
 from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
 from opengeo.geoserver.util import getLayerFromStyle
+from opengeo.geoserver.geonode import login_to_geonode
 
 class GsTreeItem(TreeItem):
     
@@ -708,7 +709,11 @@ class GsLayerItem(GsTreeItem):
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")                       
             addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
             addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
-            actions.append(addLayerAction)  
+            actions.append(addLayerAction) 
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geonode.png")                       
+            publishToGeonodeAction = QtGui.QAction(icon, "Publish to GeoNode", explorer)
+            publishToGeonodeAction.triggered.connect(lambda: self.publishToGeonode(tree, explorer))
+            actions.append(publishToGeonodeAction)  
             
         return actions
     
@@ -723,7 +728,17 @@ class GsLayerItem(GsTreeItem):
                  
             
     def publishToGeonode(self, tree, explorer):
-        pass
+        username = self.element.catalog.username
+        password = self.element.catalog.password
+        geonode_url = self.element.catalog.gs_base_url.rstrip(":8080/geoserver/") + ":8000/"
+        client = login_to_geonode(geonode_url, username, password)
+        params = dict(layer = self.element.name, 
+                      csrfmiddlewaretoken=client.cookies['csrftoken'],
+                      sessionid=client.cookies['sessionid'])
+        response = client.post(geonode_url + 'gs/updatelayers/', data=params, allow_redirects=True)
+        response.raise_for_status()
+        print response.json()
+        #TODO parse JSON and display in as a QMessage
     
     def createGroupFromLayers(self, selected, tree, explorer):        
         name, ok = QtGui.QInputDialog.getText(None, "Group name", "Enter the name of the group to create")        

@@ -115,15 +115,18 @@ def getStyleAsSld(layer):
         layer.writeSld(namedLayerNode, document, errorMsg)    
 
         return unicode(document.toString(4))
-    elif layer.type() == layer.RasterLayer: 
+    elif layer.type() == layer.RasterLayer:         
         renderer = layer.renderer()
-        if isinstance(renderer, QgsSingleBandGrayRenderer):
-            pass
+        if isinstance(renderer, QgsSingleBandGrayRenderer):            
+            symbolizerCode = "<Opacity>%d</Opacity>" % renderer.opacity()
+            symbolizerCode += ("<ChannelSelection><GrayChannel><SourceChannelName>"
+                                + str(renderer.grayBand()) + "</SourceChannelName></GrayChannel></ChannelSelection>")
+            sld =  RASTER_SLD_TEMPLATE.replace("SYMBOLIZER_CODE", symbolizerCode).replace("STYLE_NAME", layer.name())
+            return sld
         elif isinstance(renderer, QgsSingleBandPseudoColorRenderer):
             symbolizerCode = "<ColorMap>"
             band = renderer.usesBands()[0]
-            items = renderer.shader().rasterShaderFunction().colorRampItemList()
-            print items
+            items = renderer.shader().rasterShaderFunction().colorRampItemList()            
             for item in items:
                 color = item.color
                 rgb = '#%02x%02x%02x' % (color.red(), color.green(), color.blue())                 
@@ -145,11 +148,9 @@ def getStyleAsSld(layer):
         return None
     
 def getGeomTypeFromSld(sld):
-    #TODO
     if "PointSymbolizer" in sld:
         return "Point"
     elif "LineSymbolizer" in sld:
         return "LineString"
     else:
-        return "Polygon"
-    return "Polygon"
+        return "Polygon"    

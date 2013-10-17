@@ -1300,23 +1300,17 @@ def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
     if uris:        
         explorer.setProgressMaximum(len(uris))                                     
         for i, uri in enumerate(uris):  
-            if isinstance(uri, basestring):
-                print "1"
+            if isinstance(uri, basestring):            
                 layerName = QtCore.QFileInfo(uri).completeBaseName()
                 layer = QgsRasterLayer(uri, layerName)
-            else:       
-                print "2"                                
-                layer = QgsRasterLayer(uri.uri, uri.name)
-            print "3"
+            else:                                               
+                layer = QgsRasterLayer(uri.uri, uri.name)            
             if not layer.isValid() or layer.type() != QgsMapLayer.RasterLayer:                                                  
-                if isinstance(uri, basestring):                
-                    print "a"
+                if isinstance(uri, basestring):                                    
                     layerName = QtCore.QFileInfo(uri).completeBaseName()
                     layer = QgsVectorLayer(uri, layerName, "ogr")
-                else:   
-                    print "b"                                    
-                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)
-                print "c"
+                else:                                                           
+                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)                
                 if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
                     layer.deleteLater()
                     name = uri if isinstance(uri, basestring) else uri.uri 

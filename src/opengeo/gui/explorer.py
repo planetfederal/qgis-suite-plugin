@@ -22,7 +22,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         super(OpenGeoExplorer, self).__init__()  
         self.singletab = singletab
         dsn = QSettings().value("/OpenGeo/Settings/General/RavenUrl", "")
-        dsn = dsn if dsn.strip() != "" else RAVEN_URL 
+        dsn = dsn if (dsn != NULL and dsn.strip()) != "" else RAVEN_URL 
         try:
             self.ravenClient = Client(dsn=dsn)
         except:

@@ -3,3 +3,4 @@
 /src/.pydevproject
 /src/build.xml
 /doc/build
+*.pyc

@@ -732,7 +732,8 @@ class GsLayerItem(GsTreeItem):
         password = self.element.catalog.password
         geonode_url = self.element.catalog.gs_base_url.rstrip(":8080/geoserver/") + ":8000/"
         client = login_to_geonode(geonode_url, username, password)
-        params = dict(layer = self.element.name, 
+        params = dict(filter = self.element.name,
+                      owner = username, 
                       csrfmiddlewaretoken=client.cookies['csrftoken'],
                       sessionid=client.cookies['sessionid'])
         response = client.post(geonode_url + 'gs/updatelayers/', data=params, allow_redirects=True)

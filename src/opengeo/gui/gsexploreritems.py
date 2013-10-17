@@ -948,6 +948,7 @@ class GsStyleItem(GsTreeItem):
         if gslayer is not None:
             if not hasattr(gslayer.resource, "attributes"):
                 QtGui.QMessageBox.warning(explorer, "Edit style", "Editing raster layer styles is currently not supported")
+                return
         sld = self.element.sld_body            
         sld = adaptGsToQgs(sld)              
         sldfile = tempFilename("sld") 
@@ -959,10 +960,8 @@ class GsStyleItem(GsTreeItem):
             fields = gslayer.resource.attributes
             fieldsdesc = ['field=%s:double' % f for f in fields if "geom" not in f]
             fieldsstring = '&'.join(fieldsdesc)
-            uri += "?" + fieldsstring                        
-        print uri                                
-        layer = QgsVectorLayer(uri, "tmp", "memory")        
-        pr = layer.dataProvider()            
+            uri += "?" + fieldsstring                                                        
+        layer = QgsVectorLayer(uri, "tmp", "memory")                        
         layer.loadSldStyle(sldfile)
         oldSld = getGsCompatibleSld(layer)            
         config.iface.showLayerProperties(layer)
@@ -1227,14 +1226,15 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace):
 def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog  
     ogcat = OGCatalog(cat)                                
-    explorer.run(ogcat.publishLayer,
+    ret = explorer.run(ogcat.publishLayer,
              "Publish layer from layer '" + layer.name() + "'",
              [],
-             layer, workspace, True)
+             layer, workspace, True)    
+    return ret
     
 def publishDraggedTable(explorer, table, workspace):    
     cat = workspace.catalog                          
-    explorer.run(_publishTable,
+    return explorer.run(_publishTable,
              "Publish table from table '" + table.name + "'",
              [],
              table, cat, workspace)
@@ -1316,10 +1316,12 @@ def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
                     name = uri if isinstance(uri, basestring) else uri.uri 
                     explorer.setInfo("Error reading file {} or it is not a valid layer file".format(name), 1)   
                 else:
-                    publishDraggedLayer(explorer, layer, workspace)                                                 
+                    if not publishDraggedLayer(explorer, layer, workspace):                        
+                        return []                    
             else:
-                publishDraggedLayer(explorer, layer, workspace)
-            explorer.setProgress(i + 1)
+                if not publishDraggedLayer(explorer, layer, workspace):                    
+                    return []
+            explorer.setProgress(i + 1)        
         explorer.resetActivity()                
         return [tree.findAllItems(catalog)[0]]
     else:

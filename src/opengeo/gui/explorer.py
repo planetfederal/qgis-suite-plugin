@@ -125,7 +125,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 self.refreshContent()                        
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
-        except Exception, e:    
+        except Exception, e:                
             self.setInfo(str(e) + "\n" + traceback.format_exc(), ERROR)
             noerror = False
         finally:
@@ -133,31 +133,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             self.refreshDescription()
                                
         return noerror
-    
-    def thread_run(self, command, msg, refresh, *params):
-        error = False                                   
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))        
-        thread = ExplorerThread(command, *params)                
-        def finish():            
-            for item in refresh:
-                if item is not None:
-                    item.refreshContent(self)
-            if None in refresh:
-                self.refreshContent()                        
-            if msg is not None and not self.isProgressVisible:
-                self.setInfo("Operation <i>" + msg + "</i> correctly executed")                
-        def error(msg):
-            QtGui.QApplication.restoreOverrideCursor()            
-            self.setInfo(msg, ERROR)               
-            error = True         
-        thread.finish.connect(finish)
-        thread.error.connect(error)                                         
-        thread.start()
-        thread.wait()      
-        self.refreshDescription()
-        
-        return error
-        
+            
     def resetActivity(self):               
         config.iface.messageBar().clearWidgets()
         self.isProgressVisible = False
@@ -182,7 +158,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         firstLine = msg.split("\n")[0]
         if msgtype == ERROR:
             if self.progressMaximum != 0:
-                self.resetActivity()
+                QtGui.QMessageBox.critical(self, "Error", firstLine)
             widget = config.iface.messageBar().createMessage("Error", firstLine)            
             sendButton = QtGui.QPushButton(widget)
             sendButton.setText("Report error")

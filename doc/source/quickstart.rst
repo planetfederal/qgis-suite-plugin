@@ -138,6 +138,17 @@ There are other ways to publish our data. Instead of creating GeoServer layers t
 
 #. The resulting GeoServer layer will have no style associated. You can solve that by dropping a style onto the layer.
 
+Publishing a TIF file
+---------------------
+
+Raster layers are published in a similar way to vector layers. The example project includes a raster layer named *DEM* that can be uploaded right-clicking on its name and then selecting the :guilabel:`Publish...` option. 
+
+A new coverage store will be created in the catalog, and the corresponding layer will be published.
+
+Styling is also uploaded and set as the default style in the published layer. You can publish the layer dragging and dropping the corresponding file from the QGIS browser, but in that case a default style will be used. Single-band layers will use a black-to-white color ramp, and all other layers are assumed to be 3-band color images and use a RGB style.
+
+Unlike in the case of vector layers, no conversion is performed, and only Tiff files are supported.
+
 Caching
 -------
 

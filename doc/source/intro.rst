@@ -26,16 +26,13 @@ When connecting to a catalog, the explorer tries to check the version. If it can
 .. image:: img/intro/version_warning.png
 	:align: center
 
-Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. To increase compatibility between them, specific routines have been added to the plugin code. However, in some cases, a style defined in QGIS might not be compatible with the elements supported by GeoServer, and publishing a layer will be done without publishing the corresponding style, but using a default one instead.
+Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. Read the styling limitations section to know more about it.
 
-This problem exist even when using the Suite GeoServer, but older versions of GeoServer might show more incompatibilities and not validate a large part of the SLD produced by plugin.
-
-Basic labeling is supported, but not all labeling will be exported from QGIS to SLD and uploaded to GeoServer. In particular, advanced data-dependent labeling, is not supported.
 
 Usage
 ******
 
-The OpenGeo Suite explorer is launched from the *OpenGeo* menu and it looks like this.
+The OpenGeo Suite explorer is launched from the :guilabel:`OpenGeo` menu and it looks like this.
 
 .. image:: img/intro/explorer.png
 	:align: center
@@ -46,13 +43,13 @@ The main element of the explorer is the explorer tree. It has the following main
 - PostGIS connections
 - QGIS project
 
-A *GeoWebCache* branch is found under the *Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer.
+A :guilabel:`GeoWebCache` branch is found under the :guilabel:`Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer.
 
-The *GeoServer catalogs* branch contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
+The :guilabel:`GeoServer catalogs` branch contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
 
-The *QGIS Project* branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in GeoServer. This way, it is easy to understand the relation between both the QGIS project and the GeoServer Catalogs.
+The :guilabel:`QGIS Project` branch contains the elements of the current QGIS project. These elements, however, are presented with a structure that differs from the QGIS TOC, and resembles the structure of elements in GeoServer. This way, it is easy to understand the relation between both the QGIS project and the GeoServer Catalogs.
 
-The *PostGIS databases* branch contains a list of all available PostGIS connections in QGIS. Its functionality resembles that of the QGIS built--in DB Manager.
+The :guilabel:`PostGIS databases` branch contains a list of all available PostGIS connections in QGIS. Its functionality resembles that of the QGIS built--in DB Manager.
 
 In the lower part to will see a panel which shows the description of the currently selected item. When the explorer window is docked, the description panel is found on its lower the lower part. If you undock the window, it will be placed on the right--hand side of it, to make better use of the available space. The image below shows the undocked configuration.
 
@@ -66,7 +63,7 @@ The description panel shows information about the currently selected element, bu
 
 Use the hyperlinks to perform the corresponding actions based on the current element.
 
-The description tab can also show tables where parameters can be edited. The one shown below corresponds to the *Settings* element of a GeoServer catalog.
+The description tab can also show tables where parameters can be edited. The one shown below corresponds to the :guilabel:`Settings` element of a GeoServer catalog.
 
 .. image:: img/intro/description_table.png
 	:align: center
@@ -84,9 +81,9 @@ When an error is found, a message is shown in the QGIS message bar.
 .. image:: img/intro/error-bar.png
 	:align: center
 
-This error might be caused by a wrong usage (for instance, if you are trying to connect to a catalog that does not exist), or by a bug in the plugin. To help us fix this second case, you can report the error by clicking on the *Report error* button that appears in the message bar. This will cause the full error stack trace to be sent automatically, so we can check it and find out the cause of the error. No personal information is sent along with it.
+This error might be caused by a wrong usage (for instance, if you are trying to connect to a catalog that does not exist), or by a bug in the plugin. To help us fix this second case, you can report the error by clicking on the :guilabel:`Report error` button that appears in the message bar. This will cause the full error stack trace to be sent automatically, so we can check it and find out the cause of the error. No personal information is sent along with it.
 
-To check the stack trace yourself, click on the *View more* button.
+To check the stack trace yourself, click on the :guilabel:`View more` button.
 
 If no button is pushed, the message bar will remain visible for 15 seconds. You can close it using the close icon on its right--hand side.
 
@@ -132,6 +129,8 @@ Pre-upload hooks are defined separately for raster and vector layers. In both ca
 
 In the case of raster layers, the hook algorithm must have a single input of type raster layer and a single output, also of type raster layer. In the case of vector layers, both input and output must be of type vector layer. If the selected model does not exist or does not have the required characteristics, it will just be ignored, and the original layer will be uploaded without any preprocessing.
 
+For these functionality to be available, you need a version of Processing more equal or higher that 2.0.1.1. If you just install QGIS 2.0.1, you will have 2.0.1.1 installed (Procesing versions are named after the QGIS version, with an extra number, to indicate the number of independent releases of the plugin after the corresponding QGIS version has been released), so you have to update it using the QGIS Plugin Manager. If your QGIS installation doesn't have a valid Processing version, you can still use the remaining funcitonality of the OpenGeo Explorer, but pre-upload hooks will not be run, and the correspoding parameters in the config dialog will not be shown. After updating you Processing plugin, a restart is needed so the OpenGeo Explorer can update itself to the new configuration.
+
 Other parameters
 -----------------
 
@@ -139,6 +138,27 @@ Other parameters
 
 - *Delete resource when deleting layer*. If this parameter is checked, the resource that is part of a layer will also be deleted from its corresponding store if the layer is deleted.
 
+Styling limitations
+*******************
+
+The OpenGeo explorer allows to edit the style of a GeoServer layer directly from the QGIS interface. It can convert a style defined in QGIS into a style to be uploaded to a GeoServer catalog, and use GeoServer styles for QGIS layers. This bidirectional conversion is, however, limited. This is mainly caused due to the different versions of the SLD standard that are supported by QGIS and GeoServer, and also to some limitations in both GeoServer and QGIS. SLD is used as the common format used by the OpenGeo Explorer for describing styles in both QGIS and GeoServer layer, but some incompatibilities exist. To increase compatibility between them, specific routines have been added to the OpenGeo explorer. However, in some cases, a style defined in QGIS might not be compatible with the elements supported by GeoServer, and publishing a layer will be done with a modified style, or even using a default one instead if that is not possible.
+
+This problem exist even when using the Suite GeoServer, but older versions of GeoServer might show more incompatibilities and not validate a large part of the SLD produced by the OpenGeo Explorer.
+
+As a rule of thumb, basic styling for vector layers should work without problems in both direction, but more complex symbology might be partially or even completely incompatible, leading to differences between in, for example, the style that you define in QGIS and the style that the GeoServer layer will have. Raster layers have a more limited support
+
+The following is a list of known limitations in SLD handling:
+
+- Raster layers
+
+	- Raster styling is supported only from QGIS to GeoServer. That means that a raster style can be created usign the QGIS UI and uploaded to GeoServer, but a raster style from a GeoServer cannot be used for a QGIS layer. When a GeoServer layer is added to the current QGIS project using the OpenGeo Explorer, it will use its symbology only if it is a vector layer, but will ignore it in the case of a raster layer and the default QGIS style will be used.
+
+	- Only *Singleband Gray* and *Singleband pseudocolor* renderers are supported. In this last case, the *Exact* color interpolation is not supported, but *Linear* and *Discrete* modes are supported.
+
+-Vector layers
+
+	- When converting from a GeoServer style to a QGIS style, the style is always defined as a *Rule-based* style. That means that, even if the style is created using another type, such as *Graduated*, when it is uploaded to a GeoServer catalog and then edited again from QGIS, it will not appear as a *Graduated* style. This is due to how QGIS handles SLD styles, always interpreting them as symbology of type *Rule-based*
+	- Basic labeling is supported, but not all labeling will be exported from QGIS to SLD and uploaded to GeoServer. In particular, advanced data-dependent labelling is not supported.
 
 
 

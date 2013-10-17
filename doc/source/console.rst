@@ -31,17 +31,17 @@ Now, run the following on the QGIS console.
 
 ::
 
-	catalog.publishLayer("pts2")
+	catalog.publish("pts1")
 
 We are passing the name of the layer in the QGIS project to identify it. The method also accept a QgsMapLayer object.
 
-This will cause the store to be created and a style of the same name to be published. A layer that uses that store and style will be created as well. As an alternative, you can use the ``create_store`` and ``publish_style`` methods if you want some more fine-grained control about the names of these elements (the method we have called uses the layer name for all the elements it creates)
+This will cause the store to be created and a style of the same name to be published. A layer that uses that store and style will be created as well. You can pass a string to the ``name`` parameter, to use a different name for the published layer.
 
 When publishing a layer this way, you do not have to worry about the layer origin. The plugin code will take care of converting your data to a suitable format to be uploaded to GeoServer. If the format is not supported by GeoServer, an intermediate Shapefile will be created, and then used to create the corresponding datastore from which the layer will then be published.
 
-If you try to publish a QGIS layer that is based on a PostGIS connection, a PostGIS datastore will be created, instead of a file--based one. That gives you an easy way of creating a PostGIS--based layer in GeoServer, since you just have to create the corresponding connection in QGIS, create a QGIs layer from one of its tables, and then pulish it with the above code. The corresponding store and feature type will be added to GeoServer, and your layer, including the style that you set for it in QGIS, will be published.
+If you try to publish a QGIS layer that is based on a PostGIS connection, a PostGIS datastore will be created, instead of a file--based one. That gives you an easy way of creating a PostGIS--based layer in GeoServer, since you just have to create the corresponding connection in QGIS, create a QGIS layer from one of its tables, and then pulish it with the above code. The corresponding store and feature type will be added to GeoServer, and your layer, including the style that you set for it in QGIS, will be published.
 
-.. note:: For now, all operation have an aggresive overwrite behaviour, so if a resource with the specified name exists in the GeoServer catalog, it will be overwritten and replaced.
+.. note:: For now, all operation have an aggresive overwrite behaviour by default, so if a resource with the specified name exists in the GeoServer catalog, it will be overwritten and replaced.
 
 You can also create layer groups in GeoServer, by creating the equivalent groups in QGIS and then telling it to upload those same groups.
 
@@ -51,7 +51,7 @@ The example project contains a group named *geology_landuse*. To create the corr
 
 	catalog.publishGroup("geology_landuse")
 
-If the layers in the group do not exist in the GeoServer catalog, they will be created automatically, creating the corresponding stores and styles as we have seen. If they already exist, they will be used and not updated. You can overwrite the existing layer by setting the ``overwrite`` parameter to True.
+If the layers in the group do not exist in the GeoServer catalog, they will be created automatically, creating the corresponding stores and styles as we have seen. If they already exist, they will be used and not updated. You can overwrite the existing layers by setting the ``overwrite`` parameter to *True*.
 
 ::
 
@@ -69,3 +69,5 @@ To add a layer named "mylayer" to the current project, enter this in the console
 That will create a layer in the current QGIS project which is connected to the GeoServer layer, and, in the case of it being a vector layer, it will download its associated style and use it to set the symbology of the created QGIS layer. Since raster layers do not support SLD styles in QGIS, they will not get styled.
 
 If the layer that is created in the QGIS project is a vector layer, it will be connected to the corresponding store in GeoServer using the WFS endpoint. If is is a raster layer, it will create a WCS layer. In all cases, no data is downloaded, but a connection is created instead.
+
+Additional functionality is available in the OGCatalog class. Check it's documentation to know more about its usage.

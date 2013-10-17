@@ -6,6 +6,27 @@ This is a quick and dirty solution until both programs support the same specific
 import re
 import os
 from PyQt4.QtXml import *
+from qgis.core import *
+
+RASTER_SLD_TEMPLATE = ('<?xml version="1.0" encoding="UTF-8"?>'
+                    '<sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.''net/gml" version="1.0.0">'
+                    '<sld:NamedLayer>'
+                    '<sld:Name>STYLE_NAME</sld:Name>'
+                    '<sld:UserStyle>'
+                    '<sld:Name>STYLE_NAME</sld:Name>'
+                    '<sld:Title/>'
+                    '<sld:FeatureTypeStyle>'
+                    #'<sld:Name>name</sld:Name>'
+                    '<sld:Rule>'
+                    #'<sld:Name>Single symbol</sld:Name>'
+                    '<RasterSymbolizer>'
+                    'SYMBOLIZER_CODE'
+                    '</RasterSymbolizer>'
+                    '</sld:Rule>'
+                    '</sld:FeatureTypeStyle>'
+                    '</sld:UserStyle>'
+                    '</sld:NamedLayer>'
+                    '</sld:StyledLayerDescriptor>')
 
 def adaptQgsToGs(sld, layer):
     sld = sld.replace("se:SvgParameter","CssParameter")
@@ -62,7 +83,6 @@ def getLabelingAsSld(layer):
     except:
         return ""
          
-
 def adaptGsToQgs(sld):
     return sld
 
@@ -73,7 +93,7 @@ def getGsCompatibleSld(layer):
     else:
         return None
 
-def getStyleAsSld(layer):        
+def getStyleAsSld(layer):      
     if layer.type() == layer.VectorLayer:  
         document = QDomDocument()
         header = document.createProcessingInstruction( "xml", "version=\"1.0\" encoding=\"UTF-8\"" )
@@ -91,21 +111,36 @@ def getStyleAsSld(layer):
         namedLayerNode = document.createElement( "NamedLayer" )
         root.appendChild( namedLayerNode )
                 
-        errorMsg = ""
-                
+        errorMsg = ""                
         layer.writeSld(namedLayerNode, document, errorMsg)    
 
         return unicode(document.toString(4))
     elif layer.type() == layer.RasterLayer: 
-        #QGIS does not support SLD for raster layers, so we have this workaround
-        sldpath = os.path.join(os.path.dirname(__file__), "..", "resources")
-        if layer.bandCount() == 1:
-            sldfile = os.path.join(sldpath, "grayscale.sld")
-        else:
-            sldfile = os.path.join(sldpath, "rgb.sld")                
-        with open(sldfile, 'r') as f:
-            sld = f.read()
-        return sld
+        renderer = layer.renderer()
+        if isinstance(renderer, QgsSingleBandGrayRenderer):
+            pass
+        elif isinstance(renderer, QgsSingleBandPseudoColorRenderer):
+            symbolizerCode = "<ColorMap>"
+            band = renderer.usesBands()[0]
+            items = renderer.shader().rasterShaderFunction().colorRampItemList()
+            print items
+            for item in items:
+                color = item.color
+                rgb = '#%02x%02x%02x' % (color.red(), color.green(), color.blue())                 
+                symbolizerCode += '<ColorMapEntry color="' + rgb + '" quantity="' + unicode(item.value) + '" />' 
+            symbolizerCode += "</ColorMap>"
+            sld =  RASTER_SLD_TEMPLATE.replace("SYMBOLIZER_CODE", symbolizerCode).replace("STYLE_NAME", layer.name())
+            return sld    
+        else:        
+            #we use some default styles in case we have an unsupported renderer
+            sldpath = os.path.join(os.path.dirname(__file__), "..", "resources")
+            if layer.bandCount() == 1:
+                sldfile = os.path.join(sldpath, "grayscale.sld")
+            else:
+                sldfile = os.path.join(sldpath, "rgb.sld")                
+            with open(sldfile, 'r') as f:
+                sld = f.read()
+            return sld
     else:
         return None
     

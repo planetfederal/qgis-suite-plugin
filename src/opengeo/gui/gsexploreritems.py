@@ -30,7 +30,7 @@ from opengeo.qgis.utils import tempFilename
 from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
 from opengeo.geoserver.util import getLayerFromStyle
-from opengeo.geoserver.geonode import login_to_geonode
+from opengeo.geoserver.geonode import Geonode
 
 class GsTreeItem(TreeItem):
     
@@ -227,7 +227,8 @@ class GsCatalogsItem(GsTreeItem):
                 while name in self._catalogs.keys():
                     name = dlg.getName() + "_" + str(i)
                     i += 1
-                geoserverItem = GsCatalogItem(cat, name)
+                geonode = Geonode(dlg.geonodeUrl)
+                geoserverItem = GsCatalogItem(cat, name, geonode)
                 geoserverItem.populate()                
                 if geoserverItem is not None:
                     self._catalogs[name] = cat
@@ -456,8 +457,9 @@ class GsStylesItem(GsTreeItem):
 
 
 class GsCatalogItem(GsTreeItem): 
-    def __init__(self, catalog, name): 
+    def __init__(self, catalog, name, geonode): 
         self.catalog = catalog
+        self.geonode = geonode
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
         GsTreeItem.__init__(self, catalog, icon, name) 
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled) 
@@ -483,6 +485,8 @@ class GsCatalogItem(GsTreeItem):
         self.wpsItem.populate()
         self.settingsItem = GsSettingsItem(self.catalog)                        
         self.addChild(self.settingsItem)
+        self.geonodesItem = GsGeonodesItem(self.geonode)                        
+        self.addChild(self.geonodesItem)
         
 
     def acceptDroppedItem(self, tree, explorer, item):
@@ -666,7 +670,7 @@ class GsLayerItem(GsTreeItem):
             addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
             addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
             actions.append(addLayerAction) 
-            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geonode.png")                       
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")                       
             publishToGeonodeAction = QtGui.QAction(icon, "Publish to GeoNode", explorer)
             publishToGeonodeAction.triggered.connect(lambda: self.publishToGeonode(tree, explorer))
             actions.append(publishToGeonodeAction)  
@@ -684,18 +688,14 @@ class GsLayerItem(GsTreeItem):
                  
             
     def publishToGeonode(self, tree, explorer):
-        username = self.element.catalog.username
-        password = self.element.catalog.password
-        geonode_url = self.element.catalog.gs_base_url.rstrip(":8080/geoserver/") + ":8000/"
-        client = login_to_geonode(geonode_url, username, password)
-        params = dict(filter = self.element.name,
-                      owner = username, 
-                      csrfmiddlewaretoken=client.cookies['csrftoken'],
-                      sessionid=client.cookies['sessionid'])
-        response = client.post(geonode_url + 'gs/updatelayers/', data=params, allow_redirects=True)
-        response.raise_for_status()
-        print response.json()
-        #TODO parse JSON and display in as a QMessage
+        #There must be a better way to access the geonode instance from here or maybe require a new method
+        geonode = self.parent().parent().geonode
+        layer = self.element.name
+        #TODO parse JSON output from publishGeoServer and display a feedback message to the user
+        explorer.run(geonode.publishGeoserverLayer,
+                     "Publishing '" + layer + "' to GeoNode",
+                     [],
+                     layer)
     
     def createGroupFromLayers(self, selected, tree, explorer):        
         name, ok = QtGui.QInputDialog.getText(None, "Group name", "Enter the name of the group to create")        
@@ -1208,9 +1208,31 @@ class GsSettingItem(GsTreeItem):
         self.setText(1, value)                                   
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                          
+    
+################# GEONODE ###################
+
+
+class GsGeonodesItem(GsTreeItem): 
+    def __init__(self, geonode):
+        self.geonode = geonode
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")
+        GsTreeItem.__init__(self, None, icon, "GeoNode")                                    
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+    def _getDescriptionHtml(self, tree, explorer):
+        description = '<p> GeoNode URL: ' + self.geonode.url + '</p><p>Right click on a GeoServer layer to publish a layer to GeoNode'
+        return description
+
+class GsGeonodeItem(GsTreeItem): 
+    def __init__(self):
+        #self.catalog = settings.catalog        
+        GsTreeItem.__init__(self, None, None, name) 
+        self.setText(1, value)                                   
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                         
             
             
-###################################################3
+###################################################
                         
 def publishDraggedGroup(explorer, groupItem, catalog, workspace):        
     groupName = groupItem.element

@@ -151,7 +151,7 @@ The following is a list of known limitations in SLD handling:
 
 - Raster layers
 
-	- Raster styling is supported only from QGIS to GeoServer. That means that a raster style can be created usign the QGIS UI and uploaded to GeoServer, but a raster style from a GeoServer cannot be used for a QGIS layer. When a GeoServer layer is added to the current QGIS project using the OpenGeo Explorer, it will use its symbology only if it is a vector layer, but will ignore it in the case of a raster layer and the default QGIS style will be used.
+	- Raster styling is supported only from QGIS to GeoServer. That means that a raster style can be created using the QGIS UI and uploaded to GeoServer, but a raster style from a GeoServer cannot be used for a QGIS layer. When a GeoServer layer is added to the current QGIS project using the OpenGeo Explorer, it will use its symbology only if it is a vector layer, but will ignore it in the case of a raster layer and the default QGIS style will be used.
 
 	- Only *Singleband Gray* and *Singleband pseudocolor* renderers are supported. In this last case, the *Exact* color interpolation is not supported, but *Linear* and *Discrete* modes are supported.
 

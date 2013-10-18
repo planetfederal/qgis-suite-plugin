@@ -162,14 +162,16 @@ The following actions are available for items in the PostGIS branch.
 		.. image:: img/actions/new_pg_connection.png
 			:align: center
 
-		At the moment, this dialog does not allow to configure all the parameters that can be set up through the built-in dialog. Also, passwords and user names are always stored in this case. If this doesn't fit your needs, please, create the new connection through the usual interface, using the :guilabel:`Add PostGIS layers` ad then creatig a new connection. After doing it, refresh the :guilabel:`PostGIS connection` entry in the OpenGeo explorer, since it will not be automatically updated.
+		At the moment, this dialog does not allow to configure all the parameters that can be set up through the built-in dialog. Also, passwords and user names are always stored in this case. If this doesn't fit your needs, please, create the new connection through the usual interface, using the :guilabel:`Add PostGIS layers` menu entry and then creating a new connection. After doing it, refresh the :guilabel:`PostGIS connections` entry in the OpenGeo explorer, since it will not be automatically updated. 
 
 
 - PostGIS connection item
 
-	- :guilabel:`New schema`. Creates a new schema.
+	- :guilabel:`Edit...`. Edits the connection parameters of this PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for the OpenGeo Explorer. As in the case of adding a new conenction, you can also edit it using the :guilabel:`Add PostGIS layers` QGIS command, but the Explorer tree will not be automatically updated. Refreshing the connection or the :guilabel:`PostGIS connections` item is needed to update the tree.
 
-	- :guilabel:`Import files`. Import a set of files with data into the selected schema. The following window is shown.
+	- :guilabel:`New schema`. Creates a new schema. You will be prompted to enter the name for the new schema in an input box.
+
+	- :guilabel:`Import files`. Imports a set of files with data into the selected schema. The following window is shown.
 
 		 .. image:: img/actions/import_postgis.png
 		 	:align: center
@@ -180,7 +182,11 @@ The following actions are available for items in the PostGIS branch.
 
 		 When two or more files are selected, the :guilabel:`Add to table` box will automatically be checked in case a table name option other than :guilabel:`[use file name]` is selected. In this case, it makes no sense to overwrite the destination table, since all imported files are going to be imported into the same table, and that will cause each one to overwrite the previous ones, leaving in the final table just the content of the last file.
 
-	- :guilabel:`Run SQL...`. Run a SQL sentence on the database. Calling this method will show the DB-manager SQL dialog, where the query can be written or a saved one can be open.
+		 When ussing the :guilabel:`Add to table` option, all imported layers should have a feature type compatible with that of table to which they are going to be added. However, the Explorer doesn't perform any checking itself. If feature types are not compatible, PostGIS will refuse to add the layer and raise an error.
+
+		 This command supports only vector layers. Importing raster layers is currently not supported in the plugin, even if the PostGIS database you are connected to has support for raster data.
+
+	- :guilabel:`Run SQL...`. Runs a SQL sentence on the database. Calling this method will show the DB-manager SQL dialog, where the query can be written or a saved one can be open.
 
 		.. image:: img/actions/sql_dialog.png
 	 		:align: center
@@ -283,7 +289,7 @@ The explorer tree supports drag & drop, and you can use it to relocate elements,
 
 Below you can find more information about the operations that can be performed this way.
 
-- Dragging a QGIS layer item onto a GeoServer item element. It will publish the layer on the workspace where the item was dropped, or on the parent workspace if the destination element is of type Resource/Store. Otherwise, it will publish to the default workspace
+- Dragging a QGIS layer item onto a GeoServer item element. It will publish the layer on the workspace where the item was dropped, or on the parent workspace if the destination element is of type Resource/Store. Otherwise, it will publish to the default workspace.
 - Dragging a GeoServer layer item onto a GeoServer group element. It adds the layer to the group, using its default style.
 - Dragging a GeoServer or QGIS style item onto a GeoServer layer. It adds the style to the list of alternative styles of the layer.
 - Dragging a QGIS style into the :guilabel:`Styles` element of a catalog or a catalog item itself. It adds the style to that catalog.
@@ -291,15 +297,18 @@ Below you can find more information about the operations that can be performed t
 - Dragging a QGIS group element into the :guilabel:`Groups`, :guilabel:`Workspaces`, :guilabel:`Layers` of a catalog, or the catalog item itself. The group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to the default workspace. If dropped on a workspace item, that workspace will be used as destination.
 - Dragging a GeoServer layer item onto the :guilabel:`GeoWebCache layers` item of the same catalog. It will add the corresponding cached layer for the dragged layer.
 - Dragging a QGIS layer into a PostGIS connection or schema item. It will import the layer into the corresponding PostGIS database. The import dialog is shown before importing.
+- Dragging a QGIS layer into a PostGIS table item. It will append the dragged layer to the existing table, not overwriting it. No checking is performed, so the schema of the imported layer should match the schema of the table. Otherwise, PostGIS will throw an error.
 - Draggin a PostGIS table item into a GeoServer catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of dropping onto a catalog item
 
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 
-You can also drag elements from elements outside of the explorer itself. For instance, you can open the QGIS browser, select some files with vector data and drag and drop them into a PostGIS database or Geoserver catalog element in the explorer. That will cause the data in those files to be imported into the corresponding database or catalog. Format conversion will be performed automatically if needed.
+You can also drag elements from outside of the OpenGeo Explorer itself. For instance, you can open the QGIS browser, select some files with raster or vector data and drag and drop them into a PostGIS database or Geoserver catalog element in the explorer. That will cause the data in those files to be imported into the corresponding database or catalog. Format conversion will be performed automatically if needed.
 
 .. image:: img/actions/dragdrop_external.png
 	:align: center
+
+If the dragged files are not opened in the current QGIS project, no style will be uploaded along with them when publishing to a GeoServer catalog.
 
 In general, any operation that can be performed dragging a QGIS layer item within the Explorer tree can also be performed dragging an element in the QGIS browser that represents a layer.
 

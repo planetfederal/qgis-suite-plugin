@@ -69,14 +69,40 @@ class DefineCatalogDialog(QtGui.QDialog):
         verticalLayout.addLayout(horizontalLayout)
         
         self.groupBox = QtGui.QGroupBox()
-        self.groupBox.setTitle("Connection parameters")
+        self.groupBox.setTitle("GeoServer Connection parameters")
         self.groupBox.setLayout(verticalLayout)
-        
+
         layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.groupBox)   
+        layout.addWidget(self.groupBox)  
         self.spacer = QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
-                       
+        
+        verticalLayout2 = QtGui.QVBoxLayout()
+        horizontalLayout = QtGui.QHBoxLayout()
+        horizontalLayout.setSpacing(30)
+        horizontalLayout.setMargin(0)        
+        urlLabel = QtGui.QLabel('URL')
+        urlLabel.setMinimumWidth(150)
+        self.urlGeonodeBox = QtGui.QLineEdit()
+        settings = QtCore.QSettings()
+        if settings.contains('/OpenGeo/GeonodeUrl'):
+            geonodeUrl = settings.value('/OpenGeo/GeonodeUrl')
+        else:
+            geonodeUrl = 'http://localhost:8000/'                
+        self.urlGeonodeBox.setText(geonodeUrl)
+        self.urlGeonodeBox.setMinimumWidth(250)
+        horizontalLayout.addWidget(urlLabel)
+        horizontalLayout.addWidget(self.urlGeonodeBox)
+        verticalLayout2.addLayout(horizontalLayout)
+
+        self.geonodeBox = QtGui.QGroupBox()
+        self.geonodeBox.setTitle("GeoNode Connection parameters (Optional)")
+        self.geonodeBox.setLayout(verticalLayout2)
+
+        layout.addWidget(self.geonodeBox)  
+        self.spacer = QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        layout.addItem(self.spacer)
+
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
@@ -91,8 +117,10 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.username = unicode(self.usernameBox.text())
         self.password = unicode(self.passwordBox.text())
         self.name = unicode(self.nameBox.text())
+        self.geonodeUrl = unicode(self.urlGeonodeBox.text())
         settings = QtCore.QSettings()
-        settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text()) 
+        settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text())
+        settings.setValue('/OpenGeo/LastGeoNodeUrl', self.urlGeonodeBox.text()) 
         self.ok = True       
         self.close()
 

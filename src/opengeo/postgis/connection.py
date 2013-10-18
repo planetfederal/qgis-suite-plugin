@@ -66,6 +66,8 @@ class PgConnection(object):
             if ret != 0:
                 raise Exception(errMsg) 
         else:
+            if isinstance(source, QgsMapLayer):
+                source = source.source()
             args = ["shp2pgsql", "-a", source, schema + "." + tablename]
             if os.name == 'nt':                
                 cmdline = subprocess.list2cmdline(args)
@@ -74,17 +76,17 @@ class PgConnection(object):
                 p = os.popen3(cmdline)
                 data = p[1].read()
                 
-                cursor = self.db.con.cursor()
+                cursor = self.geodb.con.cursor()
                 newcommand = re.compile(";$", re.MULTILINE)
         
                 # split the commands
                 cmds = newcommand.split(data)
                 for cmd in cmds[:-1]:
                     # run SQL commands within current DB connection
-                    self.db._exec_sql(cursor, cmd)
+                    self.geodb._exec_sql(cursor, cmd)
                 data = cmds[-1]
                 
-                self.db.con.commit()
+                self.geodb.con.commit()
         
                 if data is None or len(data) == 0:
                     raise Exception(p[2].readlines().join("\n"))
@@ -94,7 +96,7 @@ class PgConnection(object):
                         
                 # read the output while the process is running
                 data = ''
-                cursor = self.db.con.cursor()
+                cursor = self.geodb.con.cursor()
                 newcommand = re.compile(";$", re.MULTILINE)
                 while p.poll() == None:
                     data += p.stdout.read()
@@ -103,7 +105,7 @@ class PgConnection(object):
                     cmds = newcommand.split(data)
                     for cmd in cmds[:-1]:
                         # run SQL commands within current DB connection
-                        self.db._exec_sql(cursor, cmd)
+                        self.geodb._exec_sql(cursor, cmd)
                     data = cmds[-1]
                     
                 # commit!

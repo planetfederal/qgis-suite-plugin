@@ -86,7 +86,8 @@ class TreeItem(QtGui.QTreeWidgetItem):
         return []
         
     def acceptDroppedItems(self, tree, explorer, items):
-        explorer.setProgressMaximum(len(items))
+        if len(items) > 1:
+            explorer.setProgressMaximum(len(items))
         toUpdate = []
         try:
             for i, item in enumerate(items):                

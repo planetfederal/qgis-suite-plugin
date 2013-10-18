@@ -599,7 +599,7 @@ class GeoDB:
         else:
             self._exec_sql_and_commit(sql)
 
-    def _exec_sql(self, cursor, sql):        
+    def _exec_sql(self, cursor, sql):             
         try:
             cursor.execute(sql)
         except psycopg2.Error, e:

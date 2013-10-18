@@ -1297,8 +1297,9 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
              layer)  
 
 def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
-    if uris:        
-        explorer.setProgressMaximum(len(uris))                                     
+    if uris:      
+        if len(uris) > 1:  
+            explorer.setProgressMaximum(len(uris))                                     
         for i, uri in enumerate(uris):  
             if isinstance(uri, basestring):            
                 layerName = QtCore.QFileInfo(uri).completeBaseName()

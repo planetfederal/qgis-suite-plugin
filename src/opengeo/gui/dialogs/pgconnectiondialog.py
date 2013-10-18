@@ -5,13 +5,13 @@ from opengeo.postgis.connection import PgConnection
 
 class NewPgConnectionDialog(QDialog):
     
-    def __init__(self, parent = None):
-        QDialog.__init__(self, parent)    
+    def __init__(self, parent = None, conn = None):
+        QDialog.__init__(self, parent)           
+        self._conn = conn
         self.conn = None              
         self.setupUi()
 
-    def setupUi(self):
-        #self.resize(400, 200)        
+    def setupUi(self):             
         self.setWindowTitle('Create new PostGIS connection')
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -113,6 +113,16 @@ class NewPgConnectionDialog(QDialog):
 
         self.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+        
+        if self._conn is not None:
+            self.nameBox.setText(self._conn.name)
+            self.hostBox.setText(str(self._conn.host))
+            self.portBox.setText(str(self._conn.port))
+            self.databaseBox.setText(self._conn.database)
+            if self._conn.isValid:
+                self.passwordBox.setText(self._conn.geodb.passwd)
+                self.usernameBox.setText(self._conn.geodb.user)
+            
     
     
     def accept(self):           
@@ -146,6 +156,13 @@ class NewPgConnectionDialog(QDialog):
         settings.setValue("LastDatabase", self.databaseBox.text() );
         settings.setValue("LastUserName", self.usernameBox.text());
         settings.endGroup()
+        
+        #delete the previous conenction if it has been renamed
+        if self._conn is not None and self.conn.name == self._conn.name: 
+            settings.beginGroup("/PostgreSQL/connections/" + self._conn.name) 
+            settings.remove(""); 
+            settings.endGroup();
+        
         QDialog.accept(self)        
         
     def reject(self):

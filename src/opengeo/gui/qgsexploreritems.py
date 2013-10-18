@@ -41,7 +41,7 @@ class QgsProjectItem(QgsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
         stylesItem = QgsTreeItem(None, icon, "QGIS Styles")               
         stylesItem.setIcon(0, icon)
-        styles = qgislayers.getVectorLayers()
+        styles = qgislayers.getAllLayers()
         for style in styles:
             styleItem = QgsStyleItem(style)            
             stylesItem.addChild(styleItem)

@@ -157,8 +157,8 @@ class NewPgConnectionDialog(QDialog):
         settings.setValue("LastUserName", self.usernameBox.text());
         settings.endGroup()
         
-        #delete the previous conenction if it has been renamed
-        if self._conn is not None and self.conn.name == self._conn.name: 
+        #delete the previous connection if it has been renamed
+        if self._conn is not None and self.conn.name != self._conn.name: 
             settings.beginGroup("/PostgreSQL/connections/" + self._conn.name) 
             settings.remove(""); 
             settings.endGroup();

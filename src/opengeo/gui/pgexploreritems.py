@@ -101,7 +101,10 @@ class PgConnectionItem(PgTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
         editAction = QtGui.QAction(icon, "Edit...", explorer)
         editAction.triggered.connect(lambda: self.editConnection(explorer))
-        actions = [editAction]
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
+        deleteAction = QtGui.QAction(icon, "Remove...", explorer)
+        deleteAction.triggered.connect(lambda: self.deleteConnection(explorer))
+        actions = [editAction, deleteAction]
         if self.element.isValid:            
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
             newSchemaAction = QtGui.QAction(icon, "New schema...", explorer)
@@ -109,7 +112,7 @@ class PgConnectionItem(PgTreeItem):
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/sql_window.png")  
             sqlAction = QtGui.QAction(icon, "Run SQL...", explorer)
             sqlAction.triggered.connect(self.runSql)     
-            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import.png") 
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis_import.png") 
             importAction = QtGui.QAction(icon, "Import files...", explorer)
             importAction.setEnabled(self.childCount() != 0)
             importAction.triggered.connect(lambda: self.importIntoDatabase(explorer))                                        
@@ -183,7 +186,14 @@ class PgConnectionItem(PgTreeItem):
         
         return toUpdate          
         
-      
+    def deleteConnection(self, explorer):
+        settings = QtCore.QSettings()
+        settings.beginGroup("/PostgreSQL/connections/" + self.element.name) 
+        settings.remove(""); 
+        settings.endGroup();
+        self.parent().refreshContent(explorer)
+        explorer.setToolbarActions([])
+        
     def importIntoDatabase(self, explorer):           
         dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element)
         dlg.exec_()
@@ -213,15 +223,7 @@ class PgConnectionItem(PgTreeItem):
         dlg = NewPgConnectionDialog(explorer, self.element)
         dlg.exec_()
         if dlg.conn is not None:
-            self.databases.remove(self.element)
-            self.databases.append(dlg.conn) 
-            self.element = dlg.conn
-            if dlg.conn.isValid:                              
-                self.refreshContent(explorer)                
-            else:                    
-                wrongConnectionIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/wrong.gif")                 
-                self.setIcon(0, wrongConnectionIcon)                            
-            
+            self.parent().refreshContent(explorer) 
         
                     
 class PgSchemaItem(PgTreeItem): 

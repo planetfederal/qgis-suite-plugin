@@ -19,7 +19,7 @@ GeoServer catalogs are defined using the :guilabel:`New catalog...` option in th
 .. image:: img/intro/add_catalog.png
 	:align: center
 
-The list of catalogs is empty by default when you start the OpenGeo Explorer. See the gs_connections_ section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.
+The list of catalogs is empty by default when you start the OpenGeo Explorer. See the :ref:`gs_connections` section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.
 
 - GeoServer Catalog item.
 
@@ -47,7 +47,7 @@ The list of catalogs is empty by default when you start the OpenGeo Explorer. Se
 
 	- :guilabel:`Add layer to QGIS project`. Similar to the :guilabel:`Add to QGIS project` command for feature types or coverages, but it also uses the style information in the case of vector layers. Style is downloaded as an SLD file and configured for the corresponding QGIS layer. In the case of raster layers, there is no support for SLD styles, and for this reason the layer will use a default style.
 
-	- :guilabel:`Delete` Deletes the layer from the catalog. The associated style will be deleted if it is not used by any other layer and the corresponding configuration parameter is set. Another configuration parameter can be set to automatically delete the underlying data store when a layer is deleted. See the configuration_ section to know more about how to set those parameters.
+	- :guilabel:`Delete` Deletes the layer from the catalog. The associated style will be deleted if it is not used by any other layer and the corresponding configuration parameter is set. Another configuration parameter can be set to automatically delete the underlying data store when a layer is deleted. See the :ref:`configuration` section to know more about how to set those parameters.
 
 	- :guilabel:`Add style to layer`. Adds a new style to the layer from the list of available ones in the catalog. The style is selected from the dialog shown below
 
@@ -251,7 +251,7 @@ QGIS project
 
 	- :guilabel:`Publish`. Publishes the selected group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGIS layers will not be used. Otherwise, layers belonging to the QGIS group to publish will be published as well.
 
-	The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created.
+		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created.
 
 - QGIS style item
 

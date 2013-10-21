@@ -43,7 +43,7 @@ The main element of the explorer is the explorer tree. It has the following main
 - PostGIS connections
 - QGIS project
 
-A :guilabel:`GeoWebCache` branch is found under the :guilabel:`Geoserver catalogs* branch, since GeoWebCache is integrated into GeoServer.
+A :guilabel:`GeoWebCache` branch is found under the :guilabel:`Geoserver catalogs` branch, since GeoWebCache is integrated into GeoServer.
 
 The :guilabel:`GeoServer catalogs` branch contains the catalogs that you are connected to, and with which you can interact from the explorer. It is empty when you start the explorer, and you can add as many connections as you want to it.
 
@@ -95,6 +95,8 @@ To check the stack trace yourself, click on the :guilabel:`View more` button.
 If no button is pushed, the message bar will remain visible for 15 seconds. You can close it using the close icon on its right--hand side.
 
 
+.. _configuration:
+
 Configuration
 **************
 
@@ -120,10 +122,21 @@ In case they exist, subcategories (such as layers, workspaces, etc., in the case
 
 When you change the type of UI by changing the corresponding value in the configuration dialog, the Explorer interface is not automatically changed. Restarting QGIS is needed for the change to take effect.
 
-Keeping a list of previous GeoServer connection
+.. _gs_connections:
+
+Keeping a list of previous GeoServer connections
 ------------------------------------------------
 
-If you enable this option, whenever you connect to a catalog 
+If you enable this option, whenever you connect to a catalog, the information that defines that connections is kept between sessions. Next time that you start QGIS and the OpenGeo Explorer, you will see the catalogs item populated with all the previous connections, as shown in the next picture.
+
+.. image:: img/intro/gray_catalog.png
+	:align: center
+
+Retrieving information from each connection might take a long time and cause QGIS to take too long to start up. For this reason, catalog data is fetch on request and not automatically when starting the OpenGeo Explorer. You should refresh the catalog item to populate it. Unpopulated catalogs are shown with a gray icon.
+
+All information needed to connect to the catalog is kept, including password and user name, which are stored in plain text. If you do not want this, you should not enable this option, since there is currently no way of storing connection parameters in a more secure manner.
+
+Disabling this option does not delete the conenction parameters currently stored. It will just not populate the catalogs list with previous items and will not save the new ones you connect to. To delete an catalogs from the list of previous connections, use the :guilabel:`Remove` option of the catalog item in the Explorer tree.
 
 Using the GeoServer importer API
 --------------------------------
@@ -169,7 +182,7 @@ The following is a list of known limitations in SLD handling:
 
 	- Only *Singleband Gray* and *Singleband pseudocolor* renderers are supported. In this last case, the *Exact* color interpolation is not supported, but *Linear* and *Discrete* modes are supported.
 
--Vector layers
+- Vector layers
 
 	- When converting from a GeoServer style to a QGIS style, the style is always defined as a *Rule-based* style. That means that, even if the style is created using another type, such as *Graduated*, when it is uploaded to a GeoServer catalog and then edited again from QGIS, it will not appear as a *Graduated* style. This is due to how QGIS handles SLD styles, always interpreting them as symbology of type *Rule-based*
 	- Basic labeling is supported, but not all labeling will be exported from QGIS to SLD and uploaded to GeoServer. In particular, advanced data-dependent labelling is not supported.

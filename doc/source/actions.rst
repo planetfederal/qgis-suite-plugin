@@ -14,15 +14,24 @@ Below you can find more detailed information about commands available depending 
 GeoServer
 ----------
 
+GeoServer catalogs are defined using the :guilabel:`New catalog...` option in the :guilabel:`GeoServer catalogs` item. A catalog is defined using the following dialog:
+
+.. image:: img/intro/add_catalog.png
+	:align: center
+
+The list of catalogs is empty by default when you start the OpenGeo Explorer. See the gs_connections_ section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.
+
 - GeoServer Catalog item.
 
 	- :guilabel:`Clean (remove unused elements)`. Cleans all styles in the catalog that are not used by any layer, and all stores that are not published through any layer.
+
+	- :guilabel:`Remove`. Removes the catalog from the list of connected ones. This also removes it from the list that is kept between sessions, so it will not appear the next time that QGIS is started and the OpenGeo Explorer is run.
 
 - GeoServer Feature type/Coverage item.
 
 	- :guilabel:`Add to QGIS project`: Creates a new layer based on the resource. It will create a layer in the current QGIS project which is connected to the GeoServer layer, and will set it with the default QGIS rendering style for the corresponding data type.
 
-		If the layer that is created in the QGIS project is a vector layer, it will be connected to the GeoServer resource using the WFS endpoint. If is is a raster layer it will be a WCS layer. In all cases, no data is downloaded, but a connection is created instead. 
+		If the layer that is created in the QGIS project is a vector layer, it will be connected to the GeoServer resource using the WFS endpoint. If it is a raster layer it will be a WCS layer. In all cases, no data is downloaded, but a connection is created instead. 
 
 - GeoServer workspace item.
 
@@ -38,15 +47,19 @@ GeoServer
 
 	- :guilabel:`Add layer to QGIS project`. Similar to the :guilabel:`Add to QGIS project` command for feature types or coverages, but it also uses the style information in the case of vector layers. Style is downloaded as an SLD file and configured for the corresponding QGIS layer. In the case of raster layers, there is no support for SLD styles, and for this reason the layer will use a default style.
 
+	- :guilabel:`Delete` Deletes the layer from the catalog. The associated style will be deleted if it is not used by any other layer and the corresponding configuration parameter is set. Another configuration parameter can be set to automatically delete the underlying data store when a layer is deleted. See the configuration_ section to know more about how to set those parameters.
+
 	- :guilabel:`Add style to layer`. Adds a new style to the layer from the list of available ones in the catalog. The style is selected from the dialog shown below
 
 		.. image:: img/actions/add_style.png
 			:align: center
 
-	If the layer is under a layer group item, the available commands can be used to re--order layers in the group or remove them.
+		If the layer is under a layer group item, the available commands can be used to re--order layers in the group or remove them.
 
-	.. image:: img/actions/order_in_group.png
-		:align: center
+			.. image:: img/actions/order_in_group.png
+				:align: center
+
+	- :guilabel:`Publish to GeoNode`. Publishes the layer to the associated GeoNode connection that should have been defined when connecting to the catalog.
 
 - GeoServer layer group item.
 
@@ -80,13 +93,10 @@ GeoServer
 
 	- :guilabel:`Edit SLD...` option. By clicking on it you can directly edit the content of the corresponding SLD, using a dialog with an XML editor, such as the one shown below.
 
-		.. image:: editsld.png
+		.. image:: img/actions/editsld.png
 			:align: center
 
 		Clicking on :guilabel:`OK` will update the corresponding SLD body in the catalog, with the current text of the editor. No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it. The corresponding error message returned by GeoServer will be shown in the QGIS message bar.
-
-		.. image:: sld_error.png
-			:align: center
 
 	If the style is under a layer item, the following additional options are available.
 

@@ -147,8 +147,6 @@ A new coverage store will be created in the catalog, and the corresponding layer
 
 Styling is also uploaded and set as the default style in the published layer. You can publish the layer dragging and dropping the corresponding file from the QGIS browser, but in that case a default style will be used. Single-band layers will use a black-to-white color ramp, and all other layers are assumed to be 3-band color images and use a RGB style.
 
-Unlike in the case of vector layers, no conversion is performed, and only Tiff files are supported.
-
 Caching
 -------
 

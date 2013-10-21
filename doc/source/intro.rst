@@ -63,7 +63,7 @@ The description panel shows information about the currently selected element, bu
 
 Use the hyperlinks to perform the corresponding actions based on the current element.
 
-The description tab can also show tables where parameters can be edited. The one shown below corresponds to the :guilabel:`Settings` element of a GeoServer catalog.
+The description panel can also show tables where parameters can be edited. The one shown below corresponds to the :guilabel:`Settings` element of a GeoServer catalog.
 
 .. image:: img/intro/description_table.png
 	:align: center
@@ -72,6 +72,13 @@ The description tab can also show tables where parameters can be edited. The one
 Most of the functionality of the explorer is accessed through context menus, right--clicking on the elements that you will find in the branches described above. Also, when you select an element in the tree, buttons in the toolbar in the upper part of the explorer window are updated to show the available actions for that element. These actions correspond to the ones shown in the context menu when you right--click on the element, so you have different ways of accesing the same funcionality. As it was explained before, the *Description* panel is also interactive.
 
 To start working with the explorer and know more about how to use it, check the :ref:`quickstart` page. For a more complete reference, a detailed description of all the available actions for each kind of element in the Explorer tree is available at the :ref:`actions` section.
+
+GeoServer and PostGIS synchronization
+***************************************
+
+Except for the :guilabel:`QGIS Project` item, all remaining items (PostGIS and GeoServer ones) are not automatically updated when the element they represent changes. A change in a PostGIS database performed outside of the plugin, or a change in the catalog performed using, for instance, the GeoServer Web interface, they will not trigger an update in the OpenGeo Explorer tree. 
+
+All items have a :guilabel:`Refresh` option. Use it to update the content of a given entry in the tree and keep it synchronized with the corresponding catalog or database.
 
 Reporting errors
 *****************
@@ -113,8 +120,15 @@ In case they exist, subcategories (such as layers, workspaces, etc., in the case
 
 When you change the type of UI by changing the corresponding value in the configuration dialog, the Explorer interface is not automatically changed. Restarting QGIS is needed for the change to take effect.
 
+Keeping a list of previous GeoServer connection
+------------------------------------------------
+
+If you enable this option, whenever you connect to a catalog 
+
 Using the GeoServer importer API
 --------------------------------
+
+.. note: The importer API is currently disabled in the OpenGeo Explorer, and changing the value of the parameter will have no effect at all. All uploads are done using the REST API.
 
 By default, layers are uploaded to a GeoServer catalog using the GeoServer REST API. As an alternative, the importer API can be used to provide a better and more responsive upload, specially in the case of large uploads with multiple layers or when large layers are being uploaded.
 

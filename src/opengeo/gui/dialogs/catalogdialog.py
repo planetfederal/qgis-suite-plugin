@@ -32,11 +32,8 @@ class DefineCatalogDialog(QtGui.QDialog):
         urlLabel = QtGui.QLabel('URL')
         urlLabel.setMinimumWidth(150)
         self.urlBox = QtGui.QLineEdit()
-        settings = QtCore.QSettings()
-        if settings.contains('/OpenGeo/LastCatalogUrl'):
-            url = settings.value('/OpenGeo/LastCatalogUrl')
-        else:
-            url = 'http://localhost:8080/geoserver'                
+        settings = QtCore.QSettings()        
+        url = settings.value('/OpenGeo/LastCatalogUrl', 'http://localhost:8080/geoserver')                
         self.urlBox.setText(url)
         self.urlBox.setMinimumWidth(250)
         horizontalLayout.addWidget(urlLabel)
@@ -93,6 +90,13 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.name = unicode(self.nameBox.text())
         settings = QtCore.QSettings()
         settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text()) 
+        saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", True, bool))
+        if saveCatalogs:  
+            settings.beginGroup("/OpenGeo/GeoServer/" + self.name)                                                                
+            settings.setValue("url", self.url);                
+            settings.setValue("username", self.username);
+            settings.setValue("password", self.password);        
+            settings.endGroup()
         self.ok = True       
         self.close()
 

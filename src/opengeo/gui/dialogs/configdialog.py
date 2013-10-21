@@ -70,7 +70,8 @@ class ConfigDialog(QDialog):
         generalItem = self._getItem("General", icon, generalParams)        
         self.tree.addTopLevelItem(generalItem)
                         
-        gsParams = [("UseRestApi", "Always use REST API for uploads", True),                    
+        gsParams = [("SaveCatalogs", "Keep a list of previous catalog connections", False),
+                    ("UseRestApi", "Always use REST API for uploads", True),                    
                     ("DeleteStyle", "Delete style when deleting layer", True),
                     ("Recurse", "Delete resource when deleting layer", True)]
         try:

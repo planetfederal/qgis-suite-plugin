@@ -195,7 +195,22 @@ class GsCatalogsItem(GsTreeItem):
     def __init__(self): 
         self._catalogs = {}
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")        
-        GsTreeItem.__init__(self, None, icon, "GeoServer catalogs")        
+        GsTreeItem.__init__(self, None, icon, "GeoServer catalogs") 
+        settings = QSettings()
+        saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", False, bool))  
+        if saveCatalogs:
+            settings.beginGroup("/OpenGeo/GeoServer")
+            for name in settings.childGroups():
+                settings.beginGroup(name)
+                url = unicode(settings.value("url"))                
+                password = unicode(settings.value("password"))
+                username = unicode(settings.value("username"))                
+                cat = Catalog(url, username, password)
+                geoserverItem = GsCatalogItem(cat, name)                
+                self.addChild(geoserverItem)
+                settings.endGroup()
+            settings.endGroup()
+           
 
     def contextMenuActions(self, tree, explorer):  
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")      
@@ -224,7 +239,7 @@ class GsCatalogsItem(GsTreeItem):
                 name = dlg.name
                 i = 2
                 while name in self._catalogs.keys():
-                    name = dlg.getName() + "_" + str(i)
+                    name = dlg.name + "_" + str(i)
                     i += 1
                 geoserverItem = GsCatalogItem(cat, name)
                 geoserverItem.populate()                
@@ -388,7 +403,7 @@ class GsWorkspacesItem(GsTreeItem):
         return [createWorkspaceAction]
     
     def createWorkspace(self, explorer):
-        dlg = DefineWorkspaceDialog() 
+        dlg = DefineWorkspaceDialog()
         dlg.exec_()            
         if dlg.name is not None:
             explorer.run(self.parentCatalog().create_workspace, 
@@ -457,10 +472,13 @@ class GsStylesItem(GsTreeItem):
 class GsCatalogItem(GsTreeItem): 
     def __init__(self, catalog, name): 
         self.catalog = catalog
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver_gray.png")
         GsTreeItem.__init__(self, catalog, icon, name) 
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled) 
         
+    def isConnected(self):
+        return self.childCount() > 0
+    
     def populate(self):        
         self.workspacesItem = GsWorkspacesItem(self.catalog)                              
         self.addChild(self.workspacesItem)  
@@ -482,9 +500,12 @@ class GsCatalogItem(GsTreeItem):
         self.wpsItem.populate()
         self.settingsItem = GsSettingsItem(self.catalog)                        
         self.addChild(self.settingsItem)
-        
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
+        self.setIcon(0, icon)                     
 
     def acceptDroppedItem(self, tree, explorer, item):
+        if not self.isConnected():
+            return []
         if isinstance(item, QgsStyleItem):                    
             publishDraggedStyle(item.element.name(), self) 
             return [self]   
@@ -506,29 +527,52 @@ class GsCatalogItem(GsTreeItem):
         else:
             return []       
         
-    def contextMenuActions(self, tree, explorer):  
+    def contextMenuActions(self, tree, explorer):          
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")      
         removeCatalogAction = QtGui.QAction(icon, "Remove", explorer)
         removeCatalogAction.triggered.connect(lambda: self.removeCatalog(explorer))
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
-        cleanAction = QtGui.QAction(icon, "Clean (remove unused elements)", explorer)
-        cleanAction.triggered.connect(lambda: self.cleanCatalog(explorer))
-        return[removeCatalogAction, cleanAction] 
+        actions = [removeCatalogAction]            
+        if self.isConnected():
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
+            cleanAction = QtGui.QAction(icon, "Clean (remove unused elements)", explorer)
+            cleanAction.triggered.connect(lambda: self.cleanCatalog(explorer))
+            actions.append(cleanAction)
+        
+        return actions 
         
     def cleanCatalog(self, explorer):
         ogcat = OGCatalog(self.catalog)        
         explorer.run(ogcat.clean, "Clean (remove unused element)", [self.workspacesItem, self.stylesItem])
         
     def removeCatalog(self, explorer):
-        del explorer.catalogs()[self.text(0)]
-        parent = self.parent()        
-        parent.takeChild(parent.indexOfChild(self))  
-        explorer.setDescriptionWidget(QtGui.QWidget()) 
+        name = self.text(0)
+        if name in explorer.catalogs():
+            del explorer.catalogs()[name]
+        settings = QSettings()
+        settings.beginGroup("/OpenGeo/GeoServer/" + name) 
+        settings.remove(""); 
+        settings.endGroup();            
+        self.parent().takeChild(self.parent().indexOfChild(self))  
+        explorer.setDescriptionWidget(QtGui.QWidget())
+        explorer.setToolbarActions([])
+         
         
     def _getDescriptionHtml(self, tree, explorer):                        
-        return self.catalog.about()
+        if self.isConnected():            
+            return self.catalog.about()
+        else:
+            html = ('<p>You are not connected to this catalog.' 
+                    '<a href="refresh">Refresh</a> to connect to it and populate the catalog item</p>')     
+            return html 
+            
+    def linkClicked(self, tree, explorer, url):
+        if not self.isConnected():            
+            explorer.run(self.populate, "Populate GeoServer item", []) 
+            explorer.catalogs()[self.text(0)] = self.catalog         
     
-    def acceptDroppedUris(self, tree, explorer, uris):  
+    def acceptDroppedUris(self, tree, explorer, uris): 
+        if not self.isConnected():
+            return []
         return addDraggedUrisToWorkspace(uris, self.element, self.getDefaultWorkspace(), explorer, tree)                    
            
                                 

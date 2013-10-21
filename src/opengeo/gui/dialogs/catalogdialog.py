@@ -80,12 +80,8 @@ class DefineCatalogDialog(QtGui.QDialog):
         horizontalLayout.setMargin(0)        
         urlLabel = QtGui.QLabel('URL')
         urlLabel.setMinimumWidth(150)
-        self.urlGeonodeBox = QtGui.QLineEdit()
-        settings = QtCore.QSettings()
-        if settings.contains('/OpenGeo/GeonodeUrl'):
-            geonodeUrl = settings.value('/OpenGeo/GeonodeUrl')
-        else:
-            geonodeUrl = 'http://localhost:8000/'                
+        self.urlGeonodeBox = QtGui.QLineEdit()        
+        geonodeUrl = settings.value('/OpenGeo/LastGeonodeUrl', 'http://localhost:8000/')                
         self.urlGeonodeBox.setText(geonodeUrl)
         self.urlGeonodeBox.setMinimumWidth(250)
         horizontalLayout.addWidget(urlLabel)
@@ -123,7 +119,8 @@ class DefineCatalogDialog(QtGui.QDialog):
             settings.beginGroup("/OpenGeo/GeoServer/" + self.name)                                                                
             settings.setValue("url", self.url);                
             settings.setValue("username", self.username);
-            settings.setValue("password", self.password);        
+            settings.setValue("password", self.password);
+            settings.setValue("geonode", self.geonodeUrl);        
             settings.endGroup()
         self.ok = True       
         self.close()

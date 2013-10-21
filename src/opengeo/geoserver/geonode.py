@@ -29,14 +29,13 @@ class Geonode(object):
         # Return a handle to the client object, it is needed for future requests
         return client
 
-    def publishGeoserverLayer(self,filter):
+    def publishGeoserverLayer(self, filter):
         client = self.login()
         params = dict(filter = filter,
                       owner = self.username, 
                       csrfmiddlewaretoken=client.cookies['csrftoken'],
                       sessionid=client.cookies['sessionid'])
         response = client.post(self.url + 'gs/updatelayers/', data=params, allow_redirects=True)
-        response.raise_for_status()
-        print response.json()
+        response.raise_for_status()        
         #TODO parse JSON and display in as a QMessage
 

@@ -125,9 +125,8 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 self.refreshContent()                        
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
-        except Exception, e:         
-            print traceback.format_exc() 
-            self.setInfo(unicode(e.message).encode("utf-8") + "\n" + traceback.format_exc(), ERROR)
+        except Exception, e:                                
+            self.setInfo(unicode(e.message, errors = "ignore").encode("utf-8") + "\n" + traceback.format_exc(), ERROR)
             noerror = False
         finally:
             QtGui.QApplication.restoreOverrideCursor()

@@ -2,7 +2,6 @@ import os
 from PyQt4.QtCore import *
 from qgis.core import *
 from qgis.gui import *
-from opengeo.gui.explorerthread import ExplorerThread
 from opengeo.gui.exploreritems import *
 from opengeo.gui.explorerwidget import ExplorerWidget
 from opengeo import config

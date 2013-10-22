@@ -477,17 +477,16 @@ class GsCatalogItem(GsTreeItem):
     def __init__(self, catalog, name, geonode): 
         self.catalog = catalog
         self.geonode = geonode
+        self.isConnected = False
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver_gray.png")
         GsTreeItem.__init__(self, catalog, icon, name) 
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled) 
-        
-    def isConnected(self):
-        return self.childCount() > 0
-    
-    def populate(self):        
-        self.workspacesItem = GsWorkspacesItem(self.catalog)                              
-        self.addChild(self.workspacesItem)  
+                
+    def populate(self):
+        self.isConnected = False        
+        self.workspacesItem = GsWorkspacesItem(self.catalog)                                      
         self.workspacesItem.populate()
+        self.addChild(self.workspacesItem)
         self.layersItem = GsLayersItem(self.catalog)                                      
         self.addChild(self.layersItem)
         self.layersItem.populate()
@@ -508,10 +507,11 @@ class GsCatalogItem(GsTreeItem):
         self.settingsItem = GsSettingsItem(self.catalog)                        
         self.addChild(self.settingsItem)             
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
-        self.setIcon(0, icon)                     
+        self.setIcon(0, icon) 
+        self.isConnected = True                    
 
     def acceptDroppedItem(self, tree, explorer, item):
-        if not self.isConnected():
+        if not self.isConnected:
             return []
         if isinstance(item, QgsStyleItem):                    
             publishDraggedStyle(item.element.name(), self) 
@@ -539,7 +539,7 @@ class GsCatalogItem(GsTreeItem):
         removeCatalogAction = QtGui.QAction(icon, "Remove", explorer)
         removeCatalogAction.triggered.connect(lambda: self.removeCatalog(explorer))
         actions = [removeCatalogAction]            
-        if self.isConnected():
+        if self.isConnected:
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")      
             cleanAction = QtGui.QAction(icon, "Clean (remove unused elements)", explorer)
             cleanAction.triggered.connect(lambda: self.cleanCatalog(explorer))
@@ -565,7 +565,7 @@ class GsCatalogItem(GsTreeItem):
          
         
     def _getDescriptionHtml(self, tree, explorer):                        
-        if self.isConnected():            
+        if self.isConnected:            
             return self.catalog.about()
         else:
             html = ('<p>You are not connected to this catalog.' 
@@ -573,12 +573,12 @@ class GsCatalogItem(GsTreeItem):
             return html 
             
     def linkClicked(self, tree, explorer, url):
-        if not self.isConnected():            
+        if not self.isConnected:            
             explorer.run(self.populate, "Populate GeoServer item", []) 
             explorer.catalogs()[self.text(0)] = self.catalog         
     
     def acceptDroppedUris(self, tree, explorer, uris): 
-        if not self.isConnected():
+        if not self.isConnected:
             return []
         return addDraggedUrisToWorkspace(uris, self.element, self.getDefaultWorkspace(), explorer, tree)                    
            

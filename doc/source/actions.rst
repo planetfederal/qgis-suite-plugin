@@ -19,7 +19,12 @@ GeoServer catalogs are defined using the :guilabel:`New catalog...` option in th
 .. image:: img/intro/add_catalog.png
 	:align: center
 
+The GeoNode url is needed if you want to publish a GeoServer layer to a GeoNode endpoint. Otherwise, it is optional, and you can leave the default value.
+
 The list of catalogs is empty by default when you start the OpenGeo Explorer. See the :ref:`gs_connections` section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.
+
+
+This is a detailed  list of actions available for each item under the :guilabel:`GeoServer` branch.
 
 - GeoServer Catalog item.
 
@@ -177,7 +182,9 @@ The following actions are available for items in the PostGIS branch.
 
 - PostGIS connection item
 
-	- :guilabel:`Edit...`. Edits the connection parameters of this PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for the OpenGeo Explorer. As in the case of adding a new conenction, you can also edit it using the :guilabel:`Add PostGIS layers` QGIS command, but the Explorer tree will not be automatically updated. Refreshing the connection or the :guilabel:`PostGIS connections` item is needed to update the tree.
+	- :guilabel:`Edit...`. Edits the connection parameters of this PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for the OpenGeo Explorer. As in the case of adding a new connection, you can also edit it using the :guilabel:`Add PostGIS layers` QGIS command, but the Explorer tree will not be automatically updated. Refreshing the connection or the :guilabel:`PostGIS connections` item is needed to update the tree.
+
+		When a connection is edited using the OpenGeo explorer, user name and password are stored, even if when defining it originally using the QGIS interface this option was disabled. Use the QGUI UI instead if you want to edit the connection but not store the password. You will need to enter it each time you start the Explorer or refresh the PostGIS branch in the Explorer tree, to connect to the database.
 
 	- :guilabel:`New schema`. Creates a new schema. You will be prompted to enter the name for the new schema in an input box.
 
@@ -196,10 +203,8 @@ The following actions are available for items in the PostGIS branch.
 
 		 This command supports only vector layers. Importing raster layers is currently not supported in the plugin, even if the PostGIS database you are connected to has support for raster data.
 
-	- :guilabel:`Run SQL...`. Runs a SQL sentence on the database. Calling this method will show the DB-manager SQL dialog, where the query can be written or a saved one can be open.
+		 .. note:: If the import is done without the :guilabel:`Add to table` option, it will be performed completely by QGIS. However, if using the :guilabel:`Add to table` option, the import relies on the ``shp2pgsql`` utility, which has to be in your ``PATH`` environment variable so it can be called from QGIS. If you are using OpenGeo Suite, you should have no problems, but if you are running your own installation of PostGIS, make sure that your ``PATH`` variable is correctly configured. To check it, just open a shell and type ``shp2pgsql`` to see that it can be correctly found and executed.
 
-		.. image:: img/actions/sql_dialog.png
-	 		:align: center
 
 - PostGIS schema item
 
@@ -207,8 +212,6 @@ The following actions are available for items in the PostGIS branch.
 
 		.. image:: img/actions/create_table.png
 			:align: center
-
-
 
 	- :guilabel:`Delete`. Deletes the schema. It has to be empty to be removed. Otherwise, PostGIS will refuse to delete it.
 
@@ -287,12 +290,12 @@ Another task than can be done with a multiple selection is creating a new group.
 Double-clicking on tree items
 ******************************
 
-Cetain items respond to double-clicking. If the corresponding element can be edit, the edition can be started by double clicking on it instead of using the corresponding context menu entry. For instance, double clicking on a GeoServer group item will open the dialog to define the layers that are included in that group.
+Certain items respond to double-clicking. If the corresponding element can be edited, the edition can be started by double-clicking on it instead of using the corresponding context menu entry. For instance, double-clicking on a GeoServer group item will open the dialog to define the layers that are included in that group.
 
 Drag & drop operations
 ***********************
 
-The explorer tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of an element. 
+The Explorer tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of an element. 
 
 .. image:: img/actions/dragdrop.png
 	:align: center

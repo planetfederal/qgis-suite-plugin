@@ -89,7 +89,7 @@ class PgConnection(object):
                 self.geodb.con.commit()
         
                 if data is None or len(data) == 0:
-                    raise Exception(p[2].readlines().join("\n"))
+                    raise Exception("".join(p[2].readlines()))
             else:
                 # start shp2pgsql as subprocess
                 p = subprocess.Popen(args=args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

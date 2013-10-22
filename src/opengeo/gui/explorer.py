@@ -134,11 +134,12 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                                
         return noerror
             
-    def resetActivity(self):               
-        config.iface.messageBar().clearWidgets()
-        self.isProgressVisible = False
-        self.progress = None  
-        self.progressMaximum = 0                    
+    def resetActivity(self):   
+        if self.progress is not None:            
+            config.iface.messageBar().clearWidgets()
+            self.isProgressVisible = False
+            self.progress = None  
+            self.progressMaximum = 0                    
         
     def setProgress(self, value):
         if self.progress is not None:

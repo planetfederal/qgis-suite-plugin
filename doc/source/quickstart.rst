@@ -169,7 +169,7 @@ Once data is in our GeoServer catalog, we can use the OpenGeo Explorer panel to 
 Preprocessing data before publishing
 -------------------------------------
 
-The layers to upload require sometimes additional preprocessing, for instance if they are not the optimal format to provide the best performance once they are published. This preprocessing can be performed independently before publishing, but can also be included as part of the publishing operation itself. The OpenGeo explorer integrates with the QGIS processing framework and allows to define a process to be run on any layer before uploading it, publishing the resulting processed layer instead.
+The layers to upload require sometimes additional preprocessing, for instance if they are not in the optimal format to provide the best performance once they are published. This preprocessing can be performed independently before publishing, but can also be included as part of the publishing operation itself. The OpenGeo explorer integrates with the QGIS processing framework and allows to define a process to be run on any layer before uploading it, publishing the resulting processed layer instead.
 
 Processes are defined using the QGIS processing graphical modeler, and the process to use is specified in the Explorer configuration.
 

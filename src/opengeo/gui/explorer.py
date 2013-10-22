@@ -13,20 +13,20 @@ INFO = 0
 ERROR = 1
 CONSOLE_OUTPUT = 2   
 
-RAVEN_URL = "http://4e1139200ac1427cb9b114e89ef7d355:133be0de55a145f6b29f0ee6d529733d@qgis.opengeo.org:9000/2"
+SENTRY_URL = "http://5d60c883c47645b78effecd67e0f9c73:a11d69b72e5b439fb30ec4c4bc0d42bb@sentry.boundlessgeo.com/2"
     
 class OpenGeoExplorer(QtGui.QDockWidget):
 
     def __init__(self, parent = None, singletab = True):
         super(OpenGeoExplorer, self).__init__()  
         self.singletab = singletab
-        dsn = QSettings().value("/OpenGeo/Settings/General/RavenUrl", "")
-        dsn = dsn if (dsn != NULL and dsn.strip()) != "" else RAVEN_URL 
+        dsn = QSettings().value("/OpenGeo/Settings/General/SentryUrl", "")
+        dsn = dsn if (dsn != NULL and dsn.strip()) != "" else SENTRY_URL 
         context = {'sys.argv': []}        
         try:
             self.ravenClient = Client(dsn=dsn, context = context)
         except:
-            self.ravenClient = Client(dsn=RAVEN_URL, context = context)
+            self.ravenClient = Client(dsn=SENTRY_URL, context = context)
         self.initGui()
         
     def initGui(self):

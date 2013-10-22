@@ -1,4 +1,4 @@
-from opengeo import requests
+import requests
 
 class Geonode(object):
     def __init__(self, url = "http://localhost:8000/", username="admin", password="admin"):

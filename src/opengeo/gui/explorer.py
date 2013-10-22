@@ -5,7 +5,7 @@ from qgis.gui import *
 from opengeo.gui.exploreritems import *
 from opengeo.gui.explorerwidget import ExplorerWidget
 from opengeo import config
-from opengeo.raven import Client
+from raven import Client
 from qgis.utils import pluginMetadata
 import traceback
 
@@ -22,10 +22,11 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.singletab = singletab
         dsn = QSettings().value("/OpenGeo/Settings/General/RavenUrl", "")
         dsn = dsn if (dsn != NULL and dsn.strip()) != "" else RAVEN_URL 
+        context = {'sys.argv': []}        
         try:
-            self.ravenClient = Client(dsn=dsn)
+            self.ravenClient = Client(dsn=dsn, context = context)
         except:
-            self.ravenClient = Client(dsn=RAVEN_URL)
+            self.ravenClient = Client(dsn=RAVEN_URL, context = context)
         self.initGui()
         
     def initGui(self):

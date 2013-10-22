@@ -11,7 +11,7 @@ from os import unlink
 from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 from urlparse import urlparse
-from opengeo import httplib2
+import httplib2
 from opengeo.geoserver import util
 
 logger = logging.getLogger("gsconfig.catalog")

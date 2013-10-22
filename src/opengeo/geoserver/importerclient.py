@@ -7,7 +7,7 @@ import util
 import pprint
 import json
 import mimetypes
-from opengeo import httplib2
+import httplib2
 
 _logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-from opengeo import httplib2
+import httplib2
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
 from urlparse import urlparse

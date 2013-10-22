@@ -10,4 +10,5 @@ OpenGeo Suite QGIS plugin
    quickstart
    actions
    console
+   developers
 

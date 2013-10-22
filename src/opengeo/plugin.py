@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
-import inspect
+import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from opengeo import config
 from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.configdialog import ConfigDialog
-
-cmd_folder = os.path.split(inspect.getfile( inspect.currentframe()))[0]
-if cmd_folder not in sys.path:
-    sys.path.insert(0, cmd_folder)
-
 
 class OpenGeoPlugin:
 

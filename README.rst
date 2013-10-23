@@ -23,13 +23,8 @@ The plugin is installed using the plugin manager.
 Installing the current development version
 -------------------------------------------
 
-The plugin repository is updated frequently- However, it is not guaranteed that it will contain the same code that can be found in this GitHub repository. If you want to be sure that you are using the latest development version, follow the next steps.
+The plugin repository is updated frequently- However, it is not guaranteed that it will contain the same code that can be found in this GitHub repository. If you want to be sure that you are using the latest development version, follow the step described in the `development <./doc/source/developers.rst>`_ section. Running the ``install.py`` script should install the OpeGeo Explorer in your QGIS.
 
-- Clone this repository in your system. 
-- Locate the QGIS plugins folder. In Windows, it should be something like ``C:\Users\<your_user>\.qgis2\python\plugins``. In Linux/Mac, it should be in ``~/.qgis2/python/plugins``
-- Copy the ``opengeo`` folder (can be found under ``src``) into your plugins folder. You should end up having a ``.qgis2\python\plugins\opengeo`` folder with the code of the plugin and the required subfolders. The ``plugin.py`` file should be on that folder.
-- Start QGIS and activate the plugin in the plugin manager.
-- You should have an *OpenGeo* menu already available in the menu bar.
 
 Usage
 ------

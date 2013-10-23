@@ -1,6 +1,6 @@
 [general]
-name=OpenGeo
-description=OpenGeo utilities for QGIS
+name=OpenGeo Explorer
+description=An interface to easily manage and configure OpenGeo Suite components such a GeoServer and PostGIS
 version=0.2
 qgisMinimumVersion=2.0
 author=Victor Olaya

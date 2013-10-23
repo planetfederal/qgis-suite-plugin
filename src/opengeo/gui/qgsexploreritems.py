@@ -108,7 +108,8 @@ class QgsLayerItem(QgsTreeItem):
         createStoreFromLayerAction= QtGui.QAction(icon, "Create store from layer...", explorer)
         createStoreFromLayerAction.triggered.connect(lambda: self.createStoreFromLayer(tree, explorer))
         createStoreFromLayerAction.setEnabled(len(explorer.catalogs())>0)
-        importToPostGisAction = QtGui.QAction("Import into PostGIS...", explorer)
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis_import.png")
+        importToPostGisAction = QtGui.QAction(icon, "Import into PostGIS...", explorer)
         importToPostGisAction.triggered.connect(lambda: self.importLayerToPostGis(tree, explorer))
         importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
         

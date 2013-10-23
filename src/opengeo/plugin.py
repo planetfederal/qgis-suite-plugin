@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import webbrowser
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from opengeo import config
@@ -46,9 +47,18 @@ class OpenGeoPlugin:
         self.configAction = QAction(icon, "OpenGeo Explorer settings", self.iface.mainWindow())
         self.configAction.triggered.connect(self.openSettings)
         self.menu.addAction(self.configAction)
+        
+        icon = QIcon(os.path.dirname(__file__) + "/images/help.png")
+        self.helpAction = QAction(icon, "OpenGeo Explorer help", self.iface.mainWindow())
+        self.helpAction.triggered.connect(self.showHelp)
+        self.menu.addAction(self.helpAction)
 
         menuBar = self.iface.mainWindow().menuBar()
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)         
+        
+    def showHelp(self):        
+        HELP_URL = "http://qgis.boundlessgeo.com/static/docs/index.html"   
+        webbrowser.open(HELP_URL)
         
     def openExplorer(self):
         self.explorer.updateQgisContent()

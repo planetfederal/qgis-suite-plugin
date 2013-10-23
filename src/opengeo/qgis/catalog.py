@@ -205,11 +205,18 @@ class OGCatalog(object):
                     self.catalog.create_pg_featuretype(uri.table(), connName, workspace, layer.crs().authid())
                 else:   
                     path = self.getDataFromLayer(layer)
-                    if restApi:                    
-                        self.catalog.create_shp_featurestore(name,
+                    if restApi:  
+                        try:                  
+                            self.catalog.create_shp_featurestore(name,
                                               path,
                                               workspace=workspace,
                                               overwrite=overwrite)
+                        except WindowsError:
+                            #this might be thrown by the create_shp_featurestore method 
+                            #when trying to unlink the temp zip file
+                            pass
+                        except Exception, e:
+                            raise e
                     else:
                         shpFile = path['shp']                        
                         session = self.client.upload(shpFile)

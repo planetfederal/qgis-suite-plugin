@@ -41,7 +41,9 @@ class OpenGeoPlugin:
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         self.iface.legendInterface().itemAdded.connect(self.explorer.updateQgisContent)
         self.iface.legendInterface().itemRemoved.connect(self.explorer.updateQgisContent)
-        self.explorer.hide()
+        if not settings.value("/OpenGeo/Settings/General/ExplorerVisible", False, bool):
+            self.explorer.hide()
+        self.explorer.visibilityChanged.connect(self._explorerVisiblityChanged)
         
         icon = QIcon(os.path.dirname(__file__) + "/images/config.png")
         self.configAction = QAction(icon, "OpenGeo Explorer settings", self.iface.mainWindow())
@@ -55,7 +57,11 @@ class OpenGeoPlugin:
 
         menuBar = self.iface.mainWindow().menuBar()
         menuBar.insertMenu(self.iface.firstRightStandardMenu().menuAction(), self.menu)         
-        
+
+    def _explorerVisiblityChanged(self, visible):
+        settings = QSettings()
+        settings.setValue("/OpenGeo/Settings/General/ExplorerVisible", visible)
+
     def showHelp(self):        
         HELP_URL = "http://qgis.boundlessgeo.com/static/docs/index.html"   
         webbrowser.open(HELP_URL)

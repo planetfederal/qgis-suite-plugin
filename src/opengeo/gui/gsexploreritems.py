@@ -84,13 +84,12 @@ class GsTreeItem(TreeItem):
                         elements.insert(0, subsubitem.element)                                                            
         toUpdate = set(item.parent() for item in selected)                
         progress = 0        
-        dependent = self.getDependentElements(elements)
-                
+        dependent = self.getDependentElements(elements)                              
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
-            for e in dependent:
-                msg += "-" + e.name + "(" + e.__class__.__name__ + ")\n\n"
-            msg += "Do you really want to delete all these elements?"                   
+            names = {"-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent}
+            msg += " \n\n".join(names)                
+            msg += "\n\nDo you really want to delete all these elements?"                   
             reply = QtGui.QMessageBox.question(None, "Delete confirmation",
                                                msg, QtGui.QMessageBox.Yes | 
                                                QtGui.QMessageBox.No, QtGui.QMessageBox.No)

@@ -9,12 +9,10 @@ from raven import Client
 from qgis.utils import pluginMetadata
 import traceback
 
-INFO = 0
-ERROR = 1
-CONSOLE_OUTPUT = 2   
 
 SENTRY_URL = "http://5d60c883c47645b78effecd67e0f9c73:a11d69b72e5b439fb30ec4c4bc0d42bb@sentry.boundlessgeo.com/2"
-    
+
+
 class OpenGeoExplorer(QtGui.QDockWidget):
 
     def __init__(self, parent = None, singletab = True):
@@ -126,7 +124,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
         except Exception, e:                                
-            self.setInfo(unicode(e.message, errors = "ignore").encode("utf-8") + "\n" + traceback.format_exc(), ERROR)
+            self.setError(unicode(e.message, errors = "ignore").encode("utf-8") + "\n" + traceback.format_exc())
             noerror = False
         finally:
             QtGui.QApplication.restoreOverrideCursor()
@@ -154,39 +152,43 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress) 
         config.iface.messageBar().pushWidget(self.progressMessageBar, QgsMessageBar.INFO)   
-        
-    def setInfo(self, msg, msgtype = INFO):
+
+    def setInfo(self, msg):
+        config.iface.messageBar().pushMessage("Info", msg,
+                                              level = QgsMessageBar.INFO,
+                                              duration = 3)
+
+    def setWarning(self, msg):
+        config.iface.messageBar().pushMessage("Warning", msg,
+                                              level = QgsMessageBar.WARNING,
+                                              duration = 15)
+
+    def setError(self, msg):
         firstLine = msg.split("\n")[0]
-        if msgtype == ERROR:
-            if self.progressMaximum != 0:
-                QtGui.QMessageBox.critical(self, "Error", firstLine)
-            widget = config.iface.messageBar().createMessage("Error", firstLine)            
-            sendButton = QtGui.QPushButton(widget)
-            sendButton.setText("Report error")
-            showButton = QtGui.QPushButton(widget)
-            showButton.setText("View more")
-            def reportError():
-                version = "Plugin version: " + pluginMetadata("opengeo", "version")
-                message = unicode(msg, errors = "ignore") + "\n" + version                            
-                self.ravenClient.captureMessage(message)                
-                self.resetActivity()
-            def showMore():                
-                dlg = QgsMessageOutput.createMessageOutput()
-                dlg.setTitle('Error')
-                dlg.setMessage(msg, QgsMessageOutput.MessageHtml)
-                dlg.showMessage()
-            sendButton.pressed.connect(reportError)
-            showButton.pressed.connect(showMore)
-            widget.layout().addWidget(sendButton)
-            widget.layout().addWidget(showButton)
-            config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
-                                                 duration = 15)                        
-        else:
-            config.iface.messageBar().pushMessage("Info", firstLine, 
-                                                  level = QgsMessageBar.INFO,
-                                                  duration = 3)
-                   
-            
+        if self.progressMaximum != 0:
+            QtGui.QMessageBox.critical(self, "Error", firstLine)
+        widget = config.iface.messageBar().createMessage("Error", firstLine)
+        sendButton = QtGui.QPushButton(widget)
+        sendButton.setText("Report error")
+        showButton = QtGui.QPushButton(widget)
+        showButton.setText("View more")
+        def reportError():
+            version = "Plugin version: " + pluginMetadata("opengeo", "version")
+            message = unicode(msg, errors = "ignore") + "\n" + version
+            self.ravenClient.captureMessage(message)
+            self.resetActivity()
+        def showMore():
+            dlg = QgsMessageOutput.createMessageOutput()
+            dlg.setTitle('Error')
+            dlg.setMessage(msg, QgsMessageOutput.MessageHtml)
+            dlg.showMessage()
+        sendButton.pressed.connect(reportError)
+        showButton.pressed.connect(showMore)
+        widget.layout().addWidget(sendButton)
+        widget.layout().addWidget(showButton)
+        config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
+                                             duration = 15)
+
     def setDescriptionWidget(self, widget = None):                
         item = self.descriptionLayout.itemAt(0)        
         if item:

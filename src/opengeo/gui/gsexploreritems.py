@@ -17,6 +17,7 @@ from opengeo.geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.qgsexploreritems import QgsLayerItem, QgsGroupItem,\
     QgsStyleItem
 from opengeo.geoserver.catalog import Catalog
+from opengeo.geoserver.catalog import FailedRequestError
 from opengeo.gui.pgexploreritems import PgTableItem
 import traceback
 from opengeo.geoserver.wps import Wps
@@ -250,9 +251,12 @@ class GsCatalogsItem(GsTreeItem):
                 if geoserverItem is not None:
                     self._catalogs[name] = cat
                     self.addChild(geoserverItem)
-                    self.setExpanded(True)            
-            except:                
-                explorer.setInfo("Could not connect to catalog:\n" + traceback.format_exc(), 1)
+                    self.setExpanded(True)
+            except FailedRequestError:
+                # a FailedRequestError implies an invalid URL, not an error
+                explorer.setWarning("Could not connect to the catalog at that URL")
+            except:
+                explorer.setError("Could not connect to catalog:\n" + traceback.format_exc())
                 return
             finally:
                 QtGui.QApplication.restoreOverrideCursor()
@@ -877,7 +881,7 @@ class GsLayerItem(GsTreeItem):
             explorer.setInfo("Layer '" + self.element.name + "' correctly added to QGIS project")
             explorer.updateQgisContent()
         except Exception, e:
-            explorer.setInfo(str(e), 1)  
+            explorer.setError(str(e))
                                 
 
 class GsGroupItem(GsTreeItem): 
@@ -1397,7 +1401,7 @@ def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
                 if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
                     layer.deleteLater()
                     name = uri if isinstance(uri, basestring) else uri.uri 
-                    explorer.setInfo("Error reading file {} or it is not a valid layer file".format(name), 1)   
+                    explorer.setError("Error reading file {} or it is not a valid layer file".format(name))
                 else:
                     if not publishDraggedLayer(explorer, layer, workspace):                        
                         return []                    

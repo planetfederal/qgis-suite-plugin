@@ -241,7 +241,7 @@ class GsTreePanel(QtGui.QWidget):
                 self.layersAction.trigger() 
                 self.explorer.updateQgisContent() 
             except Exception, e:
-                explorer.setInfo(str(e), 1)
+                explorer.setError(str(e))
                 return                   
     
     def refreshContent(self):

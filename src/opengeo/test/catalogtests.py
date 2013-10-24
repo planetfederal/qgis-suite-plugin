@@ -39,7 +39,7 @@ class CatalogTests(unittest.TestCase):
         self.cat.publishLayer("dem", self.ws, name = "demgs")
         self.assertIsNotNone(self.cat.catalog.get_layer("demgs"))        
         
-        ''' This will fail due to the GeoServer REST API. If the layer is not under a namespace, it seems is not exposed as WCS (¿?)'''
+        ''' This will fail due to the GeoServer REST API. If the layer is not under a namespace, it seems is not exposed as WCS'''
         self.cat.addLayerToProject("demgs")
         layer = layers.resolveLayer("demgs")
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())

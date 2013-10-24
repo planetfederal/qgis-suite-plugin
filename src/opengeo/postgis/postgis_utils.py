@@ -136,6 +136,12 @@ class GeoDB:
 
         self.has_postgis = self.check_postgis()
 
+    def __getstate__(self):
+        '''the connection cannot be pickled, so ensure it doesn't try'''
+        state = vars(self)
+        state.pop('con', None)
+        return state
+
     def con_info(self):
         con_str = ''
         if self.host:   con_str += "host='%s' "     % self.host

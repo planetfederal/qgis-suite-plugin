@@ -17,8 +17,10 @@ SENTRY_URL = "http://5d60c883c47645b78effecd67e0f9c73:a11d69b72e5b439fb30ec4c4bc
     
 class OpenGeoExplorer(QtGui.QDockWidget):
 
+    objectName = 'OpenGeoExplorer'
+
     def __init__(self, parent = None, singletab = True):
-        super(OpenGeoExplorer, self).__init__()  
+        super(OpenGeoExplorer, self).__init__()
         self.singletab = singletab
         dsn = QSettings().value("/OpenGeo/Settings/General/SentryUrl", "")
         dsn = dsn if (dsn != NULL and dsn.strip()) != "" else SENTRY_URL 
@@ -61,7 +63,6 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.layout.setMargin(0)                                               
         self.layout.addWidget(self.toolbar)
         self.layout.addWidget(self.splitter)     
-        self.setLayout(self.layout)
         self.dockWidgetContents.setLayout(self.layout)
         self.setWidget(self.dockWidgetContents)  
         

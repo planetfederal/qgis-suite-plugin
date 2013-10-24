@@ -288,8 +288,6 @@ class OGCatalog(object):
         
         name: the name of the QGIS group to publish. It will also be used as the GeoServer layergroup name
         
-        catalog:The catalog to publish to
-        
         workspace: The workspace to add the group to
         
         overwrite: if True, it will overwrite a previous group with the specified name, if it exists
@@ -307,11 +305,12 @@ class OGCatalog(object):
         group = groups[name]
         
         for layer in group:
-            layer = self.catalog.get_layer(layer)
-            if layer is None:
-                self.publishLayer(layer, self.catalog, workspace, None, overwrite)
+            gslayer = self.catalog.get_layer(layer.name())
+            if gslayer is None:
+                self.publishLayer(layer, workspace, overwrite)
                 
-        layergroup = self.catalog.create_layergroup(name, group, group)
+        names = [layer.name() for layer in group]
+        layergroup = self.catalog.create_layergroup(name, names, names)
         self.catalog.save(layergroup)
         
     def publishLayer (self, layer, workspace=None, overwrite=True, name=None,
@@ -323,8 +322,6 @@ class OGCatalog(object):
         
         layer: the layer to publish, whether as a QgsMapLayer object or its name in the QGIS TOC.
             
-        catalog. A catalog object with information about the URL of the service to publish to.
-        
         workspace: the workspace to publish to. USes the default project if not passed 
         or None 
         
@@ -408,7 +405,8 @@ class OGCatalog(object):
             raise Exception ("A layer with the name '" + name + "' was not found in the catalog")
             
         resource = layer.resource        
-        uri = uri_utils.layerUri(layer)                        
+        uri = uri_utils.layerUri(layer)  
+               
         if resource.resource_type == "featureType":                    
             qgslayer = QgsVectorLayer(uri, layer.name, "WFS") 
             ok = True
@@ -425,7 +423,7 @@ class OGCatalog(object):
             if not ok:
                raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")        
         elif resource.resource_type == "coverage":                        
-            qgslayer = QgsRasterLayer(uri, name, "wcs" )            
+            qgslayer = QgsRasterLayer(uri, name, "wcs" )                  
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
                         

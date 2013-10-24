@@ -75,7 +75,13 @@ class GsTreeItem(TreeItem):
             elif isinstance(item, GsLayerItem):
                 uniqueStyles.extend(self.uniqueStyles(item.element)) 
                 workspace = item.element.resource.workspace
-                workspacesToUpdate.extend(tree.findAllItems(workspace))                                              
+                workspacesToUpdate.extend(tree.findAllItems(workspace))  
+            elif isinstance(item, GsWorkspaceItem):
+                for idx in range(item.childCount()):
+                    subitem = item.child(idx)
+                    for subidx in range(subitem.childCount()):
+                        subsubitem = subitem.child(subidx)
+                        elements.insert(0, subsubitem.element)                                                            
         toUpdate = set(item.parent() for item in selected)                
         progress = 0        
         dependent = self.getDependentElements(elements)
@@ -104,7 +110,7 @@ class GsTreeItem(TreeItem):
         elements[0:0] = dependent 
         if recurse:
             toUpdate.update(workspacesToUpdate)            
-        if deleteStyle:
+        if deleteStyle:            
             elements.extend(uniqueStyles)  
             stylesEntriesToUpdate = set() 
             for e in uniqueStyles:                
@@ -223,7 +229,7 @@ class GsCatalogsItem(GsTreeItem):
         return [createCatalogAction]
                     
     def addGeoServerCatalog(self, explorer):         
-        dlg = DefineCatalogDialog()
+        dlg = DefineCatalogDialog(explorer)
         dlg.exec_()                        
         if dlg.ok:            
             try:
@@ -238,20 +244,12 @@ class GsCatalogsItem(GsTreeItem):
                                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,                                
                                     QtGui.QMessageBox.No);
                     if ret == QtGui.QMessageBox.No:
-                        return
-                    
-                name = dlg.name
-                i = 2
-                while name in self._catalogs.keys():
-                    name = dlg.name + "_" + str(i)
-                    i += 1
+                        return                                    
                 geonode = Geonode(dlg.geonodeUrl)
-                geoserverItem = GsCatalogItem(cat, name, geonode)
+                geoserverItem = GsCatalogItem(cat, dlg.name, geonode)
                 geoserverItem.populate()                
-                if geoserverItem is not None:
-                    self._catalogs[name] = cat
-                    self.addChild(geoserverItem)
-                    self.setExpanded(True)
+                self.addChild(geoserverItem)
+                self.setExpanded(True)
             except FailedRequestError:
                 # a FailedRequestError implies an invalid URL, not an error
                 explorer.setWarning("Could not connect to the catalog at that URL")
@@ -510,7 +508,8 @@ class GsCatalogItem(GsTreeItem):
         self.addChild(self.settingsItem)             
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
         self.setIcon(0, icon) 
-        self.isConnected = True                    
+        self.isConnected = True  
+        self.parent()._catalogs[self.text(0)] = self.catalog                  
 
     def acceptDroppedItem(self, tree, explorer, item):
         if not self.isConnected:
@@ -908,8 +907,11 @@ class GsGroupItem(GsTreeItem):
             
     def acceptDroppedItem(self, tree, explorer, item):                        
         if isinstance(item, GsLayerItem):
-            addDraggedLayerToGroup(explorer, item.element, self)
-            return [self] 
+            if self != item.parent():
+                addDraggedLayerToGroup(explorer, item.element, self)
+                return [self]
+            else:
+                return [] 
         else:
             return []           
             

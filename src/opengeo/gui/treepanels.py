@@ -205,7 +205,7 @@ class GsTreePanel(QtGui.QWidget):
 
             
     def addCatalog(self, explorer):         
-        dlg = DefineCatalogDialog()
+        dlg = DefineCatalogDialog(explorer)
         dlg.exec_()        
         if dlg.ok:
             try:

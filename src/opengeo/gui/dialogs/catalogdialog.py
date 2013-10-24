@@ -2,8 +2,9 @@ from PyQt4 import QtGui, QtCore
 
 class DefineCatalogDialog(QtGui.QDialog):
     
-    def __init__(self, parent = None):
+    def __init__(self, explorer, parent = None):
         super(DefineCatalogDialog, self).__init__(parent)
+        self.explorer = explorer
         self.ok = False
         self.initGui()
         
@@ -11,8 +12,7 @@ class DefineCatalogDialog(QtGui.QDialog):
     def initGui(self):                         
         self.setWindowTitle('Catalog definition')
         
-        verticalLayout = QtGui.QVBoxLayout()                                   
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
+        verticalLayout = QtGui.QVBoxLayout()                                                   
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -96,11 +96,12 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.spacer = QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
 
-        layout.addWidget(buttonBox)
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)
+        layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        buttonBox.accepted.connect(self.okPressed)
-        buttonBox.rejected.connect(self.cancelPressed)
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,200)
             
@@ -112,6 +113,12 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.username = unicode(self.usernameBox.text())
         self.password = unicode(self.passwordBox.text())
         self.name = unicode(self.nameBox.text())
+        name = self.name
+        i = 2
+        while name in self.explorer.catalogs().keys():
+            name = self.name + "_" + str(i)
+            i += 1
+        self.name = name
         self.geonodeUrl = unicode(self.urlGeonodeBox.text())
         settings = QtCore.QSettings()
         settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text())

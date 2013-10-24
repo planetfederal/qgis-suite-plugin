@@ -10,7 +10,7 @@ def layerUri(layer):
             'service': 'WFS',
             'version': '1.0.0',
             'request': 'GetFeature',
-            'typename': layer.name,
+            'typename': resource.workspace.name + ":" + layer.name,
             'srsname': resource.projection
         }                        
         uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))

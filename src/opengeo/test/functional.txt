@@ -9,6 +9,7 @@ CATALOG
 	-Check it removes it from the tree 
 	-Check that, when reopening the explorer, it is not in the list of previous catalogs
 	-Check that, once deleted, the description panel is not available and the buttons corresponding to the dialog are not present in the toolbar 
+-Dragging a layer from the QGIS browser into a catalog item should add the resource to the workspace and create a layer that publishes it
 
 WORKSPACE
 -Create new workspace
@@ -26,6 +27,7 @@ WORKSPACE
 	-Import a layer. It will create a store and a layer
 	-Delete the layer, making sure that the option to delete the underlying resource is not enabled. That will leave an unused resource
 	-Run the "Clean (remove unused elements)" option. That should delete the resource
+-Dragging a layer from the QGIS browser into a workspace item should add the resource to the workspace and create a layer that publishes it
 
 LAYER
 -Add style to layer
@@ -44,6 +46,8 @@ LAYER
 -Add layer to QGIS project
 	- Both for raster and vector layers
 	- Both using the context menu action and dragging and dropping on the QGIS canvas
+-Dragging a layer from the QGIS browser into a layer item should add the resource to the default workspace and create a layer that publishes it
+-Dragging into the "GeoServer Layers" item should do the same.
 
 GROUPS
 -Create group by selecting several layers, right-clicking and using "create group"
@@ -80,7 +84,7 @@ STYLES
 	-Run the "Clean (remove unused styles)" option. That should delete the style	
 -Consolidate styles
 	-Import several layers with the same style
-	-Run "consolidate styles". It should leave only the firt of those styles, delete the other ones, and use that first one in the layers that used the remaining ones
+	-Run "consolidate styles". It should leave only the first of those styles, delete the other ones, and use that first one in the layers that used the remaining ones
 
 Delete style.
 	-If style is used by layer, it should ask for confirmation and warn that the layer will also be deleted. Check that all layers using the style are deleted

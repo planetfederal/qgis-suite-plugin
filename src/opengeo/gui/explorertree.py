@@ -164,25 +164,20 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         if isinstance(event.source(), self.__class__):
             draggedTypes = {item.__class__ for item in event.source().selectedItems()}
             if len(draggedTypes) > 1:
-                return            
-            
+                return                        
             items = self.selectedItems()                                    
             toUpdate = destinationItem.acceptDroppedItems(self, self.explorer, items)
         else:            
-    
             data = event.mimeData()
             elements = []   
-
             if data.hasUrls():
                 for u in data.urls():
                     filename = u.toLocalFile()
                     if filename != "":
                         elements.append(filename) 
-
             if data.hasFormat(self.QGIS_URI_MIME):
                 for uri in QgsMimeDataUtils.decodeUriList(data):
-                    elements.append(uri) 
-                                              
+                    elements.append(uri)                                               
             toUpdate = destinationItem.acceptDroppedUris(self, self.explorer, elements)   
         
         self.explorer.resetActivity()   

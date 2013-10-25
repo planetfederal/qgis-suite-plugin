@@ -5,9 +5,9 @@
         <units>degrees</units>
         <extent>
             <xmin>18.61384004360766653</xmin>
-            <ymin>45.77582725330471902</ymin>
+            <ymin>45.74151472635418259</ymin>
             <xmax>18.75603008719646425</xmax>
-            <ymax>45.81254299225957283</ymax>
+            <ymax>45.84685551921010926</ymax>
         </extent>
         <projections>1</projections>
         <destinationsrs>
@@ -23,48 +23,48 @@
             </spatialrefsys>
         </destinationsrs>
     </mapcanvas>
-    <legend updateDrawingOrder="true" activeLayer="dem20131024100950168">
-        <legendgroup open="false" checked="Qt::Unchecked" name="elevation">
-            <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="pt1" showFeatureCount="0">
+    <legend updateDrawingOrder="true" activeLayer="pt320130827095302073">
+        <legendgroup open="true" checked="Qt::Checked" name="qgis_plugin_test_elevation">
+            <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_pt1" showFeatureCount="0">
                 <filegroup open="true" hidden="false">
-                    <legendlayerfile isInOverview="0" layerid="pt120130827095302041" visible="0"/>
+                    <legendlayerfile isInOverview="0" layerid="pt120130827095302041" visible="1"/>
                 </filegroup>
             </legendlayer>
-            <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="pt2" showFeatureCount="0">
+            <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_pt2" showFeatureCount="0">
                 <filegroup open="true" hidden="false">
-                    <legendlayerfile isInOverview="0" layerid="pt220130827095302056" visible="0"/>
+                    <legendlayerfile isInOverview="0" layerid="pt220130827095302056" visible="1"/>
                 </filegroup>
             </legendlayer>
-            <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="pt3" showFeatureCount="0">
+            <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_pt3" showFeatureCount="0">
                 <filegroup open="true" hidden="false">
-                    <legendlayerfile isInOverview="0" layerid="pt320130827095302073" visible="0"/>
+                    <legendlayerfile isInOverview="0" layerid="pt320130827095302073" visible="1"/>
                 </filegroup>
             </legendlayer>
         </legendgroup>
-        <legendgroup open="true" checked="Qt::Unchecked" name="geology_landuse">
-            <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="landuse" showFeatureCount="0">
+        <legendgroup open="true" checked="Qt::Checked" name="qgis_plugin_test_geology_landuse">
+            <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="qgis_plugin_test_landuse" showFeatureCount="0">
                 <filegroup open="false" hidden="false">
-                    <legendlayerfile isInOverview="0" layerid="land20130827095302025" visible="0"/>
+                    <legendlayerfile isInOverview="0" layerid="land20130827095302025" visible="1"/>
                 </filegroup>
             </legendlayer>
-            <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="geoforms" showFeatureCount="0">
+            <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="qgis_plugin_test_geoforms" showFeatureCount="0">
                 <filegroup open="false" hidden="false">
-                    <legendlayerfile isInOverview="0" layerid="geo20130827100512660" visible="0"/>
+                    <legendlayerfile isInOverview="0" layerid="geo20130827100512660" visible="1"/>
                 </filegroup>
             </legendlayer>
         </legendgroup>
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="dem" showFeatureCount="0">
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="qgis_plugin_test_dem" showFeatureCount="0">
             <filegroup open="false" hidden="false">
                 <legendlayerfile isInOverview="0" layerid="dem20131024100950168" visible="1"/>
             </filegroup>
         </legendlayer>
-        <legendgroup open="false" checked="Qt::Checked" name="other_formats">
-            <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="pt1json" showFeatureCount="0">
+        <legendgroup open="true" checked="Qt::Checked" name="other_formats">
+            <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_pt1json" showFeatureCount="0">
                 <filegroup open="true" hidden="false">
                     <legendlayerfile isInOverview="0" layerid="pt1json20131024103022360" visible="1"/>
                 </filegroup>
             </legendlayer>
-            <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="demascii" showFeatureCount="0">
+            <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="qgis_plugin_test_demascii" showFeatureCount="0">
                 <filegroup open="false" hidden="false">
                     <legendlayerfile isInOverview="0" layerid="demascii20131024102621051" visible="1"/>
                 </filegroup>
@@ -74,13 +74,13 @@
     <projectlayers layercount="8">
         <maplayer minimumScale="-4.65661e-10" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
             <id>dem20131024100950168</id>
-            <datasource>./dem.tif</datasource>
+            <datasource>./qgis_plugin_test_dem.tif</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>dem</layername>
+            <layername>qgis_plugin_test_dem</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=tmerc +lat_0=0 +lon_0=18 +k=0.9999 +x_0=6500000 +y_0=0 +ellps=bessel +units=m +no_defs</proj4>
@@ -118,13 +118,13 @@
         </maplayer>
         <maplayer minimumScale="0" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
             <id>demascii20131024102621051</id>
-            <datasource>./demascii.asc</datasource>
+            <datasource>./qgis_plugin_test_demascii.asc</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>demascii</layername>
+            <layername>qgis_plugin_test_demascii</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -164,7 +164,7 @@
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>geoforms</layername>
+            <layername>qgis_plugin_test_geoforms</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -513,7 +513,7 @@
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>landuse</layername>
+            <layername>qgis_plugin_test_landuse</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -791,13 +791,13 @@
         </maplayer>
         <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Point" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
             <id>pt120130827095302041</id>
-            <datasource>./pt1.shp</datasource>
+            <datasource>./qgis_plugin_test_pt1.shp</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>pt1</layername>
+            <layername>qgis_plugin_test_pt1</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -1082,13 +1082,13 @@
         </maplayer>
         <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Point" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
             <id>pt1json20131024103022360</id>
-            <datasource>./pt1json.geojson</datasource>
+            <datasource>./qgis_plugin_test_pt2.shp</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>pt1json</layername>
+            <layername>qgis_plugin_test_pt1json</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -1151,9 +1151,9 @@
                 <multilineenabled fieldname="" on=""/>
                 <selectedonly on=""/>
             </labelattributes>
-            <editform></editform>
+            <editform>.</editform>
             <editforminit></editforminit>
-            <annotationform></annotationform>
+            <annotationform>.</annotationform>
             <editorlayout>generatedlayout</editorlayout>
             <excludeAttributesWMS/>
             <excludeAttributesWFS/>
@@ -1161,13 +1161,13 @@
         </maplayer>
         <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Point" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
             <id>pt220130827095302056</id>
-            <datasource>./pt2.shp</datasource>
+            <datasource>./qgis_plugin_test_pt3.shp</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>pt2</layername>
+            <layername>qgis_plugin_test_pt2</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -1452,13 +1452,13 @@
         </maplayer>
         <maplayer minimumScale="0" maximumScale="1e+08" minLabelScale="0" maxLabelScale="1e+08" geometry="Point" type="vector" hasScaleBasedVisibilityFlag="0" scaleBasedLabelVisibilityFlag="0">
             <id>pt320130827095302073</id>
-            <datasource>./pt3.shp</datasource>
+            <datasource>./qgis_plugin_test_pt4.shp</datasource>
             <title></title>
             <abstract></abstract>
             <keywordList>
                 <value></value>
             </keywordList>
-            <layername>pt3</layername>
+            <layername>qgis_plugin_test_pt3</layername>
             <srs>
                 <spatialrefsys>
                     <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>

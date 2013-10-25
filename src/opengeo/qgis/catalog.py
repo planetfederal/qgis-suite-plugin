@@ -281,7 +281,7 @@ class OGCatalog(object):
         settings.endGroup()
         return connName  
               
-    def publishGroup(self, name, workspace = None, overwrite = False, overwriteLayers = False):
+    def publishGroup(self, name, destName = None, workspace = None, overwrite = False, overwriteLayers = False):
         
         ''' 
         Publishes a group in the given catalog
@@ -297,7 +297,7 @@ class OGCatalog(object):
         workspace will not be published. If True, all layers in the group are published, even if layers with the same name 
         exist in the workspace
         '''
-        
+                
         groups = layers.getGroups()
         if name not in groups:
             raise Exception("The specified group does not exist")
@@ -309,8 +309,9 @@ class OGCatalog(object):
             if gslayer is None:
                 self.publishLayer(layer, workspace, overwrite)
                 
-        names = [layer.name() for layer in group]
-        layergroup = self.catalog.create_layergroup(name, names, names)
+        names = [layer.name() for layer in group]        
+        destName = destName if destName is not None else name
+        layergroup = self.catalog.create_layergroup(destName, names, names)
         self.catalog.save(layergroup)
         
     def publishLayer (self, layer, workspace=None, overwrite=True, name=None,

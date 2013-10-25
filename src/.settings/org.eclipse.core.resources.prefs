@@ -14,3 +14,6 @@ encoding//opengeo/postgis/postgis_utils.py=utf-8
 encoding//opengeo/qgis/catalog.py=utf-8
 encoding//opengeo/qgis/exporter.py=utf-8
 encoding//opengeo/qgis/layers.py=utf-8
+encoding//opengeo/test/qgisinterface.py=utf-8
+encoding//opengeo/test/qgistestapp.py=utf-8
+encoding//opengeo/test/test.py=utf-8

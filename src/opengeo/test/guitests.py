@@ -8,17 +8,18 @@ from opengeo.gui.explorer import OpenGeoExplorer
 
 WORKSPACE_NAME = "test"
 
-class GuiTests(unittest.TestCase):
+class CreateCatalogTests(unittest.TestCase):
     
     explorer = OpenGeoExplorer(singletab = True)
 
     def setUp(self):
+        
         self.cat = createGeoServerCatalog()        
             
     def testCreateCatalogDialog(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("name")
-        dialog.urlBox.setText("url")
+        dialog.urlBox.setText("http://localhost:8080/geoserver")
         dialog.passwordBox.setText("password")
         dialog.usernameBox.setText("username")
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
@@ -27,12 +28,31 @@ class GuiTests(unittest.TestCase):
         self.assertEquals("username", dialog.username)
         self.assertEquals("password", dialog.password)
         self.assertEquals("name", dialog.name)
-        self.assertEquals("url/rest", dialog.url)
+        self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
         settings = QSettings()
         settings.endGroup(); 
         settings.beginGroup("/OpenGeo/GeoServer/name") 
         settings.remove(""); 
-        settings.endGroup();        
+        settings.endGroup();    
+        
+    def testCreateCatalogDialogWithUrlWithoutProtocol(self):
+        dialog = DefineCatalogDialog(self.explorer)
+        dialog.nameBox.setText("name")
+        dialog.urlBox.setText("localhost:8080/geoserver")
+        dialog.passwordBox.setText("password")
+        dialog.usernameBox.setText("username")
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dialog.ok)
+        self.assertEquals("username", dialog.username)
+        self.assertEquals("password", dialog.password)
+        self.assertEquals("name", dialog.name)
+        self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
+        settings = QSettings()
+        settings.endGroup(); 
+        settings.beginGroup("/OpenGeo/GeoServer/name") 
+        settings.remove(""); 
+        settings.endGroup();             
         
     def testCreateCatalogDialogUsingExistingName(self):
         self.explorer.catalogs()["name"] = self.cat
@@ -51,7 +71,7 @@ class GuiTests(unittest.TestCase):
         del self.explorer.catalogs()["name"]
 
 def suite():
-    suite = unittest.makeSuite(GuiTests, 'test')
+    suite = unittest.makeSuite(CreateCatalogTests, 'test')
     return suite
 
 

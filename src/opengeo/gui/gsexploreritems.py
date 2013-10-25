@@ -1383,7 +1383,7 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
              [layerItem],
              layer)  
 
-def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
+def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):    
     if uris:      
         if len(uris) > 1:  
             explorer.setProgressMaximum(len(uris))                                     

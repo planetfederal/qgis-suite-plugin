@@ -6,7 +6,7 @@ from opengeo.gui.exploreritems import *
 from opengeo.gui.explorerwidget import ExplorerWidget
 from opengeo import config
 from raven import Client
-from qgis.utils import pluginMetadata
+from qgis.utils import pluginMetadata 
 import traceback
 
 

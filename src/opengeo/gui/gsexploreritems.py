@@ -1007,7 +1007,10 @@ class GsStyleItem(GsTreeItem):
         deleteSelectedAction.triggered.connect(lambda: self.deleteElements(selected, tree, explorer))
         return [deleteSelectedAction]
     
-    def editStyle(self, tree, explorer, gslayer = None): 
+    def editStyle(self, tree, explorer, gslayer = None):
+        settings = QSettings()
+        prjSetting = settings.value('/Projections/defaultBehaviour')
+        settings.setValue('/Projections/defaultBehaviour', '') 
         if gslayer is None:
             gslayer = getLayerFromStyle(self.element)               
         if gslayer is not None:
@@ -1030,6 +1033,7 @@ class GsStyleItem(GsTreeItem):
         layer.loadSldStyle(sldfile)
         oldSld = getGsCompatibleSld(layer)            
         config.iface.showLayerProperties(layer)
+        settings.setValue('/Projections/defaultBehaviour', prjSetting)
         newSld = getGsCompatibleSld(layer)
         if newSld != oldSld:
             explorer.run(self.element.update_body, "Update style", [], newSld)                 

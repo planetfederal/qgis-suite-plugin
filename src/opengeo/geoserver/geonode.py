@@ -3,6 +3,10 @@ import requests
 class Geonode(object):
     def __init__(self, url = "http://localhost:8000/", username="admin", password="admin"):
         self.url = url
+        if not self.url.startswith('http://'):
+            self.url = 'http://%s' % self.url
+        if not self.url.endswith('/'):
+            self.url = '%s/' % self.url
         self.username = username
         self.password = password
 

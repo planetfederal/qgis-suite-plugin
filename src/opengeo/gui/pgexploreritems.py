@@ -447,13 +447,22 @@ class PgTableItem(PgTreeItem):
         self.deleteTables(explorer, [self])
         
     def deleteTables(self, explorer, items):
-        explorer.setProgressMaximum(len(items), "Delete tables")
+        if len(items) > 1:
+            explorer.setProgressMaximum(len(items), "Delete tables")
+        toUpdate = set()
         for i, item in enumerate(items):                      
             explorer.run(item.element.conn.geodb.delete_table, 
-                          None, 
-                          [item.parent()], 
+                          "Delete PostGIS table", 
+                          [], 
                           item.element.name, item.element.schema)
+            toUpdate.add(item.parent())
             explorer.setProgress(i+1)
+        explorer.resetActivity()
+        if len(toUpdate) > 1:
+            self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")                                                                                                                                     
+        for i, item in enumerate(toUpdate):            
+            item.refreshContent(explorer)
+            explorer.setProgress(i+1)                
         explorer.resetActivity()
     
     def renameTable(self, explorer):

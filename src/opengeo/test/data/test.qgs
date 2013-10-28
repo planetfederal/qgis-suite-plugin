@@ -4,12 +4,12 @@
     <mapcanvas>
         <units>degrees</units>
         <extent>
-            <xmin>18.61384004360766653</xmin>
-            <ymin>45.74151472635418259</ymin>
-            <xmax>18.75603008719646425</xmax>
-            <ymax>45.84685551921010926</ymax>
+            <xmin>263162.11032576049910858</xmin>
+            <ymin>4459886.25</ymin>
+            <xmax>267380.94112423952901736</xmax>
+            <ymax>4463613.75</ymax>
         </extent>
-        <projections>1</projections>
+        <projections>0</projections>
         <destinationsrs>
             <spatialrefsys>
                 <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
@@ -23,7 +23,7 @@
             </spatialrefsys>
         </destinationsrs>
     </mapcanvas>
-    <legend updateDrawingOrder="true" activeLayer="pt320130827095302073">
+    <legend updateDrawingOrder="true" activeLayer="dem20131024100950168">
         <legendgroup open="true" checked="Qt::Checked" name="qgis_plugin_test_elevation">
             <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_pt1" showFeatureCount="0">
                 <filegroup open="true" hidden="false">
@@ -53,8 +53,8 @@
                 </filegroup>
             </legendlayer>
         </legendgroup>
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="qgis_plugin_test_dem" showFeatureCount="0">
-            <filegroup open="false" hidden="false">
+        <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="qgis_plugin_test_dem" showFeatureCount="0">
+            <filegroup open="true" hidden="false">
                 <legendlayerfile isInOverview="0" layerid="dem20131024100950168" visible="1"/>
             </filegroup>
         </legendlayer>
@@ -83,13 +83,13 @@
             <layername>qgis_plugin_test_dem</layername>
             <srs>
                 <spatialrefsys>
-                    <proj4>+proj=tmerc +lat_0=0 +lon_0=18 +k=0.9999 +x_0=6500000 +y_0=0 +ellps=bessel +units=m +no_defs</proj4>
-                    <srsid>100002</srsid>
-                    <srid>0</srid>
-                    <authid>USER:100002</authid>
-                    <description> * Generated CRS (+proj=tmerc +lat_0=0 +lon_0=18 +k=0.9999 +x_0=6500000 +y_0=0 +ellps=bessel +units=m +no_defs)</description>
-                    <projectionacronym>tmerc</projectionacronym>
-                    <ellipsoidacronym>bessel</ellipsoidacronym>
+                    <proj4>+proj=utm +zone=30 +ellps=intl +towgs84=-87,-98,-121,0,0,0,0 +units=m +no_defs</proj4>
+                    <srsid>1976</srsid>
+                    <srid>23030</srid>
+                    <authid>EPSG:23030</authid>
+                    <description>ED50 / UTM zone 30N</description>
+                    <projectionacronym>utm</projectionacronym>
+                    <ellipsoidacronym>intl</ellipsoidacronym>
                     <geographicflag>false</geographicflag>
                 </spatialrefsys>
             </srs>
@@ -98,15 +98,15 @@
             </customproperties>
             <provider>gdal</provider>
             <pipe>
-                <rasterrenderer opacity="1" alphaBand="0" classificationMax="234.113" classificationMinMaxOrigin="CumulativeCutFullExtentEstimated" band="1" classificationMin="87.0644" type="singlebandpseudocolor">
+                <rasterrenderer opacity="1" alphaBand="0" classificationMax="2357" classificationMinMaxOrigin="MinMaxFullExtentEstimated" band="1" classificationMin="1213" type="singlebandpseudocolor">
                     <rasterTransparency/>
                     <rastershader>
                         <colorrampshader colorRampType="INTERPOLATED" clip="0">
-                            <item alpha="255" value="87.0644" label="87.064400" color="#d7191c"/>
-                            <item alpha="255" value="123.827" label="123.826550" color="#fdae61"/>
-                            <item alpha="255" value="160.589" label="160.588700" color="#ffffc0"/>
-                            <item alpha="255" value="197.351" label="197.350850" color="#a6d96a"/>
-                            <item alpha="255" value="234.113" label="234.113000" color="#1a9641"/>
+                            <item alpha="255" value="1213" label="1213.000000" color="#d7191c"/>
+                            <item alpha="255" value="1499" label="1499.000000" color="#fdae61"/>
+                            <item alpha="255" value="1785" label="1785.000000" color="#ffffc0"/>
+                            <item alpha="255" value="2071" label="2071.000000" color="#a6d96a"/>
+                            <item alpha="255" value="2357" label="2357.000000" color="#1a9641"/>
                         </colorrampshader>
                     </rastershader>
                 </rasterrenderer>
@@ -1745,6 +1745,7 @@
     <properties>
         <SpatialRefSys>
             <ProjectCrs type="QString">EPSG:4326</ProjectCrs>
+            <ProjectionsEnabled type="int">0</ProjectionsEnabled>
         </SpatialRefSys>
         <Paths>
             <Absolute type="bool">false</Absolute>

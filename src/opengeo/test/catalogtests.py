@@ -32,8 +32,8 @@ class CatalogTests(unittest.TestCase):
     def testVectorLayerRoundTrip(self):
         self.cat.publishLayer(PT1, self.ws, name = PT1)
         self.assertIsNotNone(self.cat.catalog.get_layer(PT1))        
-        self.cat.addLayerToProject(PT1)
-        layer = layers.resolveLayer(PT1)
+        self.cat.addLayerToProject(PT1, "pt1")
+        layer = layers.resolveLayer("pt1")
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse = True)
         #TODO: more checking to ensure that the layer in the project is correct
@@ -41,10 +41,8 @@ class CatalogTests(unittest.TestCase):
     def testRasterLayerRoundTrip(self):        
         self.cat.publishLayer(DEM, self.ws, name = DEM)
         self.assertIsNotNone(self.cat.catalog.get_layer(DEM))        
-        
-        ''' This will fail due to the GeoServer REST API. If the layer is not under a namespace, it seems is not exposed as WCS'''
-        self.cat.addLayerToProject("demgs")
-        layer = layers.resolveLayer("demgs")
+        self.cat.addLayerToProject(DEM, "DEM")
+        layer = layers.resolveLayer("DEM")
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True) 
         #TODO: more checking to ensure that the layer in the project is correct              
@@ -80,7 +78,7 @@ class CatalogTests(unittest.TestCase):
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
         
     def testGroup(self):
-        self.cat.publishGroup(GEOLOGY_GROUP, self.ws, name = GEOLOGY_GROUP)
+        self.cat.publishGroup(GEOLOGY_GROUP, workspace = self.ws)
         group = self.cat.catalog.get_layergroup(GEOLOGY_GROUP)
         self.assertIsNotNone(group)
         layers = group.layers

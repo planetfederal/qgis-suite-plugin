@@ -4,7 +4,8 @@ CATALOG
 -Connect to catalog
 -Connect to catalog with wrong url or credentials: should show "could not connect to catalog" message in message bar
 -Check connections are persisted if corresponding option is enabled
--Connect to previous workspace that is not enables (icon is grayed-out)
+-Connect to previous workspace that is not enabled (icon is grayed-out)
+Check that clicking on the catalog item displays catalog info in the description panel
 -Remove catalog:
 	-Check it removes it from the tree 
 	-Check that, when reopening the explorer, it is not in the list of previous catalogs
@@ -16,6 +17,7 @@ WORKSPACE
 -Create new worskpace with existing name: should show error message in message bar
 -Create new worskpace with wrong/missing uri: should show error message in message bar
 -Set workspace as default.
+-Check that "set as default workspace" is disabled for the current default workspace
 -Delete non-empty workspace: 
 	- Delete empty with all its datastores not used by any layer. It should be deleted without warning
 	- Delete empty with at least a datastore used by a layer. It should show warning and clicking on ok should delete the workspace and the dependent layers
@@ -57,12 +59,15 @@ GROUPS
 	-check that it shows error on message bar if no layer is selected (empty group)
 	-check that no group is created if clicked on "cancel"
 	-check that "(de)select option works fine"
+	-check that when the dialog is opened layers have their default style selected
 -Delete group.
 -Delete layer that is used in a group. 
 	-It should show a confirmation dialog saying that the group will also be deleted. 
 	-Accept and check that both elements are deleted
 -Edit group:
-	-check that previous layers are in the group definition
+	-check that previous layers are in the group definition	
+	-check that group layers have the corresponding style and that style is saved when closing
+	-check that non-group layers have their default style selected
 	-check that group is modified when closing
 	-check that group is not modified if clicking "cancel"
 -Remove layer from group
@@ -85,17 +90,40 @@ STYLES
 -Consolidate styles
 	-Import several layers with the same style
 	-Run "consolidate styles". It should leave only the first of those styles, delete the other ones, and use that first one in the layers that used the remaining ones
-
-Delete style.
+-Edit style: Set the "prompt for CRS" option in the Options.../CRS group. When editing a stlye, it should not ask for the CRS but go directly to the styling dialog
+-Edit SLD
+-Delete style.
 	-If style is used by layer, it should ask for confirmation and warn that the layer will also be deleted. Check that all layers using the style are deleted
 
 
 	
 QGIS PROJECT
 
+LAYERS
+-Drag layer to Geoserver  catalog/workspaces item/individual workspace/layers item
+-Drag layer to postgis connection and postgis schema
+ 
+-Publish to GeoServer
+	-Check that no action is performed if "cancel" is selected
+-Create store form layer
+	-Check that no action is performed if "cancel" is selected
+-Import into PostGIS
+	-Check that no action is performed if "cancel" is selected
+
+GROUPS
+-Drag group to Geoserver groups item
+-Publish group
+	-Check that no action is performed if "cancel" is selected
+	-Check that the selected workspace when opening the dialog is the default workspace
+
 -When publishing the project, check that: 
 	-if there is no catalog, the option is disabled. 
 	-if there is only one catalog, it will not ask for a catalog and use that only one
 	-if there are two or more, it will ask for a catalog
 
+STYLES
+Publish style:
+	-Check that no action is performed if "cancel" is selected
+	-check that it uses the layer name if no name is entered
+	-Check that it uses the entered named when a name is specified
 

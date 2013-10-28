@@ -22,7 +22,36 @@ WORKSPACE = safeName("workspace")
 WORKSPACEB = safeName("workspaceb")
 
 def cleanCatalog(cat):
-    pass
+       
+    for groupName in [GROUP, GEOLOGY_GROUP]:
+        group = cat.get_layergroup(groupName)
+        if group is not None:
+            cat.delete(group)
+            group = cat.get_layergroup(groupName)
+            assert group is None
+        
+    toDelete = []
+    for layer in cat.get_layers():
+        if layer.name.startswith(PREFIX):
+            toDelete.append(layer)    
+    for style in cat.get_styles():
+        if style.name.startswith(PREFIX):
+            toDelete.append(style)                            
+    
+    for e in toDelete:        
+        cat.delete(e, purge = True)
+        
+    for wsName in [WORKSPACE, WORKSPACEB]:
+        ws = cat.get_workspace(wsName)
+        if ws is not None:
+            for store in cat.get_stores(ws):
+                for resource in store.get_resources():
+                    cat.delete(resource)
+                cat.delete(store)    
+            cat.delete(ws)
+            ws = cat.get_workspace(wsName)    
+            assert ws is None        
+
     
 def populateCatalog(cat):
     cleanCatalog(cat)

@@ -13,7 +13,7 @@ writer = VectorWriter(output, None, provider.fields(),
                       provider.geometryType(), vectorLayer.crs())
 
 features = processing.features(vectorLayer)
-for feat in features:
-    writer.addFeature(feat)
+
+writer.addFeature(features.iter.next())
 
 del writer

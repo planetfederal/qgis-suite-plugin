@@ -35,7 +35,7 @@ class GsTreePanel(QtGui.QWidget):
         self.comboBox.currentIndexChanged.connect(self.catalogHasChanged)   
         horizontalLayout.addWidget(self.comboBox)
         self.addButton = QtGui.QPushButton()
-        self.addButton.clicked.connect(self.addCatalog)
+        self.addButton.clicked.connect(lambda: self.addCatalog(explorer))
         addIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
         self.addButton.setIcon(addIcon)
         self.addButton.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum) 

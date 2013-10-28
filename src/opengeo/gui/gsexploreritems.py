@@ -246,8 +246,8 @@ class GsCatalogsItem(GsTreeItem):
                         return                                    
                 geonode = Geonode(dlg.geonodeUrl)
                 geoserverItem = GsCatalogItem(cat, dlg.name, geonode)
-                geoserverItem.populate()                
                 self.addChild(geoserverItem)
+                geoserverItem.populate()                                
                 self.setExpanded(True)
             except FailedRequestError:
                 # a FailedRequestError implies an invalid URL, not an error

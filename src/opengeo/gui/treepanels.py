@@ -88,14 +88,6 @@ class GsTreePanel(QtGui.QWidget):
         self.wpsAction.setEnabled(False)
         self.updateActionButtons()
             
-        #=======================================================================
-        # self.toolbar.addAction(self.layersAction)
-        # self.toolbar.addAction(self.workspacesAction)
-        # self.toolbar.addAction(self.stylesAction)
-        # self.toolbar.addAction(self.groupsAction)
-        # self.toolbar.addAction(self.gwcAction)
-        # self.toolbar.addAction(self.wpsAction)
-        #=======================================================================
         verticalLayout.addWidget(self.toolbar)
         self.setLayout(verticalLayout)    
         
@@ -196,10 +188,6 @@ class GsTreePanel(QtGui.QWidget):
             button.setEnabled(action.isEnabled())
             button.clicked.connect(action.trigger)                           
             self.toptoolbar.addWidget(button)
-        #=======================================================================
-        # for action in visibleActions:
-        #    self.toptoolbar.addAction(action)
-        #=======================================================================
         self.visibleItems = visibleItems
         self.visibleActions = visibleActions
 
@@ -219,15 +207,10 @@ class GsTreePanel(QtGui.QWidget):
                                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,                                
                                     QtGui.QMessageBox.No);
                     if ret == QtGui.QMessageBox.No:
-                        return
-                name = dlg.name
-                i = 2
-                while name in self.catalogs.keys():
-                    name = dlg.getName() + "_" + str(i)
-                    i += 1                                             
-                self.catalogs[name] = cat   
+                        return                                                                
+                self.catalogs[dlg.name] = cat   
                 self.catalog = cat      
-                self.comboBox.addItem(name, cat)                          
+                self.comboBox.addItem(dlg.name, cat)                          
                 self.layersAction.setEnabled(True)
                 self.workspacesAction.setEnabled(True)
                 self.stylesAction.setEnabled(True)

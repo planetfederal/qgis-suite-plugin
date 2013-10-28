@@ -1,8 +1,5 @@
 eclipse.preferences.version=1
 encoding//opengeo/__init__.py=utf-8
-encoding//opengeo/ext_libs/requests/__init__.py=utf-8
-encoding//opengeo/ext_libs/requests/adapters.py=utf-8
-encoding//opengeo/ext_libs/requests/models.py=utf-8
 encoding//opengeo/gui/dialogs/configdialog.py=utf-8
 encoding//opengeo/gui/dialogs/createtable.py=utf-8
 encoding//opengeo/gui/dialogs/crsdialog.py=utf-8

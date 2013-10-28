@@ -180,8 +180,9 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                     elements.append(uri)                                               
             toUpdate = destinationItem.acceptDroppedUris(self, self.explorer, elements)   
         
-        self.explorer.resetActivity()   
-        self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")                                                                                                                                     
+        self.explorer.resetActivity()
+        if len(toUpdate) > 1:
+            self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")                                                                                                                                     
         for i, item in enumerate(toUpdate):            
             item.refreshContent(self.explorer)
             self.explorer.setProgress(i)                

@@ -52,7 +52,17 @@ When connecting to a catalog, the explorer tries to check the version. If it can
 .. image:: img/intro/version_warning.png
 	:align: center
 
+
+Even if you are using the correct version of GeoServer, some limitations still exists. Below is a list of know limitations and issues than might appear.
+
+- CRS. GeoServer might encounter problems when a custom CRS is used in QGIS. The CRS definition that works correctly when rendering the layer in QGIS might not work when importing the layer into GeoServer. Usually this results in a layer that is published but doesn't have a CRS set and is not enabled. You can correct that manually, selecting the layer in the Explorer tree and modifying its CRS.
+
+	Notice that layers are imported using the SRS defined in the original data source (i.e., the ``prj`` file if using a shapefile). Setting a different CRS using the :guilabel:`Set Layer CRS` option in the QGIS TOC will not have any effect when importing the layer into GeoServer, unless you save the layer with that CRS and the CRS definition is stored along with the layer data.
+
+- Layer names. The OpenGeo Explorer uses the GeoServer REST API to get the list of layers in a catalog. The REST API describes layers without workspace, that meaning that if you have two layers with the same name and in different workspaces (for instance, ``ws1:mylayer`` and ``ws2:mylayer``), they will be shown as just one (``mylayer`` in this case).
+
 Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. Read the styling limitations section to know more about it.
+
 
 
 Usage

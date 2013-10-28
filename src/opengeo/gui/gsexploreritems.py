@@ -664,7 +664,7 @@ class GsLayerItem(GsTreeItem):
             dlg.exec_()
             if dlg.authid is not None:
                 r = self.element.resource
-                r.dirty['srs'] = text                                 
+                r.dirty['srs'] = str(dlg.authid)                                
                 explorer.run(self.catalog.save, "Update layer srs", [], r) 
         actions = self.contextMenuActions(tree, explorer)
         for action in actions:

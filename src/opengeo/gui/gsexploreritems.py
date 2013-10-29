@@ -127,6 +127,7 @@ class GsTreeItem(TreeItem):
             #we run this delete operation this way, to ignore the error in case we are trying to delete
             #something that doesn't exist which might happen if a previous deletion has purged the element
             #we now want to delete. It is deleted already anyway, so we should not raise any exception
+            #TODO: this might swallow other type of exceptions. Should implement a more fine-grained error handling
             try:
                 element.catalog.delete(element, recurse = recurse, purge = True)
             except:

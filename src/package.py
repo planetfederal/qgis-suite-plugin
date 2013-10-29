@@ -10,7 +10,7 @@ import xmlrpclib
 import zipfile
 
 
-SOURCES_DIR = "D:/projects/suite-qgis-plugin/src/opengeo"
+SOURCES_DIR = "D:/github/suite-qgis-plugin/src/opengeo"
 PACKAGE_DIR = "D:/"
 
 SERVER = "plugins.qgis.org"
@@ -41,7 +41,9 @@ def createPackage(pluginName):
         for root, dirs, files in os.walk(SOURCES_DIR):
             for f in files:
                 if f not in EXCLUDE_FILE:
-                    myZip.write(os.path.join(root, f), os.path.join(re.sub("^.*opengeo", "opengeo", root), f))
+                    myZip.write(os.path.join(root, f), os.path.join(re.sub("^.*opengeo", "opengeo", root), f))                    
+            if "test" in dirs:
+                dirs.remove("test")
 
 
 def upload(packagePath):

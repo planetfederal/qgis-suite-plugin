@@ -323,7 +323,7 @@ class OGCatalog(object):
         
         layer: the layer to publish, whether as a QgsMapLayer object or its name in the QGIS TOC.
             
-        workspace: the workspace to publish to. USes the default project if not passed 
+        workspace: the workspace to publish to. USes the default workspace if not passed 
         or None 
         
         name: the name for the published layer. Uses the QGIS layer name if not passed 

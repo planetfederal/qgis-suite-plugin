@@ -24,8 +24,7 @@ class ExplorerIntegrationTest(unittest.TestCase):
         
     def _getItemUnder(self, parent, name):
         for idx in range(parent.childCount()):
-            item = parent.child(idx)
-            itemName = item.text(0)
+            item = parent.child(idx)            
             if item.text(0) == name:
                 return item
 

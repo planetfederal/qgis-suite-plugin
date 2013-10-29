@@ -28,6 +28,7 @@ class LayerGroupDialog(QtGui.QDialog):
         self.nameBox = QtGui.QLineEdit()
         if self.previousgroup:
             self.nameBox.setText(self.previousgroup.name)
+            self.nameBox.setEnabled(False)
         else:
             self.nameBox.setText("Group")
         self.horizontalLayout.addWidget(self.nameLabel)
@@ -94,10 +95,10 @@ class LayerGroupDialog(QtGui.QDialog):
                 i += 1
 
     def okPressed(self):
-        self.name = self.nameBox.text()
+        self.name = self.nameBox.text().replace(" ", "_")
         if self.name.strip() == "":
+            self.nameBox.setStyleSheet("QLineEdit{background: yellow}")
             return
-            #TODO show alert
         layers = []
         styles = []
         for i in range(len(self.layernames)):

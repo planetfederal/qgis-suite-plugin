@@ -5,15 +5,17 @@ from PyQt4.QtCore import *
 from PyQt4.QtTest import QTest
 from opengeo.gui.dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.explorer import OpenGeoExplorer
+from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
+from opengeo.test.integrationtest import ExplorerIntegrationTest
+from opengeo.test.utils import GROUP
 
 WORKSPACE_NAME = "test"
 
-class CreateCatalogTests(unittest.TestCase):
+class CreateCatalogDialogTests(unittest.TestCase):
     
     explorer = OpenGeoExplorer(singletab = True)
 
-    def setUp(self):
-        
+    def setUp(self):        
         self.cat = createGeoServerCatalog()        
             
     def testCreateCatalogDialog(self):
@@ -33,7 +35,7 @@ class CreateCatalogTests(unittest.TestCase):
         settings.endGroup(); 
         settings.beginGroup("/OpenGeo/GeoServer/name") 
         settings.remove(""); 
-        settings.endGroup();    
+        settings.endGroup(); 
         
     def testCreateCatalogDialogWithUrlWithoutProtocol(self):
         dialog = DefineCatalogDialog(self.explorer)
@@ -88,10 +90,50 @@ class CreateCatalogTests(unittest.TestCase):
         settings.endGroup(); 
         settings.beginGroup("/OpenGeo/GeoServer/catalogname") 
         settings.remove(""); 
-        settings.endGroup();        
+        settings.endGroup();
+     
+class GroupDialogTests(ExplorerIntegrationTest):
+    
+    explorer = OpenGeoExplorer(singletab = True)
+
+                                        
+    def testGroupDialogWithEmptyName(self):
+        dialog = LayerGroupDialog(self.cat)
+        dialog.nameBox.setText("")
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertIsNone(dialog.group)
+        self.assertEquals("QLineEdit{background: yellow}", dialog.nameBox.styleSheet())
+        
+    def testGroupDialogWithNameContaingBlankSpaces(self):
+        dialog = LayerGroupDialog(self.cat)
+        dialog.nameBox.setText("my group")
+        dialog.table.cellWidget(0, 0).setChecked(True)
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertIsNotNone(dialog.group)
+        self.assertEquals("my_group", dialog.group.name)
+    
+    def testSelectAllButton(self):
+        dialog = LayerGroupDialog(self.cat)        
+        QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
+        for i in range(dialog.table.rowCount()):
+            self.assertTrue(dialog.table.cellWidget(i, 0).isChecked())
+        QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
+        for i in range(dialog.table.rowCount()):
+            self.assertFalse(dialog.table.cellWidget(i, 0).isChecked())            
+                
+    def testCannotEditName(self):
+        group = self.cat.get_layergroup(GROUP)
+        self.assertIsNotNone(group)
+        dialog = LayerGroupDialog(self.cat, group)
+        self.assertFalse(dialog.nameBox.isEnabled())
+
 
 def suite():
-    suite = unittest.makeSuite(CreateCatalogTests, 'test')
+    suite = unittest.TestSuite()
+    suite.addTests(unittest.makeSuite(CreateCatalogDialogTests, 'test'))
+    suite.addTests(unittest.makeSuite(GroupDialogTests, 'test'))
     return suite
 
 

@@ -20,7 +20,10 @@ class DefineCatalogDialog(QtGui.QDialog):
         nameLabel = QtGui.QLabel('Catalog name')
         nameLabel.setMinimumWidth(150)
         self.nameBox = QtGui.QLineEdit()
-        self.nameBox.setText('Default GeoServer catalog')
+        settings = QtCore.QSettings()     
+        name = settings.value('/OpenGeo/LastCatalogName', 'Default GeoServer catalog') 
+        self.nameBox.setText(name)
+        
         self.nameBox.setMinimumWidth(250)
         horizontalLayout.addWidget(nameLabel)
         horizontalLayout.addWidget(self.nameBox)
@@ -31,8 +34,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         horizontalLayout.setMargin(0)        
         urlLabel = QtGui.QLabel('URL')
         urlLabel.setMinimumWidth(150)
-        self.urlBox = QtGui.QLineEdit()
-        settings = QtCore.QSettings()        
+        self.urlBox = QtGui.QLineEdit()        
         url = settings.value('/OpenGeo/LastCatalogUrl', 'http://localhost:8080/geoserver')                
         self.urlBox.setText(url)
         self.urlBox.setMinimumWidth(250)
@@ -121,7 +123,8 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.name = name
         self.geonodeUrl = unicode(self.urlGeonodeBox.text())
         settings = QtCore.QSettings()
-        settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text())
+        settings.setValue('/OpenGeo/LastCatalogName', self.nameBox.text())
+        settings.setValue('/OpenGeo/LastCatalogUrl', self.urlBox.text())        
         settings.setValue('/OpenGeo/LastGeoNodeUrl', self.urlGeonodeBox.text()) 
         saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", True, bool))
         if saveCatalogs:  

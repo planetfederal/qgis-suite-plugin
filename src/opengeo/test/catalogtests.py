@@ -12,7 +12,8 @@ class CatalogTests(unittest.TestCase):
     '''
     Tests for the OGCatalog class that provides additional capabilities to a gsconfig catalog
     Requires a Geoserver catalog running on localhost:8080 with default credentials
-    and a PostGIS database on localhost:54321 with default credentials (postgres/postgres)    
+    It also requires a running PostGIS on localhost:54321 with default credentials (postgres/postgres) 
+    and a database named "opengeo"    
     '''
 
     @classmethod
@@ -108,10 +109,3 @@ class CatalogTests(unittest.TestCase):
 def suite():
     suite = unittest.makeSuite(CatalogTests, 'test')
     return suite
-
-
-def runtests():
-    result = unittest.TestResult()
-    testsuite = suite()
-    testsuite.run(result)
-    return result

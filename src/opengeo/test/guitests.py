@@ -69,6 +69,26 @@ class CreateCatalogTests(unittest.TestCase):
         settings.remove(""); 
         settings.endGroup();        
         del self.explorer.catalogs()["name"]
+        
+    def testLastCatalogNameIsShownByDefault(self):        
+        dialog = DefineCatalogDialog(self.explorer)
+        dialog.nameBox.setText("catalogname")
+        dialog.urlBox.setText("localhost:8081/geoserver")
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dialog.ok)
+        self.assertEquals("catalogname", dialog.name)
+        self.assertEquals("http://localhost:8081/geoserver/rest", dialog.url)
+        dialog = DefineCatalogDialog(self.explorer)                
+        self.assertEquals("catalogname", dialog.nameBox.text())
+        self.assertEquals("localhost:8081/geoserver", dialog.urlBox.text())
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        settings = QSettings()
+        settings.endGroup(); 
+        settings.beginGroup("/OpenGeo/GeoServer/catalogname") 
+        settings.remove(""); 
+        settings.endGroup();        
 
 def suite():
     suite = unittest.makeSuite(CreateCatalogTests, 'test')

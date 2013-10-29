@@ -32,6 +32,7 @@ from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
 from opengeo.geoserver.util import getLayerFromStyle
 from opengeo.geoserver.geonode import Geonode
+from opengeo.gui.overwrite import publishLayer
 
 class GsTreeItem(TreeItem):
     
@@ -277,15 +278,7 @@ class GsLayersItem(GsTreeItem):
         self.sortChildren(0, Qt.AscendingOrder)                  
     
     def acceptDroppedItem(self, tree, explorer, item):            
-        if isinstance(item, GsLayerItem):
-            catalog = self.parentCatalog()
-            workspace = self.getDefaultWorkspace()
-            toUpdate = []
-            if workspace is not None:
-                publishDraggedLayer(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])  
-            return toUpdate  
-        elif isinstance(item, QgsGroupItem):                
+        if isinstance(item, QgsGroupItem):                
             catalog = self.parentCatalog()
             if catalog is None:
                 return
@@ -385,8 +378,8 @@ class GsWorkspacesItem(GsTreeItem):
             workspace = self.getDefaultWorkspace()
             toUpdate = []
             if workspace is not None:
-                publishDraggedLayer(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])  
+                if publishDraggedLayer(explorer, item.element, workspace):
+                    toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate   
         elif isinstance(item, PgTableItem):
             catalog = self.parentCatalog()
@@ -525,8 +518,10 @@ class GsCatalogItem(GsTreeItem):
         elif isinstance(item, QgsLayerItem):
             catalog = self.element
             workspace = self.getDefaultWorkspace()                        
-            publishDraggedLayer(explorer, item.element, workspace)            
-            return [self]
+            if publishDraggedLayer(explorer, item.element, workspace):          
+                return [self]
+            else:
+                return []
         elif isinstance(item, PgTableItem):
             catalog = self.element
             workspace = self.getDefaultWorkspace()                
@@ -617,8 +612,8 @@ class GsLayerItem(GsTreeItem):
             workspace = self.getDefaultWorkspace()
             toUpdate = []
             if workspace is not None:
-                publishDraggedLayer(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])  
+                if publishDraggedLayer(explorer, item.element, workspace):
+                    toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
         else:
             return []
@@ -1098,8 +1093,10 @@ class GsWorkspaceItem(GsTreeItem):
             publishDraggedGroup(explorer, item, catalog, workspace)
             return tree.findAllItems(catalog) 
         elif isinstance(item, QgsLayerItem):
-            publishDraggedLayer(explorer, item.element, self.element)
-            return tree.findAllItems(self.element.catalog)
+            if publishDraggedLayer(explorer, item.element, self.element):
+                return tree.findAllItems(self.element.catalog)
+            else:
+                return []
         elif isinstance(item, PgTableItem):
             catalog = self.parentCatalog()
             workspace = self.element
@@ -1164,8 +1161,10 @@ class GsStoreItem(GsTreeItem):
 
     def acceptDroppedItem(self, tree, explorer, item):  
         if isinstance(item, QgsLayerItem):      
-            publishDraggedLayer(explorer, item.element, self.element.workspace)
-            return tree.findAllItems(self.element.catalog)  
+            if publishDraggedLayer(explorer, item.element, self.element.workspace):
+                return tree.findAllItems(self.element.catalog)  
+            else:
+                return []
         else:
             return []      
     
@@ -1195,8 +1194,10 @@ class GsResourceItem(GsTreeItem):
 
     def acceptDroppedItem(self, tree, explorer, item):  
         if isinstance(item, QgsLayerItem):      
-            publishDraggedLayer(explorer, item.element, self.element.workspace)
-            return tree.findAllItems(self.element.catalog)
+            if publishDraggedLayer(explorer, item.element, self.element.workspace):
+                return tree.findAllItems(self.element.catalog)
+            else:
+                return []
         else:
             return []
     
@@ -1294,8 +1295,9 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace):
     group = groups[groupName]           
     gslayers= [layer.name for layer in catalog.get_layers()]
     missing = []         
+    overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool)) 
     for layer in group:            
-        if layer.name() not in gslayers:
+        if layer.name() not in gslayers or overwrite:
             missing.append(layer)         
     if missing:
         explorer.setProgressMaximum(len(missing), "Publish layers")
@@ -1304,7 +1306,7 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace):
         for layer in missing:
             explorer.setProgress(progress)                                           
             explorer.run(ogcat.publishLayer,
-                     None,#"Layer correctly published from layer '" + layer.name() + "'",
+                     None,
                      [],
                      layer, workspace, True)
             progress += 1                                                            
@@ -1318,10 +1320,10 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace):
 def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog  
     ogcat = OGCatalog(cat)                                
-    ret = explorer.run(ogcat.publishLayer,
+    ret = explorer.run(publishLayer,
              "Publish layer from layer '" + layer.name() + "'",
              [],
-             layer, workspace, True)    
+             ogcat, layer, workspace, True)    
     return ret
     
 def publishDraggedTable(explorer, table, workspace):    

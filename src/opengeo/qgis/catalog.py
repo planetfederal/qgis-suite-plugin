@@ -166,8 +166,7 @@ class OGCatalog(object):
         return data
     
     
-    def upload(self, layer, workspace=None, overwrite=True, name=None,
-                           abstract=None, permissions=None, keywords=()):        
+    def upload(self, layer, workspace=None, overwrite=True, name=None):        
         '''uploads the specified layer'''  
               
         if isinstance(layer, basestring):
@@ -309,20 +308,25 @@ class OGCatalog(object):
         if name not in groups:
             raise Exception("The specified group does not exist")
         
+        destName = destName if destName is not None else name
+        gsgroup = self.catalog.get_layergroup(destName)
+        if gsgroup is not None and not overwrite:
+            return
+        
+        
         group = groups[name]
         
         for layer in group:
             gslayer = self.catalog.get_layer(layer.name())
-            if gslayer is None:
-                self.publishLayer(layer, workspace, overwrite)
+            if gslayer is None or overwriteLayers:
+                self.publishLayer(layer, workspace, True)
                 
         names = [layer.name() for layer in group]        
-        destName = destName if destName is not None else name
+        
         layergroup = self.catalog.create_layergroup(destName, names, names)
         self.catalog.save(layergroup)
         
-    def publishLayer (self, layer, workspace=None, overwrite=True, name=None,
-                           abstract=None, permissions=None, keywords=()):
+    def publishLayer (self, layer, workspace=None, overwrite=True, name=None):
         '''
         Publishes a QGIS layer. 
         It creates the corresponding store and the layer itself.
@@ -335,23 +339,25 @@ class OGCatalog(object):
         
         name: the name for the published layer. Uses the QGIS layer name if not passed 
         or None
-           
-        params: a dict with additional configuration parameters if needed
         
         '''
         
         if isinstance(layer, basestring):
-            layer = layers.resolveLayer(layer)    
+            layer = layers.resolveLayer(layer)   
                 
         name = name if name is not None else layer.name()
+        
+        gslayer = self.catalog.get_layer(name)
+        if gslayer is not None and not overwrite:
+            return 
+        
         title = name
         name = name.replace(" ", "_")        
           
         sld = self.publishStyle(layer, overwrite, name)
             
         layer = self.preprocess(layer)            
-        self.upload(layer, workspace, overwrite, title)
-          
+        self.upload(layer, workspace, overwrite, title)          
 
         if sld is not None:
             #assign style to created store  

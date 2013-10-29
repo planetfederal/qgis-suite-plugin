@@ -10,6 +10,8 @@ from dialogs.layerdialog import PublishLayersDialog, PublishLayerDialog
 from dialogs.projectdialog import PublishProjectDialog
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
+from opengeo.gui.overwrite import publishLayer
+from opengeo.geoserver.catalog import ConflictingDataError
                 
 class QgsTreeItem(TreeItem):
     
@@ -65,14 +67,14 @@ class QgsProjectItem(QgsTreeItem):
         workspace = dlg.workspace
         groupName = dlg.groupName
         explorer.setProgressMaximum(len(layers), "Publish layers")
-        progress = 0                    
+        progress = 0
+        ogcat = OGCatalog(catalog)                    
         for layer in layers:
-            explorer.setProgress(progress)            
-            ogcat = OGCatalog(catalog)                 
-            if not explorer.run(ogcat.publishLayer,
+            explorer.setProgress(progress)                                         
+            if not explorer.run(publishLayer,
                      None, 
                      [],
-                     layer, workspace, True):
+                     ogcat, layer, workspace, True):
                 explorer.setProgress(0)
                 return
             progress += 1                
@@ -81,9 +83,12 @@ class QgsProjectItem(QgsTreeItem):
         groups = qgislayers.getGroups()
         for group in groups:
             names = [layer.name() for layer in groups[group]] 
-            layergroup = catalog.create_layergroup(group, names, names)
-            explorer.run(catalog.save, "Create layer group '" + group + "'", 
+            try:
+                layergroup = catalog.create_layergroup(group, names, names)
+                explorer.run(catalog.save, "Create layer group '" + group + "'", 
                      [], layergroup)
+            except ConflictingDataError, e:
+                explorer.setWarning(str(e))
         
         if groupName is not None:
             names = [layer.name() for layer in layers]      
@@ -143,12 +148,12 @@ class QgsLayerItem(QgsTreeItem):
         for layer, catalog, workspace in toPublish:
             explorer.setProgress(progress)            
             ogcat = OGCatalog(catalog)                 
-            explorer.run(ogcat.publishLayer,
-                     None,#"Publish layer '" + layer.name() + "'",
+            if explorer.run(publishLayer,
+                     None,
                      [],
-                     layer, workspace, True)
+                     ogcat, layer, workspace, True):            
+                toUpdate.add(tree.findAllItems(catalog)[0])
             progress += 1
-            toUpdate.add(tree.findAllItems(catalog)[0])
             explorer.setProgress(progress)
         
         for item in toUpdate:
@@ -223,12 +228,11 @@ class QgsLayerItem(QgsTreeItem):
             return
         cat = dlg.catalog  
         ogcat = OGCatalog(cat)
-        catItem = tree.findAllItems(cat)[0]
-        toUpdate = [catItem]                    
-        explorer.run(ogcat.publishLayer,
+        catItem = tree.findAllItems(cat)[0]                            
+        explorer.run(publishLayer,
                  "Publish layer '" + self.element.name() + "'",
-                 toUpdate,
-                 self.element, dlg.workspace, True)
+                 [catItem],
+                 ogcat, self.element, dlg.workspace, True)
 
              
 class QgsGroupItem(QgsTreeItem): 
@@ -258,12 +262,14 @@ class QgsGroupItem(QgsTreeItem):
         if cat is None:
             return                            
         gslayers= [layer.name for layer in cat.get_layers()]
-        missing = []         
+        missing = []        
+        overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool)) 
         for layer in group:            
-            if layer.name() not in gslayers:
+            if layer.name() not in gslayers or overwrite:
                 missing.append(layer) 
         toUpdate = set();
         toUpdate.add(tree.findAllItems(cat)[0])
+        
         if missing:
             catalogs = {k :v for k, v in explorer.catalogs().iteritems() if v == cat}
             dlg = PublishLayersDialog(catalogs, missing)
@@ -277,7 +283,7 @@ class QgsGroupItem(QgsTreeItem):
                 explorer.setProgress(progress)            
                 ogcat = OGCatalog(catalog)                 
                 if not explorer.run(ogcat.publishLayer,
-                         None,#"Publish layer '" + layer.name() + "'",
+                         None,
                          [],
                          layer, workspace, True):
                     explorer.setProgress(0)

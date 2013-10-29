@@ -9,10 +9,8 @@ from raven import Client
 from qgis.utils import pluginMetadata 
 import traceback
 
-
 SENTRY_URL = "http://5d60c883c47645b78effecd67e0f9c73:a11d69b72e5b439fb30ec4c4bc0d42bb@sentry.boundlessgeo.com/2"
-
-
+   
 class OpenGeoExplorer(QtGui.QDockWidget):
 
     objectName = 'OpenGeoExplorer'
@@ -123,7 +121,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             if None in refresh:
                 self.refreshContent()                        
             if msg is not None and not self.isProgressVisible:
-                self.setInfo("Operation <i>" + msg + "</i> correctly executed")                    
+                self.setInfo("Operation <i>" + msg + "</i> correctly executed")            
         except Exception, e:                                
             self.setError(unicode(str(e.message), errors = "ignore").encode("utf-8") + "\n" + traceback.format_exc())
             noerror = False
@@ -168,6 +166,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         firstLine = msg.split("\n")[0]
         if self.progressMaximum != 0:
             QtGui.QMessageBox.critical(self, "Error", firstLine)
+        self.resetActivity()
         widget = config.iface.messageBar().createMessage("Error", firstLine)
         sendButton = QtGui.QPushButton(widget)
         sendButton.setText("Report error")

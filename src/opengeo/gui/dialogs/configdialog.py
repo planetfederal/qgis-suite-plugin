@@ -73,7 +73,8 @@ class ConfigDialog(QDialog):
         gsParams = [("SaveCatalogs", "Keep a list of previous catalog connections", False),
                     ("UseRestApi", "Always use REST API for uploads", True),                    
                     ("DeleteStyle", "Delete style when deleting layer", True),
-                    ("Recurse", "Delete resource when deleting layer", True)]
+                    ("Recurse", "Delete resource when deleting layer", True),
+                    ("OverwriteGroupLayers", "Overwrite layers when uploading group", True)]
         try:
             import processing.tools.dataobjects
             gsParams.extend([("PreuploadRasterHook", "Raster pre-upload hook file", ""),

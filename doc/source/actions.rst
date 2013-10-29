@@ -254,7 +254,9 @@ QGIS project
 
 	- :guilabel:`Publish`. Publishes the selected group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGIS layers will not be used. Otherwise, layers belonging to the QGIS group to publish will be published as well.
 
-		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created.
+		If you want all layers to be published, even if there is a layer with the same name in the catalog, the :guilabel:`Overwrite layers when uploading group` should be checked in the configuration dialog. This option is enabled by default.
+
+		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created. The set of layers to publish depends on the configuration of the :guilabel:`Overwrite layers when uploading group` setting. If it is set to true, all layers of the group will be included, since all of them will be published even if layers with the same name already exist in the catalog.
 
 - QGIS style item
 
@@ -267,7 +269,9 @@ QGIS project
 		.. image:: img/actions/publish_project.png 
 			:align: center
 
-		All layers will be published to the selected workspace. If there are groups in the QGIS project, they will also be created.
+		All layers will be published to the selected workspace. 
+
+		If there are groups in the QGIS project, they will also be created. Groups are not overwritten when publishing a project. If a group with the same name exists in the catalog, a warning message will be shown and the group will not be uploaded.
 
 		If you want to create a group containing all the published layers, enter its name in the :guilabel:`Global group name` textbox. Otherwise, leave it empty and the global group will not be created.
 

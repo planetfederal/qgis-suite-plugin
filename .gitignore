@@ -5,3 +5,4 @@
 /doc/build
 *.pyc
 ext_libs
+test-output/

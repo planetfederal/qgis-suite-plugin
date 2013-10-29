@@ -254,27 +254,27 @@ class DlgCreateTable(QDialog):
 	def okPressed(self):
 		self.name = unicode(self.editName.text())
 		if len(self.name) == 0:
-		   self.editName.setStyleSheet("QLineEdit{background: yellow}")
-		   return			  
-	   	if self.table.rowCount() == 0:
-		   QMessageBox.information(self, self.tr("Sorry"), self.tr("add some fields!"))
-		   return
- 
-	   	self.useGeomColumn = self.chkGeomColumn.isChecked()
-	   	if self.useGeomColumn:
-		   self.geomColumn = unicode(self.editGeomColumn.text())
-		   if len(self.geomColumn) == 0:
-			   self.editGeomColumn.setStyleSheet("QLineEdit{background: yellow}")
-			   return
- 
-		   self.geomType = self.GEOM_TYPES[ self.cboGeomType.currentIndex() ]
-		   self.geomDim = self.spinGeomDim.value()
-		   try:
-			   self.geomSrid = int(self.editGeomSrid.text())
-		   except ValueError:
-			   self.geomSrid = -1
-		   self.useSpatialIndex = self.chkSpatialIndex.isChecked()
- 
+			self.editName.setStyleSheet("QLineEdit{background: yellow}")
+			return			  
+		if self.table.rowCount() == 0:
+			QMessageBox.information(self, self.tr("Sorry"), self.tr("add some fields!"))
+			return
+
+		self.useGeomColumn = self.chkGeomColumn.isChecked()
+		if self.useGeomColumn:
+			self.geomColumn = unicode(self.editGeomColumn.text())
+			if len(self.geomColumn) == 0:
+				self.editGeomColumn.setStyleSheet("QLineEdit{background: yellow}")
+				return
+			
+			self.geomType = self.GEOM_TYPES[ self.cboGeomType.currentIndex() ]
+			self.geomDim = self.spinGeomDim.value()
+			try:
+				self.geomSrid = int(self.editGeomSrid.text())
+			except ValueError:
+				self.geomSrid = -1
+			self.useSpatialIndex = self.chkSpatialIndex.isChecked()
+
 		self.fields = []
 		for i in xrange(self.table.rowCount()):
 			name = self.table.cellWidget(i, 0).text()

@@ -58,12 +58,12 @@ class PublishLayerDialog(QtGui.QDialog):
         self.spacer = QtGui.QSpacerItem(20,40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
                       
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)                       
-        layout.addWidget(buttonBox)
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)                       
+        layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        self.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
+        self.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
         
         self.resize(400,160) 
         

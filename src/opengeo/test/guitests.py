@@ -8,6 +8,7 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
 from opengeo.test.integrationtest import ExplorerIntegrationTest
 from opengeo.test.utils import GROUP
+from opengeo.gui.dialogs.layerdialog import PublishLayerDialog
 
 WORKSPACE_NAME = "test"
 
@@ -95,7 +96,6 @@ class CreateCatalogDialogTests(unittest.TestCase):
 class GroupDialogTests(ExplorerIntegrationTest):
     
     explorer = OpenGeoExplorer(singletab = True)
-
                                         
     def testGroupDialogWithEmptyName(self):
         dialog = LayerGroupDialog(self.cat)
@@ -129,11 +129,33 @@ class GroupDialogTests(ExplorerIntegrationTest):
         dialog = LayerGroupDialog(self.cat, group)
         self.assertFalse(dialog.nameBox.isEnabled())
 
+class LayerDialogTests(unittest.TestCase):
+    
+    explorer = OpenGeoExplorer(singletab = True)
+    cat = createGeoServerCatalog()
+    catalogs = {"catalog": cat}  
+    
+            
+    def testPublishLayerDialog(self):        
+        dialog = PublishLayerDialog(self.catalogs)        
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertIsNotNone(dialog.catalog)
+        self.assertIsNotNone(dialog.workspace)
+        dialog = PublishLayerDialog(self.catalogs)        
+        cancelWidget = dialog.buttonBox.button(dialog.buttonBox.Cancel)
+        QTest.mouseClick(cancelWidget, Qt.LeftButton)
+        self.assertIsNone(dialog.catalog)
+        self.assertIsNone(dialog.workspace)
+         
+    def testPublishLayersDialog(self):
+        pass
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTests(unittest.makeSuite(CreateCatalogDialogTests, 'test'))
     suite.addTests(unittest.makeSuite(GroupDialogTests, 'test'))
+    suite.addTests(unittest.makeSuite(LayerDialogTests, 'test'))
     return suite
 
 

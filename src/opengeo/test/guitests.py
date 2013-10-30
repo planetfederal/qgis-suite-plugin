@@ -14,8 +14,6 @@ from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
 from opengeo.geoserver.catalog import Catalog
 from opengeo.qgis import layers
 
-WORKSPACE_NAME = "test"
-
 class CreateCatalogDialogTests(unittest.TestCase):
     
     explorer = OpenGeoExplorer(singletab = True)

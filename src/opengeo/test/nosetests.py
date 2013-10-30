@@ -9,11 +9,20 @@ To run, open the python console in qgis and run the following:
   from opengeo.test import run_nose
   run_nose()
 
-A test project will be added after the first step. After running, two browser
-windows should open with the test + coverage results.
+A test project will be added after the first step.
+
+Test results will be stored in [opengeo-plugin-folder]/test/test-ouput 
+
+If you want to see the test output once the test suite has been run, set the 'open' argument to True
+when calling the test runner
+
+    run_nose(open=True)
+    
+After running, two browser windows should open with the test + coverage results.
 '''
 
 import nose
+from nose_html import HTML
 from opengeo import config
 import os
 from os.path import (
@@ -62,7 +71,7 @@ def run_nose(module='opengeo.test', open=False):
     # if anything goes bad, nose tries to call usage so hack this in place
     sys.argv = ['nose']
     try:
-        nose.run(exit=False, argv=nose_args)
+        nose.run(exit=False, argv=nose_args, addplugins=[HTML()])
     except SystemExit:
         # keep invalid options from killing everything
         # optparse calls sys.exit

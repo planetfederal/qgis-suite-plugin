@@ -7,8 +7,12 @@ from opengeo.gui.dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
 from opengeo.test.integrationtest import ExplorerIntegrationTest
-from opengeo.test.utils import GROUP
-from opengeo.gui.dialogs.layerdialog import PublishLayerDialog
+from opengeo.test.utils import GROUP, WORKSPACE, WORKSPACEB, cleanCatalog, PT2,\
+    PT1
+from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
+    PublishLayersDialog
+from opengeo.geoserver.catalog import Catalog
+from opengeo.qgis import layers
 
 WORKSPACE_NAME = "test"
 
@@ -131,10 +135,17 @@ class GroupDialogTests(ExplorerIntegrationTest):
 
 class LayerDialogTests(unittest.TestCase):
     
-    explorer = OpenGeoExplorer(singletab = True)
-    cat = createGeoServerCatalog()
-    catalogs = {"catalog": cat}  
-    
+    @classmethod
+    def setUpClass(cls):
+        cls.explorer = OpenGeoExplorer(singletab = True)
+        cls.cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver")
+        cls.catalogs = {"catalog": cls.cat} 
+        cls.cat.create_workspace(WORKSPACE, "http://test1.com")
+        cls.cat.create_workspace(WORKSPACEB, "http://test2.com")     
+        
+    @classmethod
+    def tearDownClass(cls):
+        cleanCatalog(cls.cat)
             
     def testPublishLayerDialog(self):        
         dialog = PublishLayerDialog(self.catalogs)        
@@ -149,7 +160,40 @@ class LayerDialogTests(unittest.TestCase):
         self.assertIsNone(dialog.workspace)
          
     def testPublishLayersDialog(self):
-        pass
+        pt1 = layers.resolveLayer(PT1)
+        pt2 = layers.resolveLayer(PT2)
+        dialog = PublishLayersDialog(self.catalogs, [pt1,pt2])
+        cancelWidget = dialog.buttonBox.button(dialog.buttonBox.Cancel)
+        QTest.mouseClick(cancelWidget, Qt.LeftButton)
+        self.assertIsNone(dialog.topublish)
+        
+        cat = self.catalogs.values()[0]
+        for idx, ws in enumerate(cat.get_workspaces()):
+            if ws.name == WORKSPACE:
+                wsIdx = idx
+            if ws.name == WORKSPACEB:
+                wsIdxB = idx                
+        dialog = PublishLayersDialog(self.catalogs, [pt1,pt2])
+        self.assertEquals(1, dialog.table.columnCount())
+        self.assertEquals(2, dialog.table.rowCount())   
+        dialog.table.cellWidget(0,0).setCurrentIndex(wsIdx)
+        dialog.table.cellWidget(1,0).setCurrentIndex(wsIdxB)            
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertIsNotNone(dialog.topublish)
+        self.assertEquals(WORKSPACE, dialog.topublish[0][2].name)
+        self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
+                
+        dialog = PublishLayersDialog({"catalog": cat, "catalog2:": cat}, [pt1,pt2])
+        self.assertEquals(2, dialog.table.columnCount())
+        self.assertEquals(2, dialog.table.rowCount())
+        dialog.table.cellWidget(0,1).setCurrentIndex(wsIdx)
+        dialog.table.cellWidget(1,1).setCurrentIndex(wsIdxB)
+        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertIsNotNone(dialog.topublish)
+        self.assertEquals(WORKSPACE, dialog.topublish[0][2].name)
+        self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
 
 def suite():
     suite = unittest.TestSuite()

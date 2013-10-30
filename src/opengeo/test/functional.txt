@@ -109,14 +109,32 @@ LAYERS
 	-Check that no action is performed if "cancel" is selected
 -Import into PostGIS
 	-Check that no action is performed if "cancel" is selected
+	
+-Select several layers and select "publish to GeoServer"
+	-If there is a single catalog, check that the catalog column is not shown
+	-If there are several catalogs, check that in the layer import dialog, when selecting a different a catalog, the combo box with workspaces is updated
 
 GROUPS
 -Drag group to Geoserver groups item
--Publish group
+-Publish group that includes layers so that none of them is not currently in the catalog
+	-Check that it shows the layer publishing dialog with all layers
 	-Check that no action is performed if "cancel" is selected
 	-Check that the selected workspace when opening the dialog is the default workspace
+-Publish group that includes some layers that are not currently in the catalog
+	- if the "overwrite layers when uploading group" is enabled
+		-it should show the layer import dialog containing all layers
+	- if the "overwrite layers when uploading group" is not enabled
+		-it should show the layer import dialog containing those layers that are not in the catalog already
+-Publish group with all its layer currently in the catalog
+	- if the "overwrite layers when uploading group" is enabled
+		-it should show the layer import dialog containing all layers
+	- if the "overwrite layers when uploading group" is not enabled
+		-it should not show the layer import dialog
+-Publish group having two catalogs and with layers to import (so the layer import dialog will appear)
+	-check that if "cancel" is clicked on the catalog selection dialog, the operation is interrupted and the layer import dialog is not shown
+	-check that the catalog selected in the first dialog is the only one available 
 
--When publishing the project, check that: 
+-When publishing a group, check that: 
 	-if there is no catalog, the option is disabled. 
 	-if there is only one catalog, it will not ask for a catalog and use that only one
 	-if there are two or more, it will ask for a catalog

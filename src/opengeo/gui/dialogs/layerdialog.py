@@ -58,7 +58,7 @@ class PublishLayerDialog(QtGui.QDialog):
         self.spacer = QtGui.QSpacerItem(20,40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
                       
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)                       
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)                       
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
@@ -107,8 +107,7 @@ class PublishLayersDialog(QtGui.QDialog):
         
     def initGui(self):
         self.resize(500, 300)                         
-        layout = QtGui.QVBoxLayout()                                
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
+        layout = QtGui.QVBoxLayout()                                               
         self.setWindowTitle('Publish layers')         
         self.table = QtGui.QTableWidget(None)
         
@@ -125,11 +124,13 @@ class PublishLayersDialog(QtGui.QDialog):
         self.setTableContent()        
 
         layout.addWidget(self.table)
-        layout.addWidget(buttonBox)
+        
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel) 
+        layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        self.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
+        self.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
         
     def setTableContent(self):
         showCatalogCol = len(self.catalogs) > 1        

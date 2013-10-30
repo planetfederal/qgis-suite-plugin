@@ -217,8 +217,8 @@ class SeedGwcLayerDialog(QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, SIGNAL("rejected()"), self.cancelPressed)
+        buttonBox.accepted.connect(self.okPressed)
+        buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(600,250)
             

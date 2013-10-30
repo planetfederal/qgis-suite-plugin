@@ -111,8 +111,8 @@ class NewPgConnectionDialog(QDialog):
         
         self.setLayout(self.layout)
 
-        self.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
-        self.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
         
         if self._conn is not None:
             self.nameBox.setText(self._conn.name)

@@ -22,12 +22,12 @@ class DlgCreateTable(QDialog):
 		self.table.setColumnWidth(1,140)
 		self.table.setColumnWidth(2,50)
 
-		self.connect(self.btnAddField, SIGNAL("clicked()"), self.addField)
-		self.connect(self.btnDeleteField, SIGNAL("clicked()"), self.deleteField)
-		self.connect(self.chkGeomColumn, SIGNAL("clicked()"), self.updateUi)
-		self.connect(self.table.selectionModel(), SIGNAL("selectionChanged(const QItemSelection &, const QItemSelection &)"), self.updateUiFields)
-		self.connect(self.buttonBox, SIGNAL("accepted()"), self.okPressed)
-		self.connect(self.buttonBox, SIGNAL("rejected()"), self.cancelPressed)
+		self.btnAddField.clicked.connect(self.addField)
+		self.btnDeleteField.clicked.connect(self.deleteField)
+		self.chkGeomColumn.clicked.connect(self.updateUi)
+		self.table.selectionModel().selectionChanged.connect(self.updateUiFields)
+		self.buttonBox.accepted.connect(self.okPressed)
+		self.buttonBox.rejected.connect(self.cancelPressed)
 
 		self.updateUi()
 		self.updateUiFields()

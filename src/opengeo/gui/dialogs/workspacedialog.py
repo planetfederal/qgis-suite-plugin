@@ -45,15 +45,13 @@ class DefineWorkspaceDialog(QtGui.QDialog):
         self.spacer = QtGui.QSpacerItem(20,20, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
         
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)               
-        layout.addWidget(buttonBox)
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)               
+        layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
-        
-        #self.resize(400,170)            
-    
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
+           
     def getWorkspace(self):        
         return self.workspace
     

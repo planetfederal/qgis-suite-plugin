@@ -10,8 +10,7 @@ class UserPasswdDialog(QtGui.QDialog):
         
     def initGui(self):                         
         self.setWindowTitle('Database credentials')
-        verticalLayout = QtGui.QVBoxLayout()                                
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
+        verticalLayout = QtGui.QVBoxLayout()                                            
                 
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -38,12 +37,13 @@ class UserPasswdDialog(QtGui.QDialog):
         
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.groupBox) 
-        layout.addWidget(buttonBox)
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        layout.addWidget(self.buttonBox)
         
         self.setLayout(layout)
-
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+          
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,200)
             

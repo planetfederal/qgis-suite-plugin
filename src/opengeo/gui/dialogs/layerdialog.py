@@ -62,8 +62,8 @@ class PublishLayerDialog(QtGui.QDialog):
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        self.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,160) 
         
@@ -129,8 +129,8 @@ class PublishLayersDialog(QtGui.QDialog):
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
-        self.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
         
     def setTableContent(self):
         showCatalogCol = len(self.catalogs) > 1        

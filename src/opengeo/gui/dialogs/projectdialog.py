@@ -13,8 +13,7 @@ class PublishProjectDialog(QtGui.QDialog):
         
     def initGui(self):   
                               
-        layout = QtGui.QVBoxLayout()                                
-        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
+        layout = QtGui.QVBoxLayout()                                                
         self.setWindowTitle('Publish project')
                                  
         verticalLayout = QtGui.QVBoxLayout()        
@@ -69,13 +68,15 @@ class PublishProjectDialog(QtGui.QDialog):
         self.groupGroupBox.setLayout(verticalLayout)
 
         layout.addWidget(self.destGroupBox)
-        layout.addWidget(self.groupGroupBox)                     
-        layout.addWidget(buttonBox)
+        layout.addWidget(self.groupGroupBox)
+        
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)                     
+        layout.addWidget(self.buttonBox)
         
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
         
         self.resize(400,200) 
         

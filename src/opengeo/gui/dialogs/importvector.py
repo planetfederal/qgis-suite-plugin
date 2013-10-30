@@ -100,8 +100,8 @@ class ImportIntoPostGISDialog(QDialog):
 		
 		self.setLayout(self.verticalLayout)
 
-		self.connect(self.buttonBox, SIGNAL("accepted()"), self.accept)
-		self.connect(self.buttonBox, SIGNAL("rejected()"), self.reject)
+		self.buttonBox.accepted.connect(self.accept)
+		self.buttonBox.rejected.connect(self.reject)
 	
 	def tableChanged(self):
 		table = self.tableBox.currentText()

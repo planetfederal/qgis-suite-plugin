@@ -111,11 +111,14 @@ class PublishLayersDialog(QtGui.QDialog):
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         self.setWindowTitle('Publish layers')         
         self.table = QtGui.QTableWidget(None)
-        self.table.setColumnCount(2)
+        
+        columnCount = 1 if len(self.catalogs) == 1 else 2
+        columns = ["Workspace"] if len(self.catalogs) == 1 else ["Catalog", "Workspace"]
+        self.table.setColumnCount(columnCount)
         self.table.setColumnWidth(0,300)
         self.table.verticalHeader().setVisible(True)
         self.table.horizontalHeader().setVisible(True)
-        self.table.setHorizontalHeaderLabels(["Catalog", "Workspace"])
+        self.table.setHorizontalHeaderLabels(columns)
         self.table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.table.horizontalHeader().setStretchLastSection(True)            
         self.table.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -128,17 +131,19 @@ class PublishLayersDialog(QtGui.QDialog):
         self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
         self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
         
-    def setTableContent(self):        
+    def setTableContent(self):
+        showCatalogCol = len(self.catalogs) > 1        
         self.table.setRowCount(len(self.layers))
-        layernames = [layer.name() for layer in self.layers]
-        self.table.setVerticalHeaderLabels(layernames)
+        layernames = [layer.name().ljust(25) for layer in self.layers]
+        self.table.setVerticalHeaderLabels(layernames)        
         for idx, layer in enumerate(self.layers):
-            catalogBox = QtGui.QComboBox()
-            workspaceBox = QtGui.QComboBox()        
-            catalogBox.addItems(self.catalogs.keys())
-            catalogBox.currentIndexChanged.connect(self.catalogHasChanged)
-            self.table.setCellWidget(idx, 0, catalogBox)                                         
-            cat = self.catalogs[self.catalogs.keys()[0]]
+            if showCatalogCol:
+                catalogBox = QtGui.QComboBox()                       
+                catalogBox.addItems(self.catalogs.keys())
+                catalogBox.currentIndexChanged.connect(lambda: self.catalogHasChanged(idx))
+                self.table.setCellWidget(idx, 0, catalogBox)                            
+            workspaceBox = QtGui.QComboBox()                                          
+            cat = self.catalogs.values()[0]
             workspaces = cat.get_workspaces()            
             try:
                 defaultWorkspace = cat.get_default_workspace()
@@ -149,11 +154,14 @@ class PublishLayersDialog(QtGui.QDialog):
             workspaceNames = [w.name for w in workspaces]        
             workspaceBox.addItems(workspaceNames)
             if defaultName is not None: 
-                workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))            
-            self.table.setCellWidget(idx, 1, workspaceBox)
+                workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
+            if showCatalogCol:            
+                self.table.setCellWidget(idx, 1, workspaceBox)
+            else:
+                self.table.setCellWidget(idx, 0, workspaceBox)
     
-    def catalogHasChanged(self):        
-        catalogBox = self.table.item(self.table.currentRow(), 0)
+    def catalogHasChanged(self, row):        
+        catalogBox = self.table.cellWidget(row, 0)
         cat = self.catalogs[catalogBox.currentText()]
         try:
             defaultWorkspace = cat.get_default_workspace()
@@ -163,21 +171,28 @@ class PublishLayersDialog(QtGui.QDialog):
             defaultName = None  
         workspaces = cat.get_workspaces()        
         workspaceNames = [w.name for w in workspaces]        
-        workspaceBox = self.table.item(self.table.currentRow(), 1)
+        workspaceBox = self.table.cellWidget(row, 1)
         workspaceBox.clear()
         workspaceBox.addItems(workspaceNames)             
         if defaultName is not None:
             workspaceBox.setCurrentIndex(workspaceNames.index(defaultName)) 
     
     def okPressed(self):
-        self.topublish = []
+        self.topublish = []        
         for idx, layer in enumerate(self.layers):
-            catalogBox = self.table.cellWidget(idx, 0)
-            catalog = self.catalogs[catalogBox.currentText()]
-            workspaceBox = self.table.cellWidget(idx, 1)
-            workspaces = catalog.get_workspaces()
-            workspace = workspaces[workspaceBox.currentIndex()]
-            self.topublish.append((layer, catalog, workspace))
+            if len(self.catalogs) > 1:
+                catalogBox = self.table.cellWidget(idx, 0)
+                catalog = self.catalogs[catalogBox.currentText()]
+                workspaceBox = self.table.cellWidget(idx, 1)
+                workspaces = catalog.get_workspaces()
+                workspace = workspaces[workspaceBox.currentIndex()]
+                self.topublish.append((layer, catalog, workspace))
+            else:
+                catalog = self.catalogs.values()[0]
+                workspaceBox = self.table.cellWidget(idx, 0)
+                workspaces = catalog.get_workspaces()
+                workspace = workspaces[workspaceBox.currentIndex()]
+                self.topublish.append((layer, catalog, workspace))
         self.close()
 
     def cancelPressed(self):

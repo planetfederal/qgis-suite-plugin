@@ -13,6 +13,6 @@ def _confirmationBox(title, msg):
     
 def publishLayer (catalog, layer, workspace=None, overwrite=True, name=None):
     gslayer = catalog.catalog.get_layer(layer.name())
-    if gslayer is not None and _confirmationBox("Confirm overwrite", 
+    if gslayer is None or _confirmationBox("Confirm overwrite", 
             "A layer named '%s' already exists in the catalog\nDo you want to overwrite it?" % layer.name()):
         catalog.publishLayer(layer, workspace, overwrite, name)

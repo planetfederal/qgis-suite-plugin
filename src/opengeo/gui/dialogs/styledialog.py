@@ -11,7 +11,7 @@ class StyleFromLayerDialog(QtGui.QDialog):
         
         
     def initGui(self):                         
-        layout = QtGui.QVBoxLayout()                                
+        verticalLayout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         self.setWindowTitle('Create style from layer')
         
@@ -26,7 +26,7 @@ class StyleFromLayerDialog(QtGui.QDialog):
         self.layerBox.setMinimumWidth(250)
         horizontalLayout.addWidget(layerLabel)
         horizontalLayout.addWidget(self.layerBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
                
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -39,9 +39,16 @@ class StyleFromLayerDialog(QtGui.QDialog):
         self.nameBox.setMinimumWidth(250)
         horizontalLayout.addWidget(nameLabel)
         horizontalLayout.addWidget(self.nameBox)
-        layout.addLayout(horizontalLayout)
-               
+        verticalLayout.addLayout(horizontalLayout)
+        
+        self.groupBox = QtGui.QGroupBox()
+        self.groupBox.setTitle("")
+        self.groupBox.setLayout(verticalLayout)
+        
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.groupBox) 
         layout.addWidget(buttonBox)
+              
         self.setLayout(layout)
 
         buttonBox.accepted.connect(self.okPressed)
@@ -122,7 +129,7 @@ class PublishStyleDialog(QtGui.QDialog):
         
         
     def initGui(self):                         
-        layout = QtGui.QVBoxLayout()                                
+        verticalLayout = QtGui.QVBoxLayout()                                
         buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)        
         self.setWindowTitle('Publish style')
         horizontalLayout = QtGui.QHBoxLayout()
@@ -133,7 +140,7 @@ class PublishStyleDialog(QtGui.QDialog):
         self.catalogBox.addItems(self.catalogs)
         horizontalLayout.addWidget(catalogLabel)
         horizontalLayout.addWidget(self.catalogBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setSpacing(30)
@@ -144,9 +151,17 @@ class PublishStyleDialog(QtGui.QDialog):
         self.nameBox.setPlaceholderText("[Use layer name]")
         horizontalLayout.addWidget(nameLabel)
         horizontalLayout.addWidget(self.nameBox)
-        layout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout)
                
+
+        self.groupBox = QtGui.QGroupBox()
+        self.groupBox.setTitle("")
+        self.groupBox.setLayout(verticalLayout)
+        
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.groupBox) 
         layout.addWidget(buttonBox)
+                               
         self.setLayout(layout)
 
         buttonBox.accepted.connect(self.okPressed)

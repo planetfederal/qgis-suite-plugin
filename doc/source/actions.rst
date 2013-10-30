@@ -256,11 +256,21 @@ QGIS project
 
 		If you want all layers to be published, even if there is a layer with the same name in the catalog, the :guilabel:`Overwrite layers when uploading group` should be checked in the configuration dialog. This option is enabled by default.
 
-		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created. The set of layers to publish depends on the configuration of the :guilabel:`Overwrite layers when uploading group` setting. If it is set to true, all layers of the group will be included, since all of them will be published even if layers with the same name already exist in the catalog.
+		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created, so you can specify the destintaion workspace for each of them.
+
+		.. image:: img/actions/publish_layers_single_catalog.png
+			:align: center
+
+		The set of layers to publish depends on the configuration of the :guilabel:`Overwrite layers when uploading group` setting. If it is set to true, all layers of the group will be included, since all of them will be published even if layers with the same name already exist in the catalog.
 
 - QGIS style item
 
-	- :guilabel:`Publish`. Publishes the selected style. Since only vector layers support SLD in QGIS, raster layers are not listed in this group.
+	- :guilabel:`Publish`. Publishes the selected style. The operation is defined in the dialog shown below.
+
+		.. image:: img/actions/publish_style.png
+			:align: center
+
+		If no name is entered in the textbox, the name of the layer will be used as sytle name. Otherwise, the specified name will be used.
 
 - QGIS project item
 
@@ -282,14 +292,16 @@ Multiple selection
 
 You can select multiple elements of the same type (i.e. multiple QGIS layers), to automate operations. For instance, let's say that you have several layers in your current project. Select them all (click while pressing the Ctrl or Shift keys) and then right--click and select :guilabel:`Publish...`. You will get see to a dialog like the following one.
 
-.. image:: img/actions/multi_publish.png
+.. image:: img/actions/publish_layers_multiple_catalogs.png
 	:align: center
 
-This is the same dialog that appears in case of publishing a group to a GeoServer catalog, as it was already described.
+This is the same dialog that appears in case of publishing a group to a GeoServer catalog. Notice, however, that in the case of a group, all layers for that group have to be imported into the catalog where the group will be created, so the layer publishing dialog doesn't let you select the catalog, but only the workspace for each layer. In this case, there is more flexibility, so an additional column is show, which can be used to select the catalog for each layer. Changing the selected catalog at a given row will automatically update the list of workspaces in that row, so it contains the workspaces of that catalog.
 
-Configure the catalog and workspace you want to upload each layer to, and a multiple upload will be executed.
+If only one catalog exists in the Explorer tree, the catalog column will not be shown.
 
-Another task than can be done with a multiple selection is creating a new group. Just select a set of layers, right--click on them and select :guilabel:`Create group...`. A new group will be created with those layers, using the default style of each of them.
+Configure the catalog (if available) and workspace you want to upload each layer to, and a multiple upload will be executed.
+
+Another task than can be done with a multiple selection is creating a new group. Just select a set of layers, right--click on them and select :guilabel:`Create group...`. A new group will be created with those layers, using the default style of each of them. For a more fine-grained definition of the group, remember that you can use the :guilabel:`Create new group...` option in the :guilabel:`GeoServer Groups` item
 
 Double-clicking on tree items
 ******************************

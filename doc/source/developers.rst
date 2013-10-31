@@ -19,7 +19,37 @@ These are the libraries that the OpenGeo Explorer requires.
 - raven (http://github.com/getsentry/raven-python)
 - requests (http://www.python-requests.org/en/latest/)
 
-You can install those libraries in your Python installation (and, of course, in the Python installation used by QGIS) using a tool such as ``pip`` or ``easy_install``. Also, you can add the code of those libraries to the plugin code. All libraries should be in a folder named ``ext_libs`` under the ``opengeo`` folder, resulting in a tree like the following one.
+If you want to run the tests, you will also need:
+
+- nose
+- nose_html
+- coverage
+
+Automated installation using paver
+-----------------------------------
+
+A paver script is included in the repository source code.
+
+You will need paver installed to run it.
+
+To do all the setup, run the ``setup`` task
+
+::
+
+	$ paver setup
+
+That will take care of downloading and installing all dependencies in a folder name ``ext-libs`` in the plugin code folder.
+
+To install the plugin into your QGIS, the content of the code folder (named ``opengeo``)  has to be copied to the QGIS plugins folder. There is a task named ``install`` that will take care of that.
+
+::
+
+	$ paver install
+
+Manual installation
+--------------------
+
+In case you have problems using the setup script, you can install dependencies manually by installing them in your Python installation using a tools such as ``pip`` or ``easy_install``. Of course, you will need to install them in the Python installation used by QGIS. If you prefer, you can add the code of those libraries to the plugin code, as the paver script does. All libraries should be in a folder named ``ext_libs`` under the ``opengeo`` folder, resulting in a tree like the following one.
 
 ::
 
@@ -76,5 +106,5 @@ You should clone/dowload the code of those dependencies, and then copy or symlin
 
 The plugin adds the ``ext_libs`` folder to the Python path automatically when it is loaded by QGIS. Make sure you add it as well in case you are setting up your system this way instead of installing the libraries manually.
 
-A python script to package and copy the code to your QGIS plugins folder is available in the ``install.py`` script. If you have a standard QGIS installation, you should be able to execute without modifications, and have the Explorer plugin added to the list of available QGIS plugins.
+along with the paver ``install`` task, a Python script to package and copy the code to your QGIS plugins folder is available in the ``install.py`` script. If you have a standard QGIS installation, you should be able to execute without modifications, and have the Explorer plugin added to the list of available QGIS plugins.
 

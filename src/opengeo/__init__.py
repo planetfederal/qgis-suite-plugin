@@ -3,8 +3,8 @@
 import sys
 import os
 import site
-#sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/ext_libs'))
-site.addsitedir(os.path.abspath(os.path.dirname(__file__) + '/ext_libs'))
+
+site.addsitedir(os.path.abspath(os.path.dirname(__file__) + '/ext-libs'))
 
 from opengeo.qgis.catalog import *
 

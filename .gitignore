@@ -4,5 +4,8 @@
 /src/build.xml
 /doc/build
 *.pyc
-ext_libs
 test-output/
+ext-libs
+ext-src
+build
+opengeo.zip

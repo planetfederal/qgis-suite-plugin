@@ -171,12 +171,13 @@ class QgsLayerItem(QgsTreeItem):
         dlg.exec_()
         if dlg.ok:
             schema = [s for s in dlg.connection.schemas() if s.name == dlg.schema][0]
-            explorer.setProgressMaximum(len(dlg.toImport), "Import layers to PostGIS")           
+            if len(dlg.toImport) > 1:
+                explorer.setProgressMaximum(len(dlg.toImport), "Import layers to PostGIS")           
             for i, layer in enumerate(dlg.toImport):                
                 explorer.run(dlg.connection.importFileOrLayer, 
-                None,#"Import" + layer.name() + " into database " + dlg.connection.name,
-                tree.findAllItems(schema),
-                layer, dlg.schema, dlg.tablename, not dlg.add)
+                            "Import layer into PostGIS",
+                            tree.findAllItems(schema),
+                            layer, dlg.schema, dlg.tablename, not dlg.add, dlg.single)
                 explorer.setProgress(i + 1)     
             explorer.resetActivity() 
                               

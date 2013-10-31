@@ -85,6 +85,8 @@ class ImportIntoPostGISDialog(QDialog):
 		self.horizontalLayout4 = QHBoxLayout()
 		self.addCheckBox = QCheckBox("Add to table (do not overwrite)")
 		self.horizontalLayout4.addWidget(self.addCheckBox)
+		self.singleGeomCheckBox = QCheckBox("Import as single geometries")
+		self.horizontalLayout4.addWidget(self.singleGeomCheckBox)
 		self.optionsGroupBox.setLayout(self.horizontalLayout4)
 		self.verticalLayout.addWidget(self.optionsGroupBox)   
 
@@ -145,6 +147,7 @@ class ImportIntoPostGISDialog(QDialog):
 		if self.tablename == "[use file name]" or self.tablename == "":
 			self.tablename = None	
 		self.add = self.addCheckBox.isChecked()
+		self.single = self.singleGeomCheckBox.isChecked()
 		self.ok = True		
 		QDialog.accept(self)        
 		

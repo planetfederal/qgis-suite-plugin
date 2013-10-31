@@ -32,7 +32,7 @@ class PgConnection(object):
             self.isValid = False
             
             
-    def importFileOrLayer(self, source, schema, tablename, overwrite):
+    def importFileOrLayer(self, source, schema, tablename, overwrite, singleGeom = False):
     
         if overwrite:
             pk = "id"
@@ -53,6 +53,8 @@ class PgConnection(object):
         
             options = {}
             options['overwrite'] = True
+            if singleGeom:
+                options['forceSinglePartGeometryType'] = True
                 
             if isinstance(source, basestring):
                 layer = QgsVectorLayer(source, layerName, "ogr")    
@@ -68,7 +70,11 @@ class PgConnection(object):
         else:
             if isinstance(source, QgsMapLayer):
                 source = source.source()
-            args = ["shp2pgsql", "-a", source, schema + "." + tablename]
+                
+            args = ["shp2pgsql", "-a"]
+            if singleGeom:
+                args.append("-S")
+            args.extend([source, schema + "." + tablename])
             if os.name == 'nt':                
                 cmdline = subprocess.list2cmdline(args)
                 data = None

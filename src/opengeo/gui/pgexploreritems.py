@@ -9,6 +9,7 @@ from dialogs.importvector import ImportIntoPostGISDialog
 from dialogs.pgconnectiondialog import NewPgConnectionDialog
 from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
+from opengeo.gui.pgoperations import importToPostGIS
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")   
  
@@ -145,15 +146,9 @@ class PgConnectionItem(PgTreeItem):
                     files.append(uri.uri)                  
             dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element, toImport = files)
             dlg.exec_()
-            if dlg.ok:           
-                explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")
-                for i, filename in enumerate(dlg.toImport):
-                    explorer.setProgress(i)
-                    explorer.run(self.element.importFileOrLayer,
-                                None, 
-                                [],
-                                filename, dlg.schema, dlg.tablename, not dlg.add, dlg.single)
-                explorer.resetActivity()        
+            if dlg.ok:   
+                importToPostGIS(explorer, self.element, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)                            
                 return [self]
             return []
         else:
@@ -172,16 +167,8 @@ class PgConnectionItem(PgTreeItem):
             dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element, toImport = toImport)
             dlg.exec_()
             if dlg.ok: 
-                if len(dlg.toImport) > 1:
-                    explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")           
-                for i, layer in enumerate(dlg.toImport):  
-                    explorer.setProgress(i)                  
-                    if not explorer.run(self.element.importFileOrLayer, 
-                                        None, 
-                                        [],
-                                        layer, dlg.schema, dlg.tablename, not dlg.add, dlg.single):
-                        break
-                explorer.resetActivity()
+                importToPostGIS(explorer, self.element, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)
                 toUpdate.add(self)
         
         return toUpdate          
@@ -198,15 +185,9 @@ class PgConnectionItem(PgTreeItem):
         dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element)
         dlg.exec_()
         if dlg.ok:  
-            explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")          
-            for i, filename in enumerate(dlg.toImport):
-                explorer.setProgress(i)
-                explorer.run(self.element.importFileOrLayer, 
-                            None, 
-                            [],
-                            filename, dlg.schema, dlg.tablename, not dlg.add, dlg.single)
-            explorer.resetActivity()
-        self.refreshContent(explorer)
+            importToPostGIS(explorer, self.element, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)            
+            self.refreshContent(explorer)
           
     def runSql(self):
         pass
@@ -258,15 +239,9 @@ class PgSchemaItem(PgTreeItem):
         dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element.conn, self.element)
         dlg.exec_()
         if dlg.ok:        
-            explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")    
-            for i, filename in enumerate(dlg.toImport):
-                explorer.setProgress(i)
-                explorer.run(self.element.conn.importFileOrLayer, 
-                            None, 
-                            [],
-                            filename, dlg.schema, dlg.tablename, not dlg.add, dlg.single)
-            explorer.resetActivity()
-        self.refreshContent(explorer)
+            importToPostGIS(explorer, self.element.conn, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)
+            self.refreshContent(explorer)
         
     def deleteSchema(self, explorer):
         explorer.run(self.element.conn.geodb.delete_schema, 
@@ -307,16 +282,8 @@ class PgSchemaItem(PgTreeItem):
             dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element.conn, schema = self.element, toImport = files)
             dlg.exec_()
             if dlg.ok:
-                if len(dlg.toImport) > 1:
-                    explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")           
-                for i, filename in enumerate(dlg.toImport):
-                    explorer.setProgress(i)
-                    if not explorer.run(self.element.conn.importFileOrLayer, 
-                                        None, 
-                                        [],
-                                        filename, dlg.schema, dlg.tablename, not dlg.add, dlg.single):
-                        break
-                explorer.resetActivity()                       
+                importToPostGIS(explorer, self.element, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)                     
                 return [self]
             return []
         else:
@@ -330,22 +297,15 @@ class PgSchemaItem(PgTreeItem):
                 if item.element.type() == QgsMapLayer.VectorLayer:
                     toImport.append(item.element)
         if toImport:
-            dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element.conn, schema = self.element, toImport = toImport)
+            dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element.conn, 
+                                          schema = self.element, toImport = toImport)
             dlg.exec_()
             if dlg.ok:
-                if len(dlg.toImport) > 1:
-                    explorer.setProgressMaximum(len(dlg.toImport), "Import layers into PostGIS")           
-                for i, layer in enumerate(dlg.toImport):  
-                    explorer.setProgress(i)                  
-                    if not explorer.run(self.element.conn.importFileOrLayer, 
-                                        None, 
-                                        [],
-                                        layer, dlg.schema, dlg.tablename, not dlg.add, dlg.single):
-                        break                                            
-                explorer.resetActivity()
+                importToPostGIS(explorer, self.element.conn, dlg.toImport, 
+                                dlg.schema, dlg.tablename, dlg.add, dlg.single)
                 toUpdate.add(self)
         
-        return toUpdate                  
+        return self                  
         
 class PgTableItem(PgTreeItem): 
     def __init__(self, table):                               
@@ -509,3 +469,5 @@ class PgTableItem(PgTreeItem):
 
     def populate(self):
         pass
+
+      

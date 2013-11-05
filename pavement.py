@@ -53,6 +53,7 @@ def setup(options):
         ext_libs.rmtree()
     ext_libs.makedirs()
     runtime, test = read_requirements()
+    os.environ['PYTHONPATH']=ext_libs.abspath()
     for req in runtime + test:
         if req.startswith('-e'):
             # use pip to just process the URL and fetch it in to place
@@ -60,8 +61,8 @@ def setup(options):
             # now change the req to be the location installed to
             # and easy_install will do the rest
             urlspec, req = req.split('#egg=')
-        sh('PYTHONPATH=%(ext_libs)s easy_install -a -d %(ext_libs)s %(dep)s' % {
-            'ext_libs' : ext_libs,
+        sh('easy_install -a -d %(ext_libs)s %(dep)s' % {
+            'ext_libs' : ext_libs.abspath(),
             'dep' : req
         })
 
@@ -83,11 +84,11 @@ def read_requirements():
 def install(options):
     '''install plugin to qgis'''
     plugin_name = options.plugin.name
-    src = path(__file__).dirname() / plugin_name
+    src = path(__file__).dirname() / 'src' / plugin_name
     dst = path('~').expanduser() / '.qgis2' / 'python' / 'plugins' / plugin_name
     src = src.abspath()
     dst = dst.abspath()
-    if not hasattr(os, 'symlink'):
+    if not hasattr(os, 'symlink'):        
         dst.rmtree()
         src.copytree(dst)
     elif not dst.exists():

@@ -4,6 +4,7 @@ from opengeo.geoserver.gwc import Gwc, GwcLayer, SeedingStatusParsingError
 from opengeo.geoserver.catalog import FailedRequestError
 from opengeo.gui.exploreritems import TreeItem
 import os
+from opengeo.gui.confirm import confirmDelete
 
 class GwcTreeItem(TreeItem):
     
@@ -97,8 +98,7 @@ class GwcLayerItem(GwcTreeItem):
         return [deleteSelectedAction]
     
 
-    def _getDescriptionHtml(self, tree, explorer):                        
-        #html = u'<div style="background-color:#ffffcc;"><h1>&nbsp; ' + self.text(0) + ' (GWC layer)</h1></div></br>'  
+    def _getDescriptionHtml(self, tree, explorer):                                
         html = '<p><b>Seeding status</b></p>'     
         try:
             state = self.element.getSeedingState()
@@ -137,6 +137,8 @@ class GwcLayerItem(GwcTreeItem):
         self.deleteLayers(explorer, [self])      
         
     def deleteLayers(self, explorer, items):
+        if not confirmDelete():
+            return
         explorer.setProgressMaximum(len(items), "Deleting GWC layers")
         toUpdate = set()
         for i, item in enumerate(items):                    

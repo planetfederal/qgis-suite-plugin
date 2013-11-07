@@ -3,7 +3,8 @@ from PyQt4.QtCore import *
 from qgis.core import *            
 from opengeo.qgis import layers
 from opengeo.qgis.catalog import OGCatalog
-from opengeo.gui.overwrite import publishLayer
+from opengeo.gui.confirm import publishLayer
+from opengeo.gui.qgsexploreritems import QgsStyleItem
             
 def publishDraggedGroup(explorer, groupItem, catalog, workspace):        
     groupName = groupItem.element
@@ -75,7 +76,7 @@ def publishDraggedStyle(explorer, layerName, catalogItem):
              toUpdate,
              layerName, True, layerName)
 
-def addDraggedLayerToGroup(explorer, layer, groupItem):    
+def addDraggedLayerToGroup(explorer, layer, groupItem):
     group = groupItem.element
     styles = group.styles
     layers = group.layers
@@ -100,7 +101,8 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
     layer = layerItem.element
     styles = layer.styles                            
     styles.append(style)
-    layer.styles = styles                        
+    layer.styles = styles
+                            
     explorer.run(catalog.save, 
              "Add style '" + style.name + "' to layer '" + layer.name + "'",
              [layerItem],

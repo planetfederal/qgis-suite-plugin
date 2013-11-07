@@ -10,6 +10,7 @@ from dialogs.pgconnectiondialog import NewPgConnectionDialog
 from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
 from opengeo.gui.pgoperations import importToPostGIS
+from opengeo.gui.confirm import confirmDelete
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")   
  
@@ -174,6 +175,8 @@ class PgConnectionItem(PgTreeItem):
         return toUpdate          
         
     def deleteConnection(self, explorer):
+        if not confirmDelete():
+            return
         settings = QtCore.QSettings()
         settings.beginGroup("/PostgreSQL/connections/" + self.element.name) 
         settings.remove(""); 
@@ -244,7 +247,8 @@ class PgSchemaItem(PgTreeItem):
             self.refreshContent(explorer)
         
     def deleteSchema(self, explorer):
-        explorer.run(self.element.conn.geodb.delete_schema, 
+        if confirmDelete():           
+            explorer.run(self.element.conn.geodb.delete_schema, 
                           "Delete schema '" + self.element.name + "'",
                           [self.parent()], 
                           self.element.name)
@@ -407,6 +411,8 @@ class PgTableItem(PgTreeItem):
         self.deleteTables(explorer, [self])
         
     def deleteTables(self, explorer, items):
+        if not confirmDelete():
+            return
         if len(items) > 1:
             explorer.setProgressMaximum(len(items), "Delete tables")
         toUpdate = set()

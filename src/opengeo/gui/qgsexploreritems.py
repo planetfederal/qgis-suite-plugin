@@ -10,8 +10,8 @@ from dialogs.layerdialog import PublishLayersDialog, PublishLayerDialog
 from dialogs.projectdialog import PublishProjectDialog
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
-from opengeo.gui.overwrite import publishLayer
 from opengeo.geoserver.catalog import ConflictingDataError
+from opengeo.gui.confirm import publishLayer
                 
 class QgsTreeItem(TreeItem):
     

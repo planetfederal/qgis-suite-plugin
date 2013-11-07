@@ -32,10 +32,10 @@ from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
 from opengeo.geoserver.util import getLayerFromStyle
 from opengeo.geoserver.geonode import Geonode
-from opengeo.gui.overwrite import publishLayer
 from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
     addDraggedUrisToWorkspace, publishDraggedTable, publishDraggedStyle,\
     addDraggedStyleToLayer, addDraggedLayerToGroup
+from opengeo.gui.confirm import confirmDelete
 
 class GsTreeItem(TreeItem):
     
@@ -88,7 +88,7 @@ class GsTreeItem(TreeItem):
                         elements.insert(0, subsubitem.element)                                                            
         toUpdate = set(item.parent() for item in selected)                
         progress = 0        
-        dependent = self.getDependentElements(elements)                              
+        dependent = self.getDependentElements(elements)                                       
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
             names = {"-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent}
@@ -105,7 +105,8 @@ class GsTreeItem(TreeItem):
                 toUpdate.update(set(item.parent() for item in items))
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
-        
+        elif not confirmDelete():            
+            return
         settings = QSettings()
         deleteStyle = bool(settings.value("/OpenGeo/Settings/GeoServer/DeleteStyle", True, bool))
         recurse = bool(settings.value("/OpenGeo/Settings/GeoServer/Recurse", True, bool)) 

@@ -27,7 +27,7 @@ __revision__ = '$Format:%H$'
 
 """
 PostGIS Manager
-
+de
 Copyright 2008 Martin Dobias
 licensed under the terms of GNU GPL v2
 
@@ -139,8 +139,7 @@ class GeoDB:
 
     def __getstate__(self):
         '''the connection cannot be pickled, so ensure it doesn't try'''
-        newobj = copy.deepcopy(self)
-        state = vars(newobj)
+        state = dict(vars(self))
         state.pop('con', None)
         return state
 

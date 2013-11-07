@@ -120,7 +120,7 @@ class ImportIntoPostGISDialog(QDialog):
 				self.connection = c
 				self.schemaBox.clear()				
 				schemas = [schema.name for schema in c.schemas()]				
-				self.tableBox.addItems(schemas)
+				self.schemaBox.addItems(schemas)
 				self.updateTables()
 				break
 							

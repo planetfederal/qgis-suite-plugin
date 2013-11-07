@@ -17,6 +17,7 @@
 ***************************************************************************
 """
 from opengeo.postgis.table import Table
+import copy
 
 __author__ = 'Martin Dobias'
 __date__ = 'November 2012'
@@ -138,7 +139,8 @@ class GeoDB:
 
     def __getstate__(self):
         '''the connection cannot be pickled, so ensure it doesn't try'''
-        state = vars(self)
+        newobj = copy.deepcopy(self)
+        state = vars(newobj)
         state.pop('con', None)
         return state
 

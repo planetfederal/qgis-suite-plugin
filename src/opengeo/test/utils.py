@@ -1,5 +1,6 @@
 import os
 from opengeo.geoserver.util import shapefile_and_friends
+from opengeo.postgis.schema import Schema
 
 PREFIX = "qgis_plugin_test_"
 
@@ -20,6 +21,9 @@ STYLE = safeName("style")
 HOOK = safeName("hook")
 WORKSPACE = safeName("workspace")
 WORKSPACEB = safeName("workspaceb")
+PUBLIC_SCHEMA = "public"
+OPENGEO_SCHEMA = safeName("opengeo")
+
 
 def cleanCatalog(cat):
        
@@ -72,4 +76,10 @@ def populateCatalog(cat):
     cat.create_workspace(WORKSPACEB, "http://testb.com")
     cat.set_default_workspace(WORKSPACE)
     
+
+def cleanDatabase(conn):    
+    schema = Schema(conn, PUBLIC_SCHEMA)
+    for table in schema.tables():
+        if table.name.startswith(PREFIX):
+            conn.geodb.delete_table(table.name, PUBLIC_SCHEMA)
 

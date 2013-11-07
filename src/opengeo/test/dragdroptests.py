@@ -76,7 +76,9 @@ class DragDropTests(ExplorerIntegrationTest):
 
     def testDropGsStyleInGsLayerItem(self):
         styleItem = self.getStyleItem(STYLE)
+        self.assertIsNotNone(styleItem)
         layerItem = self.getLayerItem(PT2)
+        self.assertIsNotNone(layerItem)
         layerItem.acceptDroppedItems(self.tree, self.explorer, [styleItem])
         self.assertIsNotNone(self._getItemUnder(layerItem, STYLE))
 

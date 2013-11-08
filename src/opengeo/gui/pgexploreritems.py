@@ -480,4 +480,35 @@ class PgTableItem(PgTreeItem):
 
     def populate(self):
         pass
-
+    
+    def _getDescriptionHtml(self, tree, explorer):                                
+        db = self.element.conn.geodb
+        html = '<h3>General</h3><ul>'
+        properties = (("Row count:", db.get_table_rows(self.element.name, self.element.schema)),
+                      ("Geometry field", self.element.geomfield),
+                      ("Geometry type", self.element.geomtype),
+                      ("SRID", self.element.srid))
+                      
+        for name, value in properties:
+            html += '<li><b>%s</b>: %s' % (unicode(name), unicode(value))
+        html += '<p></p></ul><h3>Fields</h3><table><tr>'
+        headers = ["#", "Name", "Type", "Null", "Default"]
+        for header in headers:
+            html += '<th>%s</th>' % header
+        html += '</tr>' 
+        for field in db.get_table_fields(self.element.name, self.element.schema):
+            html += '<tr>'
+            default = field.default if field.hasdefault else ""
+            values = [field.num, field.name, field.data_type, not field.notnull, default]
+            for value in values:
+                html += '<td>%s</td>' % str(value)
+            html += '</tr>'   
+        html += '</table>'
+        actions = self.contextMenuActions(tree, explorer)
+        html += '<p></p>'
+        html += '"<h3>Available actions</h3><ul>'
+        for action in actions:
+            if action.isEnabled():
+                html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
+        html += '</ul>'
+        return html 

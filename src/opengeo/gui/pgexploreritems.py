@@ -81,6 +81,7 @@ class PgConnectionItem(PgTreeItem):
         self.populate()   
                 
     def populate(self):
+        self.element.reconnect()
         if not self.element.isValid:
             dlg = UserPasswdDialog()
             dlg.exec_()
@@ -309,7 +310,7 @@ class PgSchemaItem(PgTreeItem):
                                 dlg.schema, dlg.tablename, dlg.add, dlg.single)
                 toUpdate.add(self)
         
-        return self                  
+        return [self]                  
         
 class PgTableItem(PgTreeItem): 
     def __init__(self, table):                               
@@ -412,7 +413,7 @@ class PgTableItem(PgTreeItem):
         
     def deleteTables(self, explorer, items):
         if not confirmDelete():
-            return
+            return        
         if len(items) > 1:
             explorer.setProgressMaximum(len(items), "Delete tables")
         toUpdate = set()
@@ -422,15 +423,19 @@ class PgTableItem(PgTreeItem):
                           [], 
                           item.element.name, item.element.schema):
                 break
-            toUpdate.add(item.parent())
+            #Seems that after deleting the table the db object throws exceptions 
+            #when running SQL code, until it's refreshed, so we refresh the whole 
+            #database item instead of just the schema one
+            #TODO: improve this workaround 
+            toUpdate.add(item.parent().parent())
             explorer.setProgress(i+1)
-        explorer.resetActivity()
+        explorer.resetActivity()           
         if len(toUpdate) > 1:
             self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")                                                                                                                                     
         for i, item in enumerate(toUpdate):            
             item.refreshContent(explorer)
             explorer.setProgress(i+1)                
-        explorer.resetActivity()
+        explorer.resetActivity()            
     
     def renameTable(self, explorer):
         text, ok = QtGui.QInputDialog.getText(explorer, "Table name", "Enter new name for table", text="table")
@@ -476,4 +481,3 @@ class PgTableItem(PgTreeItem):
     def populate(self):
         pass
 
-      

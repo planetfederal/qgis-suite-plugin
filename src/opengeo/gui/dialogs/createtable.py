@@ -49,12 +49,6 @@ class DlgCreateTable(QDialog):
 		self.vboxlayout.addWidget(self.btnDeleteField)
 		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 		self.vboxlayout.addItem(spacerItem)
-		#=======================================================================
-		# self.btnFieldUp = QPushButton(self)		
-		# self.vboxlayout.addWidget(self.btnFieldUp)
-		# self.btnFieldDown = QPushButton(self)		
-		# self.vboxlayout.addWidget(self.btnFieldDown)
-		#=======================================================================
 		self.gridLayout_2.addLayout(self.vboxlayout, 1, 1, 1, 1)
 		self.hboxlayout = QHBoxLayout()
 		self.hboxlayout.setSpacing(8)		
@@ -145,15 +139,7 @@ class DlgCreateTable(QDialog):
 
 	def updateUiFields(self):	   
 		fld = self.selectedField()
-		if fld is not None:
-			up_enabled = (fld != 0)
-			down_enabled = (fld != self.table.model().rowCount()-1)
-			del_enabled = True
-		else:
-			up_enabled, down_enabled, del_enabled = False, False, False
-		#self.btnFieldUp.setEnabled(up_enabled)
-		#self.btnFieldDown.setEnabled(down_enabled)
-		self.btnDeleteField.setEnabled(del_enabled)
+		self.btnDeleteField.setEnabled(fld is not None)
 
 	def updatePkeyCombo(self, selRow=None):
 		""" called when list of columns changes. if 'sel' is None, it keeps current index """

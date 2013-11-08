@@ -207,6 +207,11 @@ The following actions are available for items in the PostGIS branch.
 
 		 .. note:: If the import is done without the :guilabel:`Add to table` option, it will be performed completely by QGIS. However, if using the :guilabel:`Add to table` option, the import relies on the ``shp2pgsql`` utility, which has to be in your ``PATH`` environment variable so it can be called from QGIS. If you are using OpenGeo Suite, you should have no problems, but if you are running your own installation of PostGIS, make sure that your ``PATH`` variable is correctly configured. To check it, just open a shell and type ``shp2pgsql`` to see that it can be correctly found and executed.
 
+	- :guilabel:`Run SQL`. Opens the DB manager SQL dialog, where SQL sentences can be entered and run.
+
+		.. image:: img/actions/runsql.png
+		 	:align: center
+
 
 - PostGIS schema item
 
@@ -225,7 +230,13 @@ The following actions are available for items in the PostGIS branch.
 
 	- :guilabel:`Delete`. Deletes the table.
 
-	- :guilabel:`Rename`. Renames the table.
+	- :guilabel:`Rename...`. Renames the table.
+
+	- :guilabel:`Edit...`. Opens the DB manager table edit dialog, which allows to edit the structure of the table and its properties.
+
+		.. image:: img/actions/edit_table.png
+		 	:align: center
+
 
 	- :guilabel:`Run vacuum analyze`. Vacuums the table
 

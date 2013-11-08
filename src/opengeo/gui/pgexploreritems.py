@@ -11,6 +11,10 @@ from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
 from opengeo.gui.pgoperations import importToPostGIS
 from opengeo.gui.confirm import confirmDelete
+from db_manager.db_plugins.postgis.plugin import PostGisDBPlugin, PGTable
+from db_manager.dlg_sql_window import DlgSqlWindow
+from db_manager.dlg_table_properties import DlgTableProperties
+from opengeo import config
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")   
  
@@ -194,7 +198,13 @@ class PgConnectionItem(PgTreeItem):
             self.refreshContent(explorer)
           
     def runSql(self):
-        pass
+        geodb = self.element.geodb
+        uri = QgsDataSourceURI()    
+        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)
+        plugin = PostGisDBPlugin(self.element.name)
+        plugin.connectToUri(uri)
+        dlg = DlgSqlWindow(config.iface, plugin.db)
+        dlg.exec_()
     
     def newSchema(self, explorer):            
         text, ok = QtGui.QInputDialog.getText(explorer, "Schema name", "Enter name for new schema", text="schema")
@@ -349,10 +359,13 @@ class PgTableItem(PgTreeItem):
         deleteAction.triggered.connect(lambda: self.deleteTable(explorer))  
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/rename.png") 
         renameAction= QtGui.QAction(icon, "Rename...", explorer)
-        renameAction.triggered.connect(lambda: self.renameTable(explorer))                 
+        renameAction.triggered.connect(lambda: self.renameTable(explorer))
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")                  
+        editAction= QtGui.QAction(icon, "Edit...", explorer)
+        editAction.triggered.connect(self.editTable)
         vacuumAction= QtGui.QAction("Vacuum analyze", explorer)
         vacuumAction.triggered.connect(lambda: self.vacuumTable(explorer))
-        return [publishPgTableAction, deleteAction, renameAction, vacuumAction]
+        return [publishPgTableAction, deleteAction, renameAction, editAction, vacuumAction]
            
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):   
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")     
@@ -445,7 +458,17 @@ class PgTableItem(PgTreeItem):
                           [self.parent()], 
                           self.element.name, text, self.element.schema)      
     
-    
+    def editTable(self):        
+        geodb = self.element.conn.geodb
+        uri = QgsDataSourceURI()    
+        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)
+        plugin = PostGisDBPlugin(self.element.conn.name)
+        plugin.connectToUri(uri)
+        row = (self.element.name, self.element.schema, self.element.isView, "", 0 ,0, "")
+        table = PGTable(row, plugin.db)
+        dlg = DlgTableProperties(table)
+        dlg.exec_()
+        
     def publishPgTable(self, tree, explorer):
         dlg = PublishLayerDialog(explorer.catalogs())
         dlg.exec_()      

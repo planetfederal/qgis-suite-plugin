@@ -8,11 +8,14 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
 from opengeo.test.integrationtest import ExplorerIntegrationTest
 from opengeo.test.utils import GROUP, WORKSPACE, WORKSPACEB, cleanCatalog, PT2,\
-    PT1
+    PT1, PUBLIC_SCHEMA
 from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
     PublishLayersDialog
 from opengeo.geoserver.catalog import Catalog
 from opengeo.qgis import layers
+from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
+from opengeo.postgis.connection import PgConnection
+from opengeo.postgis.schema import Schema
 
 class CreateCatalogDialogTests(unittest.TestCase):
     
@@ -193,6 +196,78 @@ class LayerDialogTests(unittest.TestCase):
         self.assertEquals(WORKSPACE, dialog.topublish[0][2].name)
         self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
 
+class ImportVectorDialogTest(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        cls.explorer = OpenGeoExplorer(singletab = True)
+        cls.conn1 = PgConnection("conn1", "localhost", 54321,
+                            "opengeo", "postgres", "postgres")
+        cls.conn2 = PgConnection("conn2", "localhost", 54321,
+                            "opengeo", "postgres", "postgres")
+        cls.toImport = [layers.resolveLayer(PT1)]             
+               
+    def testImportVectorDialog(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)        
+        self.assertEquals(2, dlg.connectionBox.count())
+        self.assertTrue(dlg.connectionBox.isEnabled())
+        self.assertTrue(dlg.schemaBox.isEnabled())
+        okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dlg.ok)
+        self.assertEquals(1, len(dlg.toImport))
+        self.assertIsNone(dlg.tablename)
+        
+    def testImportVectorDialogWithTablename(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)        
+        self.assertEquals(2, dlg.connectionBox.count())
+        self.assertTrue(dlg.connectionBox.isEnabled())
+        self.assertTrue(dlg.schemaBox.isEnabled())
+        dlg.tableBox.setEditText("tablename")
+        okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dlg.ok)
+        self.assertEquals(1, len(dlg.toImport))
+        self.assertEquals("tablename", dlg.tablename)        
+        
+    def testImportVectorDialogCancelClicked(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)                
+        cancelWidget = dlg.buttonBox.button(dlg.buttonBox.Cancel)
+        QTest.mouseClick(cancelWidget, Qt.LeftButton)
+        self.assertFalse(dlg.ok)
+        
+    def testImportVectorDialogNothingToImport(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2],)                
+        okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertFalse(dlg.ok)     
+        
+    def testImportVectorDialogUsingConnection(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], connection = self.conn1,
+                                       toImport = self.toImport)        
+        self.assertEquals(2, dlg.connectionBox.count())
+        self.assertFalse(dlg.connectionBox.isEnabled())
+        self.assertTrue(dlg.schemaBox.isEnabled())
+        okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dlg.ok)
+        self.assertEquals(1, len(dlg.toImport))
+        self.assertIsNone(dlg.tablename)   
+        
+    def testImportVectorDialogUsingSchema(self):        
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], connection = self.conn1, 
+                                      schema = Schema(self.conn1, PUBLIC_SCHEMA), toImport = self.toImport)        
+        self.assertEquals(2, dlg.connectionBox.count())
+        self.assertFalse(dlg.connectionBox.isEnabled())
+        self.assertFalse(dlg.schemaBox.isEnabled())
+        okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
+        QTest.mouseClick(okWidget, Qt.LeftButton)
+        self.assertTrue(dlg.ok)
+        self.assertEquals(1, len(dlg.toImport))
+        self.assertIsNone(dlg.tablename)                 
+                
+        
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTests(unittest.makeSuite(CreateCatalogDialogTests, 'test'))
@@ -200,9 +275,3 @@ def suite():
     suite.addTests(unittest.makeSuite(LayerDialogTests, 'test'))
     return suite
 
-
-def runtests():
-    result = unittest.TestResult()
-    testsuite = suite()
-    testsuite.run(result)
-    return result

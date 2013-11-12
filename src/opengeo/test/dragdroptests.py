@@ -1,8 +1,10 @@
 import unittest
 import os
 from opengeo.test.utils import PT1, WORKSPACE, WORKSPACEB, STYLE, PT2, PT3,\
-    GROUP, GEOLOGY_GROUP, LANDUSE, GEOFORMS
+    GROUP, GEOLOGY_GROUP, LANDUSE, GEOFORMS, safeName, PUBLIC_SCHEMA
 from opengeo.test.integrationtest import ExplorerIntegrationTest
+from opengeo.gui.pgoperations import importToPostGIS
+from opengeo.qgis import layers
 
 class DragDropTests(ExplorerIntegrationTest):   
 
@@ -99,18 +101,6 @@ class DragDropTests(ExplorerIntegrationTest):
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
         self.cat.delete(self.cat.get_style(PT1), purge = True)
         
-    #===========================================================================
-    # def testDropQgisLayerItemInPgSchemaItem(self):
-    #    layerItem = self.getQgsLayerItem(PT1)
-    #    schemaItem = self.getPGSchemaItem("public")
-    #    schemaItem.acceptDroppedItems(self.tree, self.explorer, [layerItem])
-    #    tableItem = self.getPGTableItem(PT1)
-    #    self.assertIsNotNone(tableItem)
-    #    tableItem.deleteTable(self.explorer)
-    #    tableItem = self.getPGTableItem(PT1)
-    #    self.assertIsNone(tableItem)            
-    #===========================================================================
-
     def testDropQgisGroupItemInGsGroupsItem(self):
         groupItem = self.getQgsGroupItem(GEOLOGY_GROUP)
         groupsItem = self.getGroupsItem()
@@ -164,6 +154,17 @@ class DragDropTests(ExplorerIntegrationTest):
         style = self.cat.get_style(PT1)
         self.assertIsNotNone(style)
         self.cat.delete(self.cat.get_style(PT1), purge = True)
+        
+    def testDropPGTableInLayersItem(self):
+        importToPostGIS(self.explorer, self.conn, [layers.resolveLayer(PT1)], PUBLIC_SCHEMA, PT1, False, False); 
+        self.getPGConnectionItem().refreshContent(self.explorer)
+        tableItem = self.getPGTableItem(PT1)
+        layersItem = self.getLayersItem()
+        layersItem.acceptDroppedItems(self.tree, self.explorer, [tableItem])
+        storeItem = self.getStoreItem(safeName("connection"), PT1)
+        self.assertIsNotNone(storeItem)
+        self.assertEquals(1, storeItem.childCount())
+        
 
 
 def suite():

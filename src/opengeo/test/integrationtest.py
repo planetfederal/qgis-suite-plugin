@@ -3,6 +3,9 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.geoserver.catalog import Catalog
 from opengeo.test import utils
 from opengeo.gui.gsexploreritems import GsCatalogItem
+from opengeo.postgis.connection import PgConnection
+from opengeo.test.utils import safeName
+from opengeo.gui.pgexploreritems import PgConnectionItem
 
 
 
@@ -17,10 +20,17 @@ class ExplorerIntegrationTest(unittest.TestCase):
         cls.explorer.explorerWidget.gsItem.addChild(cls.catalogItem)
         cls.catalogItem.populate()
         cls.tree = cls.explorer.explorerWidget.tree
+        cls.conn = PgConnection(safeName("connection"), "localhost", 54321,
+                            "opengeo", "postgres", "postgres")
+        assert cls.conn.isValid
+        cls.pgItem = PgConnectionItem(cls.conn)
+        cls.explorer.explorerWidget.pgItem.addChild(cls.pgItem)
+        
 
     @classmethod
     def tearDownClass(cls):
         utils.cleanCatalog(cls.cat)
+        utils.cleanDatabase(cls.conn) 
         
     def _getItemUnder(self, parent, name):
         for idx in range(parent.childCount()):
@@ -28,6 +38,9 @@ class ExplorerIntegrationTest(unittest.TestCase):
             if item.text(0) == name:
                 return item
 
+    def getStoreItem(self, ws, name):
+        return self._getItemUnder(self.getWorkspaceItem(ws), name)
+    
     def getWorskpaceItem(self, name):
         return self._getItemUnder(self.getWorkspacesItem(), name)
 
@@ -56,7 +69,7 @@ class ExplorerIntegrationTest(unittest.TestCase):
         return self.explorer.explorerWidget.pgItem
     
     def getPGConnectionItem(self):
-        return self._getItemUnder(self.getPGConnectionsItem(), "opengeo")
+        return self.pgItem
     
     def getPGSchemaItem(self, name):
         return self._getItemUnder(self.getPGConnectionItem(), name)
@@ -81,5 +94,11 @@ class ExplorerIntegrationTest(unittest.TestCase):
 
     def getQgsStyleItem(self, name):
         return self._getItemUnder(self.getQgsStylesItem(), "Style of layer '%s'" % name)
+    
+    def getGWCLayersItem(self):
+        return self.catalogItem.child(4)
+    
+    def getGWCLayerItem(self, name):
+        return self._getItemUnder(self.getGWCLayersItem(), name)
 
   

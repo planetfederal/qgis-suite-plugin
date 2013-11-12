@@ -13,6 +13,8 @@ The plugin is installed using the plugin manager.
 - Add the following repository to the list of plugin repositories:
 
 	.. image:: ./img/actions/plugin_repo.png
+	
+- The plugin is still in an early development stage, and it is tagged as experimental. You should enable the option to show experimental plugins in the Settings group. Otherwise, you will not see it in the list of available plugins.
 
 - Now the OpenGeo Suite plugin should be available and ready to be installed. You can look for it in the list of installable plugins in the  plugin manager.
 	
@@ -23,7 +25,7 @@ The plugin is installed using the plugin manager.
 Installing the current development version
 -------------------------------------------
 
-The plugin repository is updated frequently- However, it is not guaranteed that it will contain the same code that can be found in this GitHub repository. If you want to be sure that you are using the latest development version, follow the step described in the `development <./doc/source/developers.rst>`_ section. Running the ``install.py`` script should install the OpeGeo Explorer in your QGIS.
+The plugin repository is updated frequently- However, it is not guaranteed that it will contain the same code that can be found in this GitHub repository. If you want to be sure that you are using the latest development version, follow the step described in the `development <./doc/source/developers.rst>`_ section. Running the ``install.py`` script should install the OpenGeo Explorer in your QGIS.
 
 Installing from a zip file
 ---------------------------

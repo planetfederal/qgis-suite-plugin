@@ -110,7 +110,7 @@ class DefineCatalogDialog(QtGui.QDialog):
        
     def okPressed(self):        
         self.url = unicode(self.urlBox.text() + '/rest')
-        if not self.url.startswith('http://'):
+        if not self.url.startswith('http'):
             self.url = 'http://%s' % self.url
         self.username = unicode(self.usernameBox.text())
         self.password = unicode(self.passwordBox.text())

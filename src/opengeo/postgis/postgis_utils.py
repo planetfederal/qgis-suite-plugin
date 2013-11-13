@@ -16,8 +16,6 @@
 *                                                                         *
 ***************************************************************************
 """
-from opengeo.postgis.table import Table
-import copy
 
 __author__ = 'Martin Dobias'
 __date__ = 'November 2012'
@@ -133,7 +131,7 @@ class GeoDB:
         try:
             self.con = psycopg2.connect(self.con_info())
         except psycopg2.OperationalError, e:
-            raise DbError(e.message)
+            raise DbError(unicode(e))
 
         self.has_postgis = self.check_postgis()
 

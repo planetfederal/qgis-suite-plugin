@@ -33,5 +33,8 @@ def mkdir(newdir):
             mkdir(head)
         if tail:
             os.mkdir(newdir)
+            
+def isWindows():
+    return os.name == 'nt'            
 
 

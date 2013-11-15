@@ -138,10 +138,12 @@ We will see this by first importing those shapefiles into a PostGIS database, an
 
 #. First create a database named ``quickstart``. Make sure this database is spatially enabled.
 
-   .. note:: The details of this step are beyond the scope of this tutorial, as it must be done outside of QGIS using PostgreSQL command-line utilities like ``psql``, or the ``pgAdmin`` utility. An example using the command line would look like this::
+   .. note:: The details of this step are beyond the scope of this tutorial, as it must be done outside of QGIS using PostgreSQL command-line utilities like ``psql``, or the ``pgAdmin`` utility. An example using the command line would look like this:
 
-      createdb -U postgres quickstart
-      psql -U postgres -d quickstart -c "create extension postgis;"
+      .. code-block:: console
+
+         createdb -U postgres quickstart
+         psql -U postgres -d quickstart -c "create extension postgis;"
 
 #. Connect to the database using the OpenGeo Explorer by right-clicking the :guilabel:`PostGIS connections` item in the tree and selecting :guilabel:`New connection`.
 

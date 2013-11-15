@@ -57,7 +57,7 @@ class NewPgConnectionDialog(QDialog):
         portLabel = QLabel('Port')
         portLabel.setMinimumWidth(150)
         self.portBox = QLineEdit()            
-        self.portBox.setText(str(settings.value('/OpenGeo/PostGIS/LastPort', '54321')))
+        self.portBox.setText(str(settings.value('/OpenGeo/PostGIS/LastPort', '5432')))
         self.portBox.setMinimumWidth(250)   
         horizontalLayout.addWidget(portLabel)
         horizontalLayout.addWidget(self.portBox)

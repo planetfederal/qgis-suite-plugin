@@ -13,7 +13,7 @@ import os
 from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
-from opengeo.qgis import layers, exporter
+from opengeo.qgis import layers, exporter, utils
 from opengeo.geoserver.catalog import ConflictingDataError, UploadError
 from opengeo.geoserver.catalog import Catalog as GSCatalog
 from opengeo.qgis.sldadapter import adaptGsToQgs,\
@@ -213,13 +213,15 @@ class OGCatalog(object):
                             self.catalog.create_shp_featurestore(name,
                                               path,
                                               workspace=workspace,
-                                              overwrite=overwrite)
-                        except WindowsError:
-                            #this might be thrown by the create_shp_featurestore method 
-                            #when trying to unlink the temp zip file
-                            pass
+                                              overwrite=overwrite)                                                    
                         except Exception, e:
-                            raise e
+                            if utils.isWindows():
+                                #a WindowsError might be thrown by the create_shp_featurestore method 
+                                    #when trying to unlink the temp zip file. We ignore it
+                                if not isinstance(e, WindowsError):
+                                    raise e
+                            else:                        
+                                raise e
                     else:
                         shpFile = path['shp']                        
                         session = self.client.upload(shpFile)

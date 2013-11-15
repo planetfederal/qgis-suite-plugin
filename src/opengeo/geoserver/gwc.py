@@ -77,10 +77,16 @@ class GwcLayer(object):
     def fetch(self):
         response, content = self.gwc.http.request(self.href)
         if response.status == 200:
-            xml = XML(content)
+            xml = XML(content)                         
             self.mimetypes = [mimetype.text for mimetype in xml.iter('string')]
             self.gridsets = [gridset.text for gridset in xml.iter('gridSetName')]
-            self.metaWidth, self.metaHeight = [int(el.text) for el in xml.iter('int')]
+            wh = xml.iter('metaWidthHeight')            
+            try:
+                els = wh.next().iter('int')                
+                self.metaWidth, self.metaHeight = [int(el.text) for el in els]
+            except:
+                #in case this parameters are not in the layer description                 
+                self.metaWidth, self.metaHeight = 1, 1
         else:
             raise FailedRequestError(content)
     

@@ -205,4 +205,25 @@ Once data is in the GeoServer catalog, we can use the OpenGeo Explorer panel to 
 
 #. The description is not updated automatically, but you can click the :guilabel:`Update` link to refresh and see how it progresses, or the :guilabel:`Kill` link to abort the seeding operation.
 
-.. todo:: Removed the preprocessing data as it appeared to be outdated.
+Preprocessing data
+------------------
+
+The layers to upload sometimes require preprocessing, for instance if they are not in the optimal format to provide the best performance once they are published. This preprocessing can be performed independently before publishing, but can also be included as part of the publishing operation itself.
+
+The OpenGeo Explorer integrates with the QGIS Processing Framework and allows you to define a process to be run on any layer before uploading it, publishing the resulting *processed* layer instead.
+
+Processes are defined using the QGIS processing graphical modeler or as python scripts, and the process to use is specified in the Explorer configuration.
+
+The sample data zip file contains an example hook that can be used for vector layers. It will export the selected features to a new layer, so only those features will be later uploaded. If the layer you are uploading is not open in QGIS (such as when you export dragging it directly from the QGIS browser), the hook will have no effect at all (since it is not open, a selection does not exist). If, however, the layer is loaded and a selection exists, only the selected features will be uploaded. If no features are selected, the whole layer will be uploaded. 
+
+Follow these steps to enable the upload hook
+
+#. Open the OpenGeo Explorer configuration dialog from the OpenGeo menu.
+
+   .. figure:: img/quickstart/config.png
+
+#. Find the :guilabel:`Vector preprocessing hook file` parameter. The data file that you downloaded contains an example model named ``vector_hook.py``. Locate it and enter the path to it as value of the parameter. This will cause the model to be run before the data is uploaded, and the resulting output to be imported instead of the original layer.
+
+#. Make a selection in one of the project layers and upload it to GeoServer. The preprocessing hook will be run before the upload and only the selected features will be uploaded. To disable it for future uploads, just go to the configuration and change the value of the corresponding value to an empty string, so it doesn't point to any valid model or script file.
+
+

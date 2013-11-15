@@ -27,9 +27,9 @@ This plugin needs QGIS version 2.0 or higher to run. It is installed using the P
 
 #. Click :guilabel:`OK`.
 
-#. Now the OpenGeo Suite plugin should be available and ready to be installed. Click :guilabel:`Get more` to see a list of plugins that can be installed.
+#. Now the OpenGeo Suite plugin should be available and ready to be installed. Click :guilabel:`New` to see a list of new plugins that can be installed.
 
-#. You should see one titled :guilabel:`OpenGeo`. Click :guilabel:`Install plugin`.
+#. You should see one titled :guilabel:`OpenGeo Explorer`. Click :guilabel:`Install plugin`.
 
    .. note:: If you don't see the plugin, ensure that you checked :guilabel:`Show also experimental plugins`.
 

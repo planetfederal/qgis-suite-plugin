@@ -80,7 +80,13 @@ Even if you are using the correct version of GeoServer, some limitations still e
 
 * Layer names. The OpenGeo Explorer uses the GeoServer REST API to get the list of layers in a catalog. The REST API describes layers without workspace, that meaning that if you have two layers with the same name and in different workspaces (for instance, ``ws1:mylayer`` and ``ws2:mylayer``), they will be shown as just one (``mylayer`` in this case).
 
-Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. Read the styling limitations section to know more about it.
+  When this happens, the situation is ambiguous and OpenGeo Explorer cannot differentiate between layers with the same name but belonging to different workspaces. The layer, as describe by the REST API, is added to the Explorer tree, but it only represents one of the several layers that share the same name. To indicate this, the layer is shown with a warning icon, and a warning message is displayed in the layer description.
+
+  .. figure:: img/intro/duplicated_layer.png
+  :align: center
+
+
+Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. Read the :ref:`styling_limitations` section to know more about it.
 
 
 Usage
@@ -220,6 +226,9 @@ Other parameters
 * *Delete resource when deleting layer*. If this parameter is checked, the resource that is part of a layer will also be deleted from its corresponding store if the layer is deleted.
 
 * *Overwrite layers when uploading group*. When uploading a group, if this option is not enabled, the Explorer will try to reuse layers that already exist in the catalog. If a layer with the same name already exist, it will be used for the group, and the corresponding QGIS layer will not be uploaded. Check it if you want all layers to be imported, overwriting layers with the same name that might exist in the catalog.
+
+
+.. _styling_limitations:
 
 Styling limitations
 -------------------

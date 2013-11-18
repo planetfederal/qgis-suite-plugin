@@ -275,10 +275,15 @@ class GsLayersItem(GsTreeItem):
             
     def populate(self):
         layers = self.catalog.get_layers()
+        items = {}
         for layer in layers:
-            layerItem = GsLayerItem(layer)            
-            layerItem.populate()    
-            self.addChild(layerItem) 
+            if layer.name in items:
+                items[layer.name].markAsDuplicated()
+            else:
+                layerItem = GsLayerItem(layer)            
+                layerItem.populate()    
+                self.addChild(layerItem) 
+                items[layer.name] = layerItem
         self.sortChildren(0, Qt.AscendingOrder)                  
     
     def acceptDroppedItem(self, tree, explorer, item):            
@@ -589,7 +594,8 @@ class GsLayerItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         GsTreeItem.__init__(self, layer, icon, layer.resource.title)  
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable 
-                      | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled)       
+                      | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsDragEnabled)
+        self.isDuplicated = False       
                 
     def populate(self):
         layer = self.element
@@ -598,7 +604,12 @@ class GsLayerItem(GsTreeItem):
             self.addChild(styleItem)
         if layer.default_style is not None:
             styleItem = GsStyleItem(layer.default_style, True)                    
-            self.addChild(styleItem)  
+            self.addChild(styleItem)
+            
+    def markAsDuplicated(self):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/warning.png")
+        self.setIcon(0, icon) 
+        self.isDuplicated = True 
             
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, (GsStyleItem, QgsStyleItem)):                                                        
@@ -623,11 +634,19 @@ class GsLayerItem(GsTreeItem):
             return []
     
     def _getDescriptionHtml(self, tree, explorer):  
-        html = '<p><h3><b>Properties</b></h3></p><ul>'
-        html += '<li><b>Name: </b>' + str(self.element.name) + '</li>\n'
-        html += '<li><b>Title: </b>' + str(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'     
-        html += '<li><b>Abstract: </b>' + str(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
-        html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')        
+        wsname = self.element.resource.workspace.name
+        html = ""
+        if self.isDuplicated:
+            iconPath = os.path.dirname(__file__) + "/../images/warning.png"
+            html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '
+                + 'This results in an ambiguous situation and unfortunately we cannot differentiate between them. Only one layer is displayed.'
+                + 'This element represents the layer based on a datastore from the ' + wsname + ' workspace </p>')          
+        html += '<p><h3><b>Properties</b></h3></p><ul>'
+        html += '<li><b>Name: </b>' + unicode(self.element.name) + '</li>\n'
+        html += '<li><b>Title: </b>' + unicode(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'     
+        html += '<li><b>Abstract: </b>' + unicode(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
+        html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')
+        html += ('<li><b>Datastore workspace: </b>' + wsname + ' </li>\n')            
         bbox = self.element.resource.latlon_bbox
         if bbox is not None:                    
             html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'

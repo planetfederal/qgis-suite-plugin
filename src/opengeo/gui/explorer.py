@@ -8,6 +8,7 @@ from opengeo import config
 from raven import Client
 from qgis.utils import pluginMetadata 
 import traceback
+from opengeo.gui.dialogs.errorreportdialog import ErrorReportDialog
 
 SENTRY_URL = "http://5d60c883c47645b78effecd67e0f9c73:a11d69b72e5b439fb30ec4c4bc0d42bb@sentry.boundlessgeo.com/2"
    
@@ -166,6 +167,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                                               duration = 15)
 
     def setError(self, msg):
+        settings = QSettings()
         firstLine = msg.split("\n")[0]
         if self.progressMaximum != 0:
             QtGui.QMessageBox.critical(self, "Error", firstLine)
@@ -176,9 +178,14 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         showButton = QtGui.QPushButton(widget)
         showButton.setText("View more")
         def reportError():
-            version = "Plugin version: " + pluginMetadata("opengeo", "version")
-            message = unicode(msg, errors = "ignore") + "\n" + version
-            self.ravenClient.captureMessage(message)
+            dlg = ErrorReportDialog()
+            dlg.exec_()
+            if dlg.message is not None:
+                version = "Plugin version: " + pluginMetadata("opengeo", "version")
+                email = "Email:" + settings.value("/OpenGeo/Settings/General/SentryEmail", "")
+                username = "User:" + settings.value("/OpenGeo/Settings/General/SentryUserName", "")
+                description = "Description: " + dlg.message            
+                self.ravenClient.captureMessage("\n".join([unicode(msg, errors = "ignore"), version, email, username, description]))
             self.resetActivity()
         def showMore():
             dlg = QgsMessageOutput.createMessageOutput()

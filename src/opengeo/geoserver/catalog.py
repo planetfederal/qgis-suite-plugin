@@ -603,21 +603,26 @@ class Catalog(object):
             if style is not None:
                 raise ConflictingDataError("There is already a style named %s" % name)        
 
+        
+        if not overwrite or style is None:
+            headers = {
+                "Content-type": "application/xml",
+                "Accept": "application/xml"
+            }    
+            xml = "<style><name>{0}</name><filename>{0}.sld</filename></style>".format(name)    
+            style_url = url(self.service_url, ["styles"], dict(name=name))            
+            headers, response = self.http.request(style_url, "POST", xml, headers)
+            if headers.status < 200 or headers.status > 299: raise UploadError(response) 
+            
         headers = {
             "Content-type": "application/vnd.ogc.sld+xml",
             "Accept": "application/xml"
-        }                
-        
-        if overwrite and style is not None:
-            style_url = url(self.service_url, ["styles", name + ".sld"])
-            headers, response = self.http.request(style_url, "PUT", sld, headers)
-            if headers.status < 200 or headers.status > 299: raise UploadError(response)           
-        else:            
-            style_url = url(self.service_url, ["styles"], dict(name=name))
-            headers, response = self.http.request(style_url, "POST", sld, headers)                                          
+        }
+        style_url = url(self.service_url, ["styles", name + ".sld"])
+        headers, response = self.http.request(style_url, "PUT", sld, headers)
 
         self._cache.clear()
-        if headers.status < 200 or headers.status > 299: raise UploadError(response)
+        if headers.status < 200 or headers.status > 299: raise UploadError(response)                   
 
     def create_workspace(self, name, uri):
         xml = ("<namespace>"

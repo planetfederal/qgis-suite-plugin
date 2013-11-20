@@ -20,6 +20,9 @@ options(
         excludes = [
             'metadata.txt',
             'test-output',
+            'test',
+            'coverage*.*',
+            'nose*.*',            
             '*.pyc'
         ]
     ),

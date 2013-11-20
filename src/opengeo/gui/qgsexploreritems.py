@@ -196,8 +196,8 @@ class QgsLayerItem(QgsTreeItem):
         for layer, catalog, workspace in toPublish:
             explorer.setProgress(progress)            
             ogcat = OGCatalog(catalog)                 
-            explorer.run(ogcat.createStore,
-                     None,#"Create store from layer '" + layer.name() + "'",
+            explorer.run(ogcat.upload,
+                     None,
                      [],
                      layer, workspace, True)
             progress += 1
@@ -217,7 +217,7 @@ class QgsLayerItem(QgsTreeItem):
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        explorer.run(ogcat.createStore,
+        explorer.run(ogcat.upload,
                  "Create store from layer '" + self.element.name() + "'",
                  toUpdate,
                  self.element, dlg.workspace, True)

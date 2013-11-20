@@ -64,6 +64,8 @@ class PgConnection(object):
                     layer.deleteLater()
                     raise WrongLayerFileError("Error reading file {} or it is not a valid vector layer file".format(source))
             else:
+                if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
+                    raise WrongLayerFileError("Layer '%s' is not valid or is not a vector layer".format(layer.name()))               
                 layer = source
         
             ret, errMsg = QgsVectorLayerImport.importLayer(layer, uri.uri(), providerName, layer.crs(), False, False, options)

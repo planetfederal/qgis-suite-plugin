@@ -28,10 +28,10 @@ options(
     ),
 
     plugin_server = Bunch(
-        server = 'plugins.qgis.org',
+        server = 'qgis.boundlessgeo.com',
         port = 80,
         protocol = 'http',
-        end_point = '/plugins/RPC2/'
+        end_point = '/RPC2/'
     ),
 
     sphinx = Bunch(

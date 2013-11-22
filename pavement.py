@@ -1,6 +1,6 @@
 from cStringIO import StringIO
 import ConfigParser
-from datetime import date
+from datetime import date, datetime
 import fnmatch
 import os
 from paver.easy import *
@@ -27,6 +27,7 @@ options(
         ]
     ),
 
+    # Default Server Params (can be overridden)
     plugin_server = Bunch(
         server = 'qgis.boundlessgeo.com',
         port = 80,
@@ -113,7 +114,7 @@ def make_zip(zip, options):
     cfg.optionxform = str
     cfg.read(metadata_file)
     base_version = cfg.get('general', 'version')
-    cfg.set("general", "version", "%s-%s" % (base_version, date.today().strftime("%Y%m%d")))
+    cfg.set("general", "version", "%s-%s" % (base_version, datetime.now().strftime("%Y%m%d")))
 
     buf = StringIO()
     cfg.write(buf)
@@ -143,6 +144,9 @@ def make_zip(zip, options):
 @cmdopts([
     ('user=', 'u', 'upload user'),
     ('passwd=', 'p', 'upload password'),
+    ('server=', 's', 'alternate server'),
+    ('end_point=', 'e', 'alternate endpoint'),
+    ('port=', 't', 'alternate port'),
 ])
 def upload(options):
     '''upload the package to the server'''
@@ -152,7 +156,14 @@ def upload(options):
         raise BuildFailure('provide user and passwd options to upload task')
     # create URL for XML-RPC calls
     s = options.plugin_server
-    uri = "%s://%s:%s@%s:%s%s" % (s.protocol, options['user'], options['passwd'], s.server, s.port, s.end_point)
+    server, end_point, port = getattr(options, 'server', None), getattr(options, 'end_point', None), getattr(options, 'port', None)
+    if server == None:
+        server = s.server
+    if end_point == None:
+        end_point = s.end_point
+    if port == None:
+        port = s.port
+    uri = "%s://%s:%s@%s:%s%s" % (s.protocol, options['user'], options['passwd'], server, port, end_point)
     info('uploading to %s', uri)
     server = xmlrpclib.ServerProxy(uri, verbose=False)
     try:

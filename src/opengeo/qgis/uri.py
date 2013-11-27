@@ -33,7 +33,7 @@ def layerMimeUri(element):
         else:
             layertype = 'raster'
             provider = 'wcs'       
-        escapedName = layer.name.replace( ":", "\\:" );
+        escapedName = layer.title.replace( ":", "\\:" );
         escapedUri = uri.replace( ":", "\\:" );         
         mimeUri = ':'.join([layertype, provider, escapedName, escapedUri])        
         return mimeUri

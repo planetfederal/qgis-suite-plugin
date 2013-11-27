@@ -83,7 +83,9 @@ class DefineCatalogDialog(QtGui.QDialog):
         urlLabel = QtGui.QLabel('URL')
         urlLabel.setMinimumWidth(150)
         self.urlGeonodeBox = QtGui.QLineEdit()        
-        geonodeUrl = settings.value('/OpenGeo/LastGeoNodeUrl', 'http://localhost:8000/')                
+        geonodeUrl = settings.value('/OpenGeo/LastGeoNodeUrl', 'http://localhost:8000/')  
+        if isinstance(geonodeUrl, QtCore.QPyNullVariant):
+            geonodeUrl = ""              
         self.urlGeonodeBox.setText(geonodeUrl)
         self.urlGeonodeBox.setMinimumWidth(250)
         horizontalLayout.addWidget(urlLabel)

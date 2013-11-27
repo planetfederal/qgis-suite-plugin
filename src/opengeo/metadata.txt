@@ -8,3 +8,4 @@ email=volayaf@boundlessgeo.org.com
 website=www.boundlessgeo.com
 icon=images/opengeo.png
 class_name=OpenGeoPlugin
+experimental = True

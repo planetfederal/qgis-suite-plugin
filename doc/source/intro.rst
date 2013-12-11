@@ -1,43 +1,7 @@
-Installation and usage
-======================
+Introduction
+============
 
-This section will show how to install and use the OpenGeo Suite plugin for QGIS.
-
-Installation
-------------
-
-This plugin needs QGIS version 2.0 or higher to run. It is installed using the Plugin Manager.
-
-#. Navigate to :menuselection:`Plugins --> Manage and Install Plugins`.
-
-#. Click :guilabel:`Settings`
-
-#. As the plugin is still in development, it is tagged as "experimental." Check the box that says :guilabel:`Show also experimental plugins`.
-
-#. In the list of :guilabel:`Plugin repositories`, click :guilabel:`Add`.
-
-#. Add the following repository to the list of plugin repositories:
-
-   * **Name**: Boundless plugin repository
-   * **URL**: http://qgis.boundlessgeo.com/plugins.xml
-
-   .. figure:: img/actions/plugin_repo.png
-
-      Adding a new plugin repository
-
-#. Click :guilabel:`OK`.
-
-#. Now the OpenGeo Suite plugin should be available and ready to be installed. Click :guilabel:`New` to see a list of new plugins that can be installed.
-
-#. You should see one titled :guilabel:`OpenGeo Explorer`. Click :guilabel:`Install plugin`.
-
-   .. note:: If you don't see the plugin, ensure that you checked :guilabel:`Show also experimental plugins`.
-
-   .. figure:: img/actions/plugin_install.png
-
-      OpenGeo in the list of plugins
-
-#. The plugin will be downloaded and installed. To verify that installation was successful, you should see a new menu in the menu bar called :guilabel:`OpenGeo`.
+This section will give a basic introduction to the functionality of the OpenGeo Suite plugin for QGIS.
 
 Installing the current development version
 ------------------------------------------
@@ -83,7 +47,7 @@ Even if you are using the correct version of GeoServer, some limitations still e
   When this happens, the situation is ambiguous and OpenGeo Explorer cannot differentiate between layers with the same name but belonging to different workspaces. The layer, as describe by the REST API, is added to the Explorer tree, but it only represents one of the several layers that share the same name. To indicate this, the layer is shown with a warning icon, and a warning message is displayed in the layer description.
 
   .. figure:: img/intro/duplicated_layer.png
-  :align: center
+     :align: center
 
 
 Another important limitation is due to the different versions of the SLD standard that QGIS and GeoServer support. Read the :ref:`styling_limitations` section to know more about it.

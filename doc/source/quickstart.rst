@@ -25,6 +25,10 @@ Connecting to GeoServer
 
 #. To start, open the OpenGeo Explorer by clicking the :guilabel:`OpenGeo` menu and selecting :guilabel:`OpenGeo Explorer`. The panel will appear on the right side of your QGIS window.
 
+   .. figure:: img/quickstart/explorer.png
+
+      OpenGeo Explorer
+
 #. You will see that the :guilabel:`GeoServer catalogs` entry is empty. Click to select it and then click :guilabel:`New catalog`.
 
    .. note:: The buttons on the toolbar will change depending on the type of element selected in the tree.
@@ -37,19 +41,19 @@ Connecting to GeoServer
 
 #. There is no need to modify the default values, so just click :guilabel:`OK`. The new catalog will appear in the :guilabel:`GeoServer catalogs` branch.
 
-   .. todo:: This image doesn't show what the text says it should: img/quickstart/catalog_entry.png
+   .. figure:: img/quickstart/catalog_entry.png
+
+      GeoServer catalog
 
 Publishing a QGIS project
 -------------------------
 
-#. In order to publish data into that catalog (to GeoServer), the first thing to do is to create a workspace where we can put our data. Select the :guilabel:`Workspaces` entry and then click :guilabel:`New workspace` in the toolbar.
+#. In order to publish data into that catalog (to GeoServer), the first thing to do is to create a workspace where we can put our data. Select the :guilabel:`GeoServer Workspaces` entry and then click :guilabel:`New workspace` in the toolbar.
 
 #. Fill out the form in the dialog boxes with the inputs as shown above and click :guilabel:`OK`.
 
    * **Name**: ``quickstart``
    * **URI**: ``http://quickstart``
-
-   .. todo:: Redo image, the URI doesn't work.
 
    .. figure:: img/quickstart/create_workspace.png
 
@@ -59,7 +63,11 @@ Publishing a QGIS project
 
 #. Open the QGIS project that is included in the example data (:file:`quickstart.qgs`). There should be five layers in your project in two groups.
 
+   This is what the project will look like in the QGIS Layers panel:
+
    .. figure:: img/quickstart/project.png
+
+      Quickstart sample project
 
 #. We will publish this project to GeoServer as it is, with those layers, groups, and the symbology associated with each layer.
 
@@ -78,15 +86,13 @@ Publishing a QGIS project
 Publishing a shapefile
 ----------------------
 
-The sample data contains a shapefile named :file:`pt4.shp` that was not included in the QGIS project. We will add it to the already-published content.
+The sample data contains a shapefile named :file:`pt4.shp` that was not included in the QGIS project. We will add it to the already-published content. It is not necessary to open/view the layer in QGIS to publish it to GeoServer.
 
-#. There is no need to open the layer in QGIS. Just open the QGIS Browser (:menuselection:`View --> Panels --> Browser` if it is not already open) and locate the shapefile.
+#. Open the QGIS Browser (:menuselection:`View --> Panels --> Browser` if it is not already open) and locate the shapefile.
 
    .. figure:: img/quickstart/file_in_browser.png
 
 #. Select the file and drag it onto the :guilabel:`GeoServer Workspaces` catalog item in the tree.
-
-   .. todo:: Update figure
 
    .. figure:: img/quickstart/drag_file.png
 
@@ -117,7 +123,7 @@ To edit the style of the ``landuse`` layer in GeoServer, locate the layer in the
 
 This will open the QGIS symbology dialog, where you can make the changes you want to your style. When you close it, the style in your GeoServer catalog will be updated.
 
-To see this in action, change one of the colors in the symbology.
+To see this in action, let's make some small edits to this style:
 
 #. Double click one of the rows (for example, :guilabel:`agricultural_areas`).
 
@@ -125,9 +131,19 @@ To see this in action, change one of the colors in the symbology.
 
 #. Click :guilabel:`OK`.
 
-The style has been changed in GeoServer. This can be verified by right-clicking the same style and selecting :guilabel:`Edit SLD` and looking at the RGB value for the Polygon Fill of the ``agricultural_areas`` rule.
+#. Delete the bottom rule that contains :guilabel:`(no filter)`. Click to select it and click the :guilabel:`Delete` button (the red minus).
 
-.. todo:: Maybe a better example?
+The style has been changed in GeoServer. This can be verified by right-clicking the same style and selecting :guilabel:`Edit SLD` and looking at the RGB value for the Polygon Fill of the ``agricultural_areas`` rule. It can also be viewed in GeoServer's Layer Preview.
+
+.. note:: The style change will not be reflected in the QGIS viewing window, because it is reading from the local project and not from GeoServer.
+
+.. figure:: img/quickstart/landuse_before.png
+
+   Original landuse style
+
+.. figure:: img/quickstart/landuse_after.png
+
+   Changed landuse style
 
 Publishing from PostGIS
 -----------------------
@@ -138,7 +154,7 @@ We will see this by first importing those shapefiles into a PostGIS database, an
 
 #. First create a database named ``quickstart``. Make sure this database is spatially enabled.
 
-   .. note:: The details of this step are beyond the scope of this tutorial, as it must be done outside of QGIS using PostgreSQL command-line utilities like ``psql``, or the ``pgAdmin`` utility. An example using the command line would look like this:
+   .. note:: The details of this step are beyond the scope of this tutorial, as it must be done outside of QGIS using PostgreSQL command-line utilities like ``psql`` or the ``pgAdmin`` utility. An example using the command line would look like this:
 
       .. code-block:: console
 
@@ -173,8 +189,6 @@ Publishing a TIF file
 ---------------------
 
 Raster layers are published in a similar way to vector layers. The example data includes a raster layer named :file:`dem.tif`` that can be uploaded to GeoServer in the two ways we've seen before:
-
-
 
 #. Drag file name from :guilabel:`Browser` to :guilabel:`GeoServer Workspaces`.
 
@@ -225,5 +239,4 @@ Follow these steps to enable the upload hook
 #. Find the :guilabel:`Vector preprocessing hook file` parameter. The data file that you downloaded contains an example model named ``vector_hook.py``. Locate it and enter the path to it as value of the parameter. This will cause the model to be run before the data is uploaded, and the resulting output to be imported instead of the original layer.
 
 #. Make a selection in one of the project layers and upload it to GeoServer. The preprocessing hook will be run before the upload and only the selected features will be uploaded. To disable it for future uploads, just go to the configuration and change the value of the corresponding value to an empty string, so it doesn't point to any valid model or script file.
-
 

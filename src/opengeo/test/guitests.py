@@ -8,13 +8,12 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
 from opengeo.test.integrationtest import ExplorerIntegrationTest
 from opengeo.test.utils import GROUP, WORKSPACE, WORKSPACEB, cleanCatalog, PT2,\
-    PT1, PUBLIC_SCHEMA
+    PT1, PUBLIC_SCHEMA, getPostgresConnection
 from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
     PublishLayersDialog
 from opengeo.geoserver.catalog import Catalog
 from opengeo.qgis import layers
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
-from opengeo.postgis.connection import PgConnection
 from opengeo.postgis.schema import Schema
 
 class CreateCatalogDialogTests(unittest.TestCase):
@@ -201,10 +200,8 @@ class ImportVectorDialogTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.explorer = OpenGeoExplorer(singletab = True)
-        cls.conn1 = PgConnection("conn1", "localhost", 54321,
-                            "opengeo", "postgres", "postgres")
-        cls.conn2 = PgConnection("conn2", "localhost", 54321,
-                            "opengeo", "postgres", "postgres")
+        cls.conn1 = getPostgresConnection("conn1")
+        cls.conn2 = getPostgresConnection("conn2")
         cls.toImport = [layers.resolveLayer(PT1)]             
                
     def testImportVectorDialog(self):        

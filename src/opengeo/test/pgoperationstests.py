@@ -3,8 +3,7 @@ from opengeo.qgis import layers
 from qgis.core import *
 from PyQt4.QtCore import *
 from opengeo.test import utils
-from opengeo.test.utils import PT1, PUBLIC_SCHEMA, PT2, safeName
-from opengeo.postgis.connection import PgConnection
+from opengeo.test.utils import PT1, PUBLIC_SCHEMA, PT2, getPostgresConnection
 from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.pgoperations import importToPostGIS
 from opengeo.postgis.schema import Schema
@@ -13,9 +12,7 @@ class PgOperationsTests(unittest.TestCase):
         
     @classmethod
     def setUpClass(cls):
-        cls.conn = PgConnection(safeName("connection"), "localhost", 54321,
-                            "opengeo", "postgres", "postgres")
-        assert cls.conn.isValid 
+        cls.conn = getPostgresConnection()
         cls.explorer = OpenGeoExplorer(singletab = True)
         cls.tree = cls.explorer.explorerWidget.tree
     
@@ -26,7 +23,7 @@ class PgOperationsTests(unittest.TestCase):
     def getTable(self, schema, name):
         tables = schema.tables()        
         for table in tables:
-            if table.name == PT1:
+            if table.name == name:
                 return table
                 
     

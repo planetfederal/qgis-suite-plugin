@@ -1,6 +1,8 @@
 import os
 from opengeo.geoserver.util import shapefile_and_friends
+from opengeo.postgis.connection import PgConnection
 from opengeo.postgis.schema import Schema
+
 
 PREFIX = "qgis_plugin_test_"
 
@@ -25,6 +27,16 @@ PUBLIC_SCHEMA = "public"
 OPENGEO_SCHEMA = safeName("opengeo")
 
 
+def getPostgresConnection(name="connection"):
+    conn = PgConnection(safeName(name), "localhost", 54321,
+                        "opengeo", "postgres", "postgres")
+    if not conn.isValid:
+        conn = PgConnection(safeName(name), "localhost", 5432,
+                        "opengeo", "postgres", "postgres")
+    assert conn.isValid
+    return conn
+
+
 def cleanCatalog(cat):
        
     for groupName in [GROUP, GEOLOGY_GROUP]:
@@ -45,15 +57,19 @@ def cleanCatalog(cat):
     for e in toDelete:        
         cat.delete(e, purge = True)
         
-    for wsName in [WORKSPACE, WORKSPACEB]:
-        ws = cat.get_workspace(wsName)
+    for ws in cat.get_workspaces():
+        if not ws.name.startswith(PREFIX):
+            continue
         if ws is not None:
             for store in cat.get_stores(ws):
                 for resource in store.get_resources():
-                    cat.delete(resource)
+                    try:
+                        cat.delete(resource)
+                    except:
+                        pass
                 cat.delete(store)    
             cat.delete(ws)
-            ws = cat.get_workspace(wsName)    
+            ws = cat.get_workspace(ws.name)
             assert ws is None        
 
     

@@ -23,7 +23,7 @@ class DragDropTests(ExplorerIntegrationTest):
 
     def testDropVectorLayerUriInWorkspaceItem(self):
         uri = os.path.join(os.path.dirname(__file__), "data", PT1 + ".shp")
-        item = self.getWorskpaceItem(WORKSPACEB)
+        item = self.getWorkspaceItem(WORKSPACEB)
         self.assertIsNotNone(item)
         item.acceptDroppedUris(self.tree, self.explorer, [uri])
         layer = self.cat.get_layer(PT1)
@@ -67,7 +67,7 @@ class DragDropTests(ExplorerIntegrationTest):
 
     def testDropQgisLayerItemInWorkspaceItem(self):
         layerItem = self.getQgsLayerItem(PT1)
-        wsItem = self.getWorskpaceItem(WORKSPACEB)
+        wsItem = self.getWorkspaceItem(WORKSPACEB)
         wsItem.acceptDroppedItems(self.tree, self.explorer, [layerItem])
         layer = self.cat.get_layer(PT1)
         self.assertIsNotNone(layer)
@@ -132,7 +132,7 @@ class DragDropTests(ExplorerIntegrationTest):
 
     def testDropQgisGroupInWorkspaceItem(self):
         groupItem = self.getQgsGroupItem(GEOLOGY_GROUP)
-        wsItem = self.getWorskpaceItem(WORKSPACEB)
+        wsItem = self.getWorkspaceItem(WORKSPACEB)
         wsItem.acceptDroppedItems(self.tree, self.explorer, [groupItem])
         layer = self.cat.get_layer(LANDUSE)
         self.assertIsNotNone(layer)

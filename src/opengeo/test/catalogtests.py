@@ -1,5 +1,5 @@
 import unittest
-from opengeo.qgis.catalog import createGeoServerCatalog
+from opengeo.qgis import catalog
 import os
 from opengeo.qgis import layers
 from qgis.core import *
@@ -19,7 +19,7 @@ class CatalogTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         ''' 'test' workspace cannot exist in the test catalog'''
-        cls.cat = createGeoServerCatalog()
+        cls.cat = catalog.createGeoServerCatalog()
         utils.cleanCatalog(cls.cat.catalog)
         cls.cat.catalog.create_workspace(WORKSPACE, "http://boundlessgeo.com")
         cls.ws = cls.cat.catalog.get_workspace(WORKSPACE)
@@ -33,8 +33,8 @@ class CatalogTests(unittest.TestCase):
     def testVectorLayerRoundTrip(self):
         self.cat.publishLayer(PT1, self.ws, name = PT1)
         self.assertIsNotNone(self.cat.catalog.get_layer(PT1))        
-        self.cat.addLayerToProject(PT1, "pt1")
-        layer = layers.resolveLayer("pt1")
+        self.cat.addLayerToProject(PT1, PT1)
+        layer = layers.resolveLayer(PT1)
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse = True)
         #TODO: more checking to ensure that the layer in the project is correct
@@ -42,8 +42,8 @@ class CatalogTests(unittest.TestCase):
     def testRasterLayerRoundTrip(self):        
         self.cat.publishLayer(DEM, self.ws, name = DEM)
         self.assertIsNotNone(self.cat.catalog.get_layer(DEM))        
-        self.cat.addLayerToProject(DEM, "DEM")
-        layer = layers.resolveLayer("DEM")
+        self.cat.addLayerToProject(DEM, DEM)
+        layer = layers.resolveLayer(DEM)
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True) 
         #TODO: more checking to ensure that the layer in the project is correct              
@@ -92,6 +92,9 @@ class CatalogTests(unittest.TestCase):
         self.cat.catalog.delete(self.cat.catalog.get_layer(LANDUSE), recurse = True)
         
     def testPreuploadVectorHook(self):
+        if not catalog.processingOk:
+            print 'skipping testPreuploadVectorHook, processing not installed'
+            return
         settings = QSettings()
         oldHookFile = str(settings.value("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", ""))
         hookFile = os.path.join(os.path.dirname(__file__), "resources", "vector_hook.py")

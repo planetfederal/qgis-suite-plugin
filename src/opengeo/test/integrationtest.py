@@ -3,8 +3,6 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.geoserver.catalog import Catalog
 from opengeo.test import utils
 from opengeo.gui.gsexploreritems import GsCatalogItem
-from opengeo.postgis.connection import PgConnection
-from opengeo.test.utils import safeName
 from opengeo.gui.pgexploreritems import PgConnectionItem
 
 
@@ -20,9 +18,7 @@ class ExplorerIntegrationTest(unittest.TestCase):
         cls.explorer.explorerWidget.gsItem.addChild(cls.catalogItem)
         cls.catalogItem.populate()
         cls.tree = cls.explorer.explorerWidget.tree
-        cls.conn = PgConnection(safeName("connection"), "localhost", 54321,
-                            "opengeo", "postgres", "postgres")
-        assert cls.conn.isValid
+        cls.conn = utils.getPostgresConnection()
         cls.pgItem = PgConnectionItem(cls.conn)
         cls.explorer.explorerWidget.pgItem.addChild(cls.pgItem)
         
@@ -41,7 +37,7 @@ class ExplorerIntegrationTest(unittest.TestCase):
     def getStoreItem(self, ws, name):
         return self._getItemUnder(self.getWorkspaceItem(ws), name)
     
-    def getWorskpaceItem(self, name):
+    def getWorkspaceItem(self, name):
         return self._getItemUnder(self.getWorkspacesItem(), name)
 
     def getLayerItem(self, name):

@@ -2,7 +2,7 @@ import httplib2
 from xml.etree.ElementTree import XML
 import xml.etree.ElementTree as ET
 from urlparse import urlparse
-from opengeo.geoserver.support import url
+from geoserver.support import url
 
 class Settings(object):
     

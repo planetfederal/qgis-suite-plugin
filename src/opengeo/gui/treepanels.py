@@ -15,7 +15,7 @@ from opengeo.geoserver.wps import Wps
 from dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.dialogs.userpasswd import UserPasswdDialog
 from opengeo.gui.dialogs.pgconnectiondialog import NewPgConnectionDialog
-from opengeo.geoserver.catalog import Catalog
+from geoserver.catalog import Catalog
 from opengeo.gui.gwcexploreritems import GwcLayerItem, GwcLayersItem
 
 class GsTreePanel(QtGui.QWidget):

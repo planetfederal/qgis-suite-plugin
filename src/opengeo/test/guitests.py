@@ -11,7 +11,7 @@ from opengeo.test.utils import GROUP, WORKSPACE, WORKSPACEB, cleanCatalog, PT2,\
     PT1, PUBLIC_SCHEMA, getPostgresConnection
 from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
     PublishLayersDialog
-from opengeo.geoserver.catalog import Catalog
+from geoserver.catalog import Catalog
 from opengeo.qgis import layers
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo.postgis.schema import Schema

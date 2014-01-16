@@ -1,7 +1,7 @@
 from PyQt4 import QtGui,QtCore
 from opengeo.gui.dialogs.gwclayer import EditGwcLayerDialog, SeedGwcLayerDialog
 from opengeo.geoserver.gwc import Gwc, GwcLayer, SeedingStatusParsingError
-from opengeo.geoserver.catalog import FailedRequestError
+from geoserver.catalog import FailedRequestError
 from opengeo.gui.exploreritems import TreeItem
 import os
 from opengeo.gui.confirm import confirmDelete

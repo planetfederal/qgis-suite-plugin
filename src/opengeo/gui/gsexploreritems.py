@@ -3,21 +3,21 @@ from qgis.core import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
-from opengeo.geoserver.store import DataStore, CoverageStore
-from opengeo.geoserver.resource import Coverage, FeatureType
+from geoserver.store import DataStore, CoverageStore
+from geoserver.resource import Coverage, FeatureType
 from dialogs.catalogdialog import DefineCatalogDialog
-from opengeo.geoserver.style import Style
-from opengeo.geoserver.layer import Layer
+from geoserver.style import Style
+from geoserver.layer import Layer
 from dialogs.styledialog import AddStyleToLayerDialog, StyleFromLayerDialog
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.exploreritems import TreeItem
 from dialogs.groupdialog import LayerGroupDialog
 from dialogs.workspacedialog import DefineWorkspaceDialog
-from opengeo.geoserver.layergroup import UnsavedLayerGroup
+from geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.qgsexploreritems import QgsLayerItem, QgsGroupItem,\
     QgsStyleItem
-from opengeo.geoserver.catalog import Catalog
-from opengeo.geoserver.catalog import FailedRequestError
+from geoserver.catalog import Catalog
+from geoserver.catalog import FailedRequestError
 from opengeo.gui.pgexploreritems import PgTableItem
 import traceback
 from opengeo.geoserver.wps import Wps
@@ -680,13 +680,13 @@ class GsLayerItem(GsTreeItem):
             text, ok = QtGui.QInputDialog.getText(None, "New title", "Enter new title", text=self.element.resource.title)
             if ok:                
                 r = self.element.resource
-                r.dirty['title'] = text                                 
+                r.title = text
                 explorer.run(self.catalog.save, "Update layer title", [], r)            
         if actionName == 'modify:abstract':
             text, ok = QtGui.QInputDialog.getText(None, "New abstract", "Enter new abstract", text=self.element.resource.abstract)
             if ok:
                 r = self.element.resource
-                r.dirty['abstract'] = text                                 
+                r.abstract = text
                 explorer.run(self.catalog.save, "Update layer abstract", [], r) 
         if actionName == 'modify:srs':
             dlg = CrsSelectionDialog()

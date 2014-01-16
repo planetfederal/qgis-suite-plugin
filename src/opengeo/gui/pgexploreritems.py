@@ -10,6 +10,7 @@ from dialogs.pgconnectiondialog import NewPgConnectionDialog
 from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
 from opengeo.gui.pgoperations import importToPostGIS
+from opengeo.gui.gsoperations import publishTable
 from opengeo.gui.confirm import confirmDelete
 from db_manager.db_plugins.postgis.plugin import PostGisDBPlugin, PGTable
 from db_manager.dlg_sql_window import DlgSqlWindow
@@ -477,29 +478,10 @@ class PgTableItem(PgTreeItem):
         cat = dlg.catalog          
         catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]                    
-        explorer.run(self._publishTable,
+        explorer.run(publishTable,
                  "Publish table '" + self.element.name + "'",
                  toUpdate,
                  self.element, cat, dlg.workspace)
-        
-                
-    def _publishTable(self, table, catalog = None, workspace = None):
-        if catalog is None:
-            pass       
-        workspace = workspace if workspace is not None else catalog.get_default_workspace()        
-        connection = table.conn 
-        geodb = connection.geodb      
-        catalog.create_pg_featurestore(connection.name,                                           
-                                       workspace = workspace,
-                                       overwrite = True,
-                                       host = geodb.host,
-                                       database = geodb.dbname,
-                                       schema = table.schema,
-                                       port = geodb.port,
-                                       user = geodb.user,
-                                       passwd = geodb.passwd)
-        catalog.create_pg_featuretype(table.name, connection.name, workspace, "EPSG:" + str(table.srid))  
-
 
     def populate(self):
         pass

@@ -14,8 +14,8 @@ from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
 from opengeo.qgis import layers, exporter, utils
-from opengeo.geoserver.catalog import ConflictingDataError, UploadError
-from opengeo.geoserver.catalog import Catalog as GSCatalog
+from geoserver.catalog import ConflictingDataError, UploadError, FailedRequestError
+from geoserver.catalog import Catalog as GSCatalog
 from opengeo.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from opengeo.qgis import uri as uri_utils
@@ -195,32 +195,24 @@ class OGCatalog(object):
                 if provider.name() == 'postgres':                                        
                     connName = self.getConnectionNameFromLayer(layer)
                     uri = QgsDataSourceURI(provider.dataSourceUri())                                                                     
-                    self.catalog.create_pg_featurestore(connName,                                           
-                                           workspace = workspace,
-                                           overwrite = overwrite,
-                                           host = uri.host(),
-                                           database = uri.database(),
-                                           schema = uri.schema(),
-                                           port = uri.port(),
-                                           user = uri.username(),
-                                           passwd = uri.password())  
-                    self.catalog.create_pg_featuretype(uri.table(), connName, workspace, layer.crs().authid())
+                    store = createPGFeatureStore(self.catalog,
+                                                 connName,
+                                                 workspace = workspace,
+                                                 overwrite = overwrite,
+                                                 host = uri.host(),
+                                                 database = uri.database(),
+                                                 schema = uri.schema(),
+                                                 port = uri.port(),
+                                                 user = uri.username(),
+                                                 passwd = uri.password())
+                    self.catalog.publish_feature(uri.table(), store, layer.crs().authid())
                 else:   
                     path = self.getDataFromLayer(layer)
                     if restApi:  
-                        try:                  
-                            self.catalog.create_shp_featurestore(name,
-                                              path,
-                                              workspace=workspace,
-                                              overwrite=overwrite)                                                    
-                        except Exception, e:
-                            if utils.isWindows():
-                                #a WindowsError might be thrown by the create_shp_featurestore method 
-                                    #when trying to unlink the temp zip file. We ignore it
-                                if not isinstance(e, WindowsError):
-                                    raise e
-                            else:                        
-                                raise e
+                        self.catalog.create_featurestore(name,
+                                          path,
+                                          workspace=workspace,
+                                          overwrite=overwrite)                                                    
                     else:
                         shpFile = path['shp']                        
                         session = self.client.upload(shpFile)
@@ -449,4 +441,30 @@ class OGCatalog(object):
                 raise Exception ("Layer at %s is not a valid layer" % uri)                  
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
+def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
+    host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):
+    try:
+        store = catalog.get_store(name, workspace)
+    except FailedRequestError:
+        store = None
+    if store is not None:
+        if overwrite:
+            #if the existing store is the same we are trying to add, we do nothing
+            params = store.connection_parameters
+            if (str(params['port']) == str(port) and params['database'] == database and params['host'] == host
+                    and params['user'] == user):
+                return store
+        else:
+            msg = "There is already a store named " + name
+            if workspace:
+                msg += " in " + str(workspace)
+            raise ConflictingDataError(msg)
+
+    if store is None:
+        store = catalog.create_datastore(name, workspace)
+    store.connection_parameters.update(
+        host=host, port=str(port), database=database, user=user, schema=schema,
+        passwd=passwd, dbtype="postgis")
+    catalog.save(store)
+    return store
                         

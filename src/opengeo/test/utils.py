@@ -90,10 +90,10 @@ def populateCatalog(cat):
     ws = cat.get_workspace(WORKSPACE)
     path = os.path.join(os.path.dirname(__file__), "data", PT2)
     data = shapefile_and_friends(path)
-    cat.create_shp_featurestore(PT2, data, ws)
+    cat.create_featurestore(PT2, data, ws)
     path = os.path.join(os.path.dirname(__file__), "data", PT3)
     data = shapefile_and_friends(path)
-    cat.create_shp_featurestore(PT3, data, ws)
+    cat.create_featurestore(PT3, data, ws)
     sldfile = os.path.join(os.path.dirname(__file__), "resources", "vector.sld")
     with open(sldfile, 'r') as f:
         sld = f.read()

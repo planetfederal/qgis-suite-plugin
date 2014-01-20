@@ -5,7 +5,8 @@ from opengeo.qgis import layers
 from qgis.core import *
 from PyQt4.QtCore import *
 from opengeo.test import utils
-from opengeo.test.utils import PT1, DEM, PT1JSON, DEMASCII,\
+from opengeo import config
+from opengeo.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
     GEOLOGY_GROUP, GEOFORMS, LANDUSE, HOOK, WORKSPACE
 
 class CatalogTests(unittest.TestCase):
@@ -41,12 +42,11 @@ class CatalogTests(unittest.TestCase):
                 
     def testRasterLayerRoundTrip(self):        
         self.cat.publishLayer(DEM, self.ws, name = DEM)
-        self.assertIsNotNone(self.cat.catalog.get_layer(DEM))        
-        self.cat.addLayerToProject(DEM, DEM)
-        layer = layers.resolveLayer(DEM)
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        self.assertIsNotNone(self.cat.catalog.get_layer(DEM))               
+        self.cat.addLayerToProject(DEM, DEM2)
+        layer = layers.resolveLayer(DEM2)            
+        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())       
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True) 
-        #TODO: more checking to ensure that the layer in the project is correct              
         
     def testVectorLayerUncompatibleFormat(self):
         self.cat.publishLayer(PT1JSON, self.ws, name = PT1JSON)

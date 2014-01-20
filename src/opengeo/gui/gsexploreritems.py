@@ -286,24 +286,34 @@ class GsLayersItem(GsTreeItem):
                 items[layer.name] = layerItem
         self.sortChildren(0, Qt.AscendingOrder)                  
     
-    def acceptDroppedItem(self, tree, explorer, item):            
-        if isinstance(item, QgsGroupItem):                
+    def acceptDroppedItem(self, tree, explorer, item):                          
+        if isinstance(item, QgsGroupItem):  
             catalog = self.parentCatalog()
             if catalog is None:
-                return
-            workspace = self.parentWorkspace()
-            if workspace is None:
-                workspace = self.getDefaultWorkspace()
+                return []                            
+            workspace = self.getDefaultWorkspace()
             publishDraggedGroup(explorer, item, catalog, workspace)
             return tree.findAllItems(catalog)
-        elif isinstance(item, QgsLayerItem):
-            catalog = self.parentCatalog()
+        elif isinstance(item, QgsLayerItem):            
             workspace = self.getDefaultWorkspace()
             toUpdate = []
+            catalog = self.parentCatalog()
+            if catalog is None:
+                return []  
             if workspace is not None:
                 publishDraggedLayer(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
+        elif isinstance(item, PgTableItem):
+            workspace = self.getDefaultWorkspace()
+            toUpdate = []
+            catalog = self.parentCatalog()
+            if catalog is None:
+                return []  
+            if workspace is not None:
+                publishDraggedTable(explorer, item.element, workspace)
+                toUpdate.append(tree.findAllItems(catalog)[0])  
+            return toUpdate 
         else:
             return []
         

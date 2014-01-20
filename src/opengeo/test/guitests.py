@@ -140,6 +140,7 @@ class LayerDialogTests(unittest.TestCase):
         cls.explorer = OpenGeoExplorer(singletab = True)
         cls.cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver")
         cls.catalogs = {"catalog": cls.cat} 
+        cleanCatalog(cls.cat)
         cls.cat.create_workspace(WORKSPACE, "http://test1.com")
         cls.cat.create_workspace(WORKSPACEB, "http://test2.com")     
         
@@ -198,7 +199,7 @@ class LayerDialogTests(unittest.TestCase):
 class ImportVectorDialogTest(unittest.TestCase):
     
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):        
         cls.explorer = OpenGeoExplorer(singletab = True)
         cls.conn1 = getPostgresConnection("conn1")
         cls.conn2 = getPostgresConnection("conn2")

@@ -8,7 +8,7 @@ class WrongLayerNameException(BaseException) :
 
 def resolveLayer(name):
     layers = getAllLayers()    
-    for layer in layers:
+    for layer in layers:        
         if layer.name() == name:
             return layer
     raise WrongLayerNameException()       
@@ -18,9 +18,8 @@ def getRasterLayers():
     raster = list()
 
     for layer in layers:
-        if layer.type() == layer.RasterLayer:
-            if layer.providerType() == 'gdal':#only gdal file-based layers
-                raster.append(layer)
+        if layer.type() == layer.RasterLayer:            
+            raster.append(layer)
     return raster
 
 

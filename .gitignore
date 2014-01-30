@@ -9,3 +9,4 @@ ext-libs
 ext-src
 build
 opengeo.zip
+.coverage

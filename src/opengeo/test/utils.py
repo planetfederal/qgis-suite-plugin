@@ -27,14 +27,24 @@ WORKSPACEB = safeName("workspaceb")
 PUBLIC_SCHEMA = "public"
 OPENGEO_SCHEMA = safeName("opengeo")
 
+DB_CONFIG = dict(
+    DATABASE = 'opengeo',
+    USER = 'postgres',
+    PASSWORD = 'postgres',
+    HOST = 'localhost',
+    PORT = '54321',
+)
+DB_CONFIG.update([ (k,os.getenv('Q%s' % k)) for k in DB_CONFIG if 'Q%s' % k in os.environ])
+
 
 def getPostgresConnection(name="connection"):
-    conn = PgConnection(safeName(name), "localhost", 54321,
-                        "opengeo", "postgres", "postgres")
+    def connect(port):
+        return PgConnection(safeName(name), DB_CONFIG['HOST'], port,
+            DB_CONFIG['DATABASE'], DB_CONFIG['USER'], DB_CONFIG['PASSWORD'])
+    conn = connect(int(DB_CONFIG['PORT']))
     if not conn.isValid:
-        conn = PgConnection(safeName(name), "localhost", 5432,
-                        "opengeo", "postgres", "postgres")
-    assert conn.isValid
+        conn = connect(5432)
+    assert conn.isValid, "Unable to connect to database using %s" % DB_CONFIG
     return conn
 
 

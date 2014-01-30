@@ -165,7 +165,6 @@ class DragDropTests(ExplorerIntegrationTest):
         layer = self.cat.get_layer(PT1)
         self.assertIsNotNone(layer)        
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
         
     def testDropPGTableInWorkspacesItem(self):
         importToPostGIS(self.explorer, self.conn, [layers.resolveLayer(PT1)], PUBLIC_SCHEMA, PT1, False, False); 
@@ -177,7 +176,6 @@ class DragDropTests(ExplorerIntegrationTest):
         layer = self.cat.get_layer(PT1)
         self.assertIsNotNone(layer) 
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
 
 def suite():
     suite = unittest.makeSuite(DragDropTests, 'test')

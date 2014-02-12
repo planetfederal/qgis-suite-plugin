@@ -2,7 +2,7 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from qgis.core import *            
 from opengeo.qgis import layers
-from opengeo.qgis.catalog import OGCatalog
+from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
 from opengeo.gui.confirm import publishLayer
 from opengeo.gui.qgsexploreritems import QgsStyleItem
             
@@ -45,28 +45,29 @@ def publishDraggedLayer(explorer, layer, workspace):
     
 def publishDraggedTable(explorer, table, workspace):    
     cat = workspace.catalog                          
-    return explorer.run(_publishTable,
+    return explorer.run(publishTable,
              "Publish table from table '" + table.name + "'",
              [],
              table, cat, workspace)
     
             
-def _publishTable(table, catalog = None, workspace = None):
+def publishTable(table, catalog = None, workspace = None):
     if catalog is None:
         pass       
     workspace = workspace if workspace is not None else catalog.get_default_workspace()
     connection = table.conn   
     geodb = connection.geodb     
-    catalog.create_pg_featurestore(connection.name,                                           
-                                   workspace = workspace,
-                                   overwrite = True,
-                                   host = geodb.host,
-                                   database = geodb.dbname,
-                                   schema = table.schema,
-                                   port = geodb.port,
-                                   user = geodb.user,
-                                   passwd = geodb.passwd)
-    catalog.create_pg_featuretype(table.name, connection.name, workspace, "EPSG:" + str(table.srid))  
+    store = createPGFeatureStore(catalog,
+                         connection.name,
+                         workspace = workspace,
+                         overwrite = True,
+                         host = geodb.host,
+                         database = geodb.dbname,
+                         schema = table.schema,
+                         port = geodb.port,
+                         user = geodb.user,
+                         passwd = geodb.passwd)
+    catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
 
 def publishDraggedStyle(explorer, layerName, catalogItem):
     ogcat = OGCatalog(catalogItem.element)

@@ -1,6 +1,6 @@
 import unittest
 from opengeo.gui.explorer import OpenGeoExplorer
-from opengeo.geoserver.catalog import Catalog
+from geoserver.catalog import Catalog
 from opengeo.test import utils
 from opengeo.gui.gsexploreritems import GsCatalogItem
 from opengeo.gui.pgexploreritems import PgConnectionItem

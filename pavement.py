@@ -47,10 +47,12 @@ options(
 @task
 @cmdopts([
     ('clean', 'c', 'clean out dependencies first'),
+    ('develop', 'd', 'do not alter source dependency git checkouts'),
 ])
 def setup(options):
     '''install dependencies'''
     clean = getattr(options, 'clean', False)
+    develop = getattr(options, 'develop', False)
     ext_libs = options.plugin.ext_libs
     ext_src = options.plugin.ext_src
     if clean:
@@ -60,11 +62,13 @@ def setup(options):
     os.environ['PYTHONPATH']=ext_libs.abspath()
     for req in runtime + test:
         if req.startswith('-e'):
-            # use pip to just process the URL and fetch it in to place
-            sh('pip install --no-install --src=%s %s' % (ext_src, req))
+            if not develop:
+                # use pip to just process the URL and fetch it in to place
+                sh('pip install --no-install --src=%s %s' % (ext_src, req))
             # now change the req to be the location installed to
             # and easy_install will do the rest
             urlspec, req = req.split('#egg=')
+            req = ext_src / req
         sh('easy_install -a -d %(ext_libs)s %(dep)s' % {
             'ext_libs' : ext_libs.abspath(),
             'dep' : req

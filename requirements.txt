@@ -1,8 +1,7 @@
 httplib2==0.8
 requests==2.0.1
 raven==3.5.1
-# when ready, uncomment this to pull in from source
-#-e git+https://github.com/opengeo/gsconfig.git#egg=gsconfig
+-e git+https://github.com/boundlessgeo/gsconfig.git#egg=gsconfig
 
 # test requirements
 nose==1.3.0

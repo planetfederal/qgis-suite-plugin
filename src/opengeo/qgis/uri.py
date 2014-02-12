@@ -1,6 +1,6 @@
 import urllib
 from qgis.core import *
-from opengeo.geoserver.layer import Layer
+from geoserver.layer import Layer
 from opengeo.postgis.table import Table
 
 def layerUri(layer):
@@ -33,7 +33,7 @@ def layerMimeUri(element):
         else:
             layertype = 'raster'
             provider = 'wcs'       
-        escapedName = layer.title.replace( ":", "\\:" );
+        escapedName = resource.title.replace( ":", "\\:" );
         escapedUri = uri.replace( ":", "\\:" );         
         mimeUri = ':'.join([layertype, provider, escapedName, escapedUri])        
         return mimeUri

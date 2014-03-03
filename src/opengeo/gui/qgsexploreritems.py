@@ -272,7 +272,7 @@ class QgsGroupItem(QgsTreeItem):
         toUpdate.add(tree.findAllItems(cat)[0])
         
         if missing:
-            catalogs = {k :v for k, v in explorer.catalogs().iteritems() if v == cat}
+            catalogs = dict([(k ,v) for k, v in explorer.catalogs().iteritems() if v == cat])
             dlg = PublishLayersDialog(catalogs, missing)
             dlg.exec_()     
             toPublish  = dlg.topublish

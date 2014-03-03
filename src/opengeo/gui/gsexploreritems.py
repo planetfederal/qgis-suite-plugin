@@ -91,7 +91,7 @@ class GsTreeItem(TreeItem):
         dependent = self.getDependentElements(elements)                                       
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
-            names = {"-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent}
+            names = set(["-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent])
             msg += " \n\n".join(names)                
             msg += "\n\nDo you really want to delete all these elements?"                   
             reply = QtGui.QMessageBox.question(None, "Delete confirmation",
@@ -921,7 +921,7 @@ class GsGroupItem(GsTreeItem):
         
     def populate(self):
         layers = self.element.catalog.get_layers()
-        layersDict = {layer.name : layer for layer in layers}
+        layersDict = dict([ (layer.name, layer) for layer in layers])
         groupLayers = self.element.layers
         if groupLayers is None:
             return

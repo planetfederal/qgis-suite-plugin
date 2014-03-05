@@ -11,7 +11,7 @@ To run, open the python console in qgis and run the following:
 
 A test project will be added after the first step.
 
-Test results will be stored in [opengeo-plugin-folder]/test/test-ouput 
+Test results will be stored in [tmpdir]/qgis-test-output
 
 If you want to see the test output once the test suite has been run, set the 'open' argument to True
 when calling the test runner
@@ -29,6 +29,7 @@ from os.path import (
     abspath, dirname, join
 )
 import sys
+import tempfile
 import webbrowser
 
 
@@ -37,7 +38,7 @@ projectFile = join(dirname(__file__), "data", "test.qgs")
 config.iface.addProject(projectFile)
 
 # nose configuration
-output_dir = join(abspath(dirname(__file__)), 'test-output')
+output_dir = join(tempfile.gettempdir(), 'qgis-test-output')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 coverage_dir = join(output_dir, 'coverage')

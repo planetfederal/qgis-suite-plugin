@@ -14,13 +14,13 @@ from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
 from opengeo.qgis import layers, exporter, utils
-from opengeo.geoserver.catalog import ConflictingDataError, UploadError
-from opengeo.geoserver.catalog import Catalog as GSCatalog
+from geoserver.catalog import ConflictingDataError, UploadError, FailedRequestError
+from geoserver.catalog import Catalog as GSCatalog
 from opengeo.qgis.sldadapter import adaptGsToQgs,\
     getGsCompatibleSld
 from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
-from opengeo.geoserver.importerclient import Client
+from gsimporter.client import Client
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -164,72 +164,89 @@ class OGCatalog(object):
                 'prj': basename + '.prj'
             }
         return data
+
     
-    
+    def _publishExisting(self, layer, workspace, overwrite):
+        connName = self.getConnectionNameFromLayer(layer)
+        uri = QgsDataSourceURI(provider.dataSourceUri())                                                                     
+        store = createPGFeatureStore(self.catalog,
+                                     connName,
+                                     workspace = workspace,
+                                     overwrite = overwrite,
+                                     host = uri.host(),
+                                     database = uri.database(),
+                                     schema = uri.schema(),
+                                     port = uri.port(),
+                                     user = uri.username(),
+                                     passwd = uri.password())
+        self.catalog.publish_feature(uri.table(), store, layer.crs().authid())
+
+
+    def _uploadRest(self, layer, workspace, overwrite, name):
+        if layer.type() == layer.RasterLayer:
+            path = self.getDataFromLayer(layer)
+            self.catalog.create_coveragestore(name,
+                                      path,
+                                      workspace=workspace,
+                                      overwrite=overwrite)
+        elif layer.type() == layer.VectorLayer:
+            path = self.getDataFromLayer(layer)
+            self.catalog.create_featurestore(name,
+                              path,
+                              workspace=workspace,
+                              overwrite=overwrite)
+
+
+    def _uploadImporter(self, layer, workspace, overwrite, name):
+        # @todo - more richness needed to allow ingestion into target store
+        # versus just publishing the layer to a workspace as a shapefile
+        path = self.getDataFromLayer(layer)
+        if isinstance(path, dict):
+            if 'shp' in path:
+                path = path['shp']
+            else:
+                raise Exception('Unexpected condition : %s', path.keys())
+        session = self.client.upload(path)
+        if not session.tasks:
+            raise Exception('Geoserver is not able to process the uploaded data')
+        if len(session.tasks) != 1:
+            # this probably shouldn't happen but just in case
+            raise Exception('Unexpected condition')
+        # set workspace if needed (network trip)
+        # limitation in setting name as importer interprets this as a request
+        # to use an existing store by name
+        if workspace:
+            session.tasks[0].set_target(workspace=workspace.name)
+        if overwrite:
+            session.tasks[0].set_update_mode('REPLACE')
+        session.commit()
+
+
     def upload(self, layer, workspace=None, overwrite=True, name=None):        
         '''uploads the specified layer'''  
-              
+
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)     
-                    
+
         name = name if name is not None else layer.name()
         title = name
         name = name.replace(" ", "_")
-                    
+
+        settings = QSettings()
+        restApi = bool(settings.value("/OpenGeo/Settings/GeoServer/UseRestApi", True, bool))
+
+        if layer.type() not in (layer.RasterLayer, layer.VectorLayer):
+            msg = layer.name() + ' is not a valid raster or vector layer'
+            raise Exception(msg)
+
+        provider = layer.dataProvider()
         try:
-            settings = QSettings()
-            restApi = bool(settings.value("/OpenGeo/Settings/GeoServer/UseRestApi", True, bool))   
-            restApi = True # importer api is disabled for now         
-            if layer.type() == layer.RasterLayer:                
-                path = self.getDataFromLayer(layer)
-                if restApi:
-                    self.catalog.create_coveragestore(name,
-                                              path,
-                                              workspace=workspace,
-                                              overwrite=overwrite)                            
-                else:                    
-                    session = self.client.upload(path)
-                    session.commit()      
-                
-            elif layer.type() == layer.VectorLayer:
-                provider = layer.dataProvider()
-                if provider.name() == 'postgres':                                        
-                    connName = self.getConnectionNameFromLayer(layer)
-                    uri = QgsDataSourceURI(provider.dataSourceUri())                                                                     
-                    self.catalog.create_pg_featurestore(connName,                                           
-                                           workspace = workspace,
-                                           overwrite = overwrite,
-                                           host = uri.host(),
-                                           database = uri.database(),
-                                           schema = uri.schema(),
-                                           port = uri.port(),
-                                           user = uri.username(),
-                                           passwd = uri.password())  
-                    self.catalog.create_pg_featuretype(uri.table(), connName, workspace, layer.crs().authid())
-                else:   
-                    path = self.getDataFromLayer(layer)
-                    if restApi:  
-                        try:                  
-                            self.catalog.create_shp_featurestore(name,
-                                              path,
-                                              workspace=workspace,
-                                              overwrite=overwrite)                                                    
-                        except Exception, e:
-                            if utils.isWindows():
-                                #a WindowsError might be thrown by the create_shp_featurestore method 
-                                    #when trying to unlink the temp zip file. We ignore it
-                                if not isinstance(e, WindowsError):
-                                    raise e
-                            else:                        
-                                raise e
-                    else:
-                        shpFile = path['shp']                        
-                        session = self.client.upload(shpFile)
-                        session.commit()                          
-                    
+            if provider.name() == 'postgres':
+                self._publishExisting(layer, workspace, overwrite)
+            elif restApi:
+                self._uploadRest(layer, workspace, overwrite, name)
             else:
-                msg = layer.name() + ' is not a valid raster or vector layer'
-                raise Exception(msg)
+                self._uploadImporter(layer, workspace, overwrite, name)
         except UploadError, e:
             msg = ('Could not save the layer %s, there was an upload '
                    'error: %s' % (layer.name(), str(e)))
@@ -450,4 +467,30 @@ class OGCatalog(object):
                 raise Exception ("Layer at %s is not a valid layer" % uri)                  
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
+def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
+    host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):
+    try:
+        store = catalog.get_store(name, workspace)
+    except FailedRequestError:
+        store = None
+    if store is not None:
+        if overwrite:
+            #if the existing store is the same we are trying to add, we do nothing
+            params = store.connection_parameters
+            if (str(params['port']) == str(port) and params['database'] == database and params['host'] == host
+                    and params['user'] == user):
+                return store
+        else:
+            msg = "There is already a store named " + name
+            if workspace:
+                msg += " in " + str(workspace)
+            raise ConflictingDataError(msg)
+
+    if store is None:
+        store = catalog.create_datastore(name, workspace)
+    store.connection_parameters.update(
+        host=host, port=str(port), database=database, user=user, schema=schema,
+        passwd=passwd, dbtype="postgis")
+    catalog.save(store)
+    return store
                         

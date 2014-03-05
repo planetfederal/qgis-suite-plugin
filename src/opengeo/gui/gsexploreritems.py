@@ -3,21 +3,21 @@ from qgis.core import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
-from opengeo.geoserver.store import DataStore, CoverageStore
-from opengeo.geoserver.resource import Coverage, FeatureType
+from geoserver.store import DataStore, CoverageStore
+from geoserver.resource import Coverage, FeatureType
 from dialogs.catalogdialog import DefineCatalogDialog
-from opengeo.geoserver.style import Style
-from opengeo.geoserver.layer import Layer
+from geoserver.style import Style
+from geoserver.layer import Layer
 from dialogs.styledialog import AddStyleToLayerDialog, StyleFromLayerDialog
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.exploreritems import TreeItem
 from dialogs.groupdialog import LayerGroupDialog
 from dialogs.workspacedialog import DefineWorkspaceDialog
-from opengeo.geoserver.layergroup import UnsavedLayerGroup
+from geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.qgsexploreritems import QgsLayerItem, QgsGroupItem,\
     QgsStyleItem
-from opengeo.geoserver.catalog import Catalog
-from opengeo.geoserver.catalog import FailedRequestError
+from geoserver.catalog import Catalog
+from geoserver.catalog import FailedRequestError
 from opengeo.gui.pgexploreritems import PgTableItem
 import traceback
 from opengeo.geoserver.wps import Wps
@@ -91,7 +91,7 @@ class GsTreeItem(TreeItem):
         dependent = self.getDependentElements(elements)                                       
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
-            names = {"-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent}
+            names = set(["-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent])
             msg += " \n\n".join(names)                
             msg += "\n\nDo you really want to delete all these elements?"                   
             reply = QtGui.QMessageBox.question(None, "Delete confirmation",
@@ -286,24 +286,34 @@ class GsLayersItem(GsTreeItem):
                 items[layer.name] = layerItem
         self.sortChildren(0, Qt.AscendingOrder)                  
     
-    def acceptDroppedItem(self, tree, explorer, item):            
-        if isinstance(item, QgsGroupItem):                
+    def acceptDroppedItem(self, tree, explorer, item):                          
+        if isinstance(item, QgsGroupItem):  
             catalog = self.parentCatalog()
             if catalog is None:
-                return
-            workspace = self.parentWorkspace()
-            if workspace is None:
-                workspace = self.getDefaultWorkspace()
+                return []                            
+            workspace = self.getDefaultWorkspace()
             publishDraggedGroup(explorer, item, catalog, workspace)
             return tree.findAllItems(catalog)
-        elif isinstance(item, QgsLayerItem):
-            catalog = self.parentCatalog()
+        elif isinstance(item, QgsLayerItem):            
             workspace = self.getDefaultWorkspace()
             toUpdate = []
+            catalog = self.parentCatalog()
+            if catalog is None:
+                return []  
             if workspace is not None:
                 publishDraggedLayer(explorer, item.element, workspace)
                 toUpdate.append(tree.findAllItems(catalog)[0])  
             return toUpdate  
+        elif isinstance(item, PgTableItem):
+            workspace = self.getDefaultWorkspace()
+            toUpdate = []
+            catalog = self.parentCatalog()
+            if catalog is None:
+                return []  
+            if workspace is not None:
+                publishDraggedTable(explorer, item.element, workspace)
+                toUpdate.append(tree.findAllItems(catalog)[0])  
+            return toUpdate 
         else:
             return []
         
@@ -670,13 +680,13 @@ class GsLayerItem(GsTreeItem):
             text, ok = QtGui.QInputDialog.getText(None, "New title", "Enter new title", text=self.element.resource.title)
             if ok:                
                 r = self.element.resource
-                r.dirty['title'] = text                                 
+                r.title = text
                 explorer.run(self.catalog.save, "Update layer title", [], r)            
         if actionName == 'modify:abstract':
             text, ok = QtGui.QInputDialog.getText(None, "New abstract", "Enter new abstract", text=self.element.resource.abstract)
             if ok:
                 r = self.element.resource
-                r.dirty['abstract'] = text                                 
+                r.abstract = text
                 explorer.run(self.catalog.save, "Update layer abstract", [], r) 
         if actionName == 'modify:srs':
             dlg = CrsSelectionDialog()
@@ -911,7 +921,7 @@ class GsGroupItem(GsTreeItem):
         
     def populate(self):
         layers = self.element.catalog.get_layers()
-        layersDict = {layer.name : layer for layer in layers}
+        layersDict = dict([ (layer.name, layer) for layer in layers])
         groupLayers = self.element.layers
         if groupLayers is None:
             return

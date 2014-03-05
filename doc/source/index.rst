@@ -7,6 +7,7 @@ The OpenGeo Suite QGIS plugin is used to configure the components of OpenGeo Sui
    :maxdepth: 2
 
    intro
+   install
    quickstart
    actions
    console

@@ -1,6 +1,8 @@
 import os
 from opengeo.geoserver.util import shapefile_and_friends
+from opengeo.postgis.connection import PgConnection
 from opengeo.postgis.schema import Schema
+
 
 PREFIX = "qgis_plugin_test_"
 
@@ -12,6 +14,7 @@ PT1JSON = safeName("pt1json")
 PT2 = safeName("pt2")
 PT3 = safeName("pt3")
 DEM = safeName("dem")
+DEM2 = safeName("dem2")
 DEMASCII = safeName("demascii")
 GEOLOGY_GROUP = safeName("geology_landuse")
 GEOFORMS = safeName("geoforms")
@@ -23,6 +26,26 @@ WORKSPACE = safeName("workspace")
 WORKSPACEB = safeName("workspaceb")
 PUBLIC_SCHEMA = "public"
 OPENGEO_SCHEMA = safeName("opengeo")
+
+DB_CONFIG = dict(
+    DATABASE = 'opengeo',
+    USER = 'postgres',
+    PASSWORD = 'postgres',
+    HOST = 'localhost',
+    PORT = '54321',
+)
+DB_CONFIG.update([ (k,os.getenv('Q%s' % k)) for k in DB_CONFIG if 'Q%s' % k in os.environ])
+
+
+def getPostgresConnection(name="connection"):
+    def connect(port):
+        return PgConnection(safeName(name), DB_CONFIG['HOST'], port,
+            DB_CONFIG['DATABASE'], DB_CONFIG['USER'], DB_CONFIG['PASSWORD'])
+    conn = connect(int(DB_CONFIG['PORT']))
+    if not conn.isValid:
+        conn = connect(5432)
+    assert conn.isValid, "Unable to connect to database using %s" % DB_CONFIG
+    return conn
 
 
 def cleanCatalog(cat):
@@ -45,15 +68,19 @@ def cleanCatalog(cat):
     for e in toDelete:        
         cat.delete(e, purge = True)
         
-    for wsName in [WORKSPACE, WORKSPACEB]:
-        ws = cat.get_workspace(wsName)
+    for ws in cat.get_workspaces():
+        if not ws.name.startswith(PREFIX):
+            continue
         if ws is not None:
             for store in cat.get_stores(ws):
                 for resource in store.get_resources():
-                    cat.delete(resource)
+                    try:
+                        cat.delete(resource)
+                    except:
+                        pass
                 cat.delete(store)    
             cat.delete(ws)
-            ws = cat.get_workspace(wsName)    
+            ws = cat.get_workspace(ws.name)
             assert ws is None        
 
     
@@ -63,10 +90,10 @@ def populateCatalog(cat):
     ws = cat.get_workspace(WORKSPACE)
     path = os.path.join(os.path.dirname(__file__), "data", PT2)
     data = shapefile_and_friends(path)
-    cat.create_shp_featurestore(PT2, data, ws)
+    cat.create_featurestore(PT2, data, ws)
     path = os.path.join(os.path.dirname(__file__), "data", PT3)
     data = shapefile_and_friends(path)
-    cat.create_shp_featurestore(PT3, data, ws)
+    cat.create_featurestore(PT3, data, ws)
     sldfile = os.path.join(os.path.dirname(__file__), "resources", "vector.sld")
     with open(sldfile, 'r') as f:
         sld = f.read()

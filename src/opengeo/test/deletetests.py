@@ -13,6 +13,7 @@ class DeleteTests(ExplorerIntegrationTest):
     def setUpClass(cls):        
         super(DeleteTests, cls).setUpClass()
         cls.confirmDelete = QSettings().value("/OpenGeo/Settings/General/ConfirmDelete", True, bool)
+        QSettings().setValue("/OpenGeo/Settings/General/ConfirmDelete", False)
 
     @classmethod
     def tearDownClass(cls):
@@ -28,7 +29,8 @@ class DeleteTests(ExplorerIntegrationTest):
         self.assertIsNotNone(layer)    
         self.getLayersItem().refreshContent(self.explorer)
         self.getStylesItem().refreshContent(self.explorer)              
-        deleteStyle = bool(settings.value("/OpenGeo/Settings/GeoServer/DeleteStyle"))        
+        deleteStyle = bool(settings.value("/OpenGeo/Settings/GeoServer/DeleteStyle"))
+        settings.setValue("/OpenGeo/Settings/GeoServer/DeleteStyle", True)
         layerItem = self.getLayerItem(PT1)
         layerItem.deleteLayer(self.tree, self.explorer)
         layerItem = self.getLayerItem(PT1)
@@ -59,10 +61,10 @@ class DeleteTests(ExplorerIntegrationTest):
         wsname = safeName("another_workspace")
         self.cat.create_workspace(wsname, "http://anothertesturl.com")
         self.getWorkspacesItem().refreshContent(self.explorer)
-        wsItem = self.getWorskpaceItem(wsname)
+        wsItem = self.getWorkspaceItem(wsname)
         wsItem.deleteWorkspace(self.tree, self.explorer)
         self.getWorkspacesItem().refreshContent(self.explorer)
-        wsItem = self.getWorskpaceItem(wsname)
+        wsItem = self.getWorkspaceItem(wsname)
         self.assertIsNone(wsItem)
         ws = self.cat.get_workspace(wsname)
         self.assertIsNone(ws)        

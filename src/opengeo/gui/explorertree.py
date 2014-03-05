@@ -162,7 +162,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         if destinationItem is None: 
             return                  
         if isinstance(event.source(), self.__class__):
-            draggedTypes = {item.__class__ for item in event.source().selectedItems()}
+            draggedTypes = set([item.__class__ for item in event.source().selectedItems()])
             if len(draggedTypes) > 1:
                 return                        
             items = self.selectedItems()                                    

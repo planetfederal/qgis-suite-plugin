@@ -44,6 +44,7 @@ coverage_dir = join(output_dir, 'coverage')
 xunit_file = join(output_dir, 'xunit-report.xml')
 html_file = join(output_dir, 'tests-report.html')
 base_nose_args = ['nose',
+    '--nocapture', # prevent from stdout hijacking
     '--with-coverage',
         '--cover-html', '--cover-html-dir=%s' % coverage_dir,
         '--cover-package=opengeo',

@@ -34,7 +34,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         self.isProgressVisible = False
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)  
         self.dockWidgetContents = QtGui.QWidget()
-        self.setWindowTitle('OpenGeo explorer')
+        self.setWindowTitle('OpenGeo Explorer')
         self.splitter = QtGui.QSplitter()
         self.splitter.setOrientation(Qt.Vertical)
         self.subwidget = QtGui.QWidget()               

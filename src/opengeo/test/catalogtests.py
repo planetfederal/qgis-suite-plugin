@@ -5,7 +5,6 @@ from opengeo.qgis import layers
 from qgis.core import *
 from PyQt4.QtCore import *
 from opengeo.test import utils
-from opengeo import config
 from opengeo.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
     GEOLOGY_GROUP, GEOFORMS, LANDUSE, HOOK, WORKSPACE
 
@@ -20,7 +19,7 @@ class CatalogTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         ''' 'test' workspace cannot exist in the test catalog'''
-        cls.cat = catalog.createGeoServerCatalog()
+        cls.cat = utils.getGeoServerCatalog()
         utils.cleanCatalog(cls.cat.catalog)
         cls.cat.catalog.create_workspace(WORKSPACE, "http://boundlessgeo.com")
         cls.ws = cls.cat.catalog.get_workspace(WORKSPACE)

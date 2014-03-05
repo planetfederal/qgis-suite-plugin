@@ -2,7 +2,7 @@ import os
 from opengeo.geoserver.util import shapefile_and_friends
 from opengeo.postgis.connection import PgConnection
 from opengeo.postgis.schema import Schema
-
+from opengeo.qgis.catalog import createGeoServerCatalog
 
 PREFIX = "qgis_plugin_test_"
 
@@ -46,6 +46,22 @@ def getPostgresConnection(name="connection"):
         conn = connect(5432)
     assert conn.isValid, "Unable to connect to database using %s" % DB_CONFIG
     return conn
+
+
+def getGeoServerCatalog():
+    conf = dict(
+        URL = 'http://localhost:8080/geoserver/rest',
+        USER = 'admin',
+        PASSWORD = 'geoserver'
+    )
+    conf.update([ (k,os.getenv('GS%s' % k)) for k in conf if 'GS%s' % k in os.environ])
+    cat = createGeoServerCatalog(conf['URL'], conf['USER'], conf['PASSWORD'])
+    try:
+        cat.catalog.gsversion()
+    except Exception, ex:
+        msg = 'cannot reach geoserver using provided credentials %s, msg is %s'
+        raise AssertionError(msg % (conf,ex))
+    return cat
 
 
 def cleanCatalog(cat):

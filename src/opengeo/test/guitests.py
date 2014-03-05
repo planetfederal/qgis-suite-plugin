@@ -1,5 +1,4 @@
 import unittest
-from opengeo.qgis.catalog import createGeoServerCatalog
 from qgis.core import *
 from PyQt4.QtCore import *
 from PyQt4.QtTest import QTest
@@ -8,7 +7,7 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.gui.dialogs.groupdialog import LayerGroupDialog
 from opengeo.test.integrationtest import ExplorerIntegrationTest
 from opengeo.test.utils import GROUP, WORKSPACE, WORKSPACEB, cleanCatalog, PT2,\
-    PT1, PUBLIC_SCHEMA, getPostgresConnection
+    PT1, PUBLIC_SCHEMA, getPostgresConnection, getGeoServerCatalog
 from opengeo.gui.dialogs.layerdialog import PublishLayerDialog,\
     PublishLayersDialog
 from geoserver.catalog import Catalog
@@ -21,7 +20,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
     explorer = OpenGeoExplorer(singletab = True)
 
     def setUp(self):        
-        self.cat = createGeoServerCatalog()        
+        self.cat = getGeoServerCatalog()
             
     def testCreateCatalogDialog(self):
         dialog = DefineCatalogDialog(self.explorer)

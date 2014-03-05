@@ -1,7 +1,6 @@
 import unittest
 from PyQt4.QtCore import QSettings
 from opengeo.gui.explorer import OpenGeoExplorer
-from geoserver.catalog import Catalog
 from opengeo.test import utils
 from opengeo.gui.gsexploreritems import GsCatalogItem
 from opengeo.gui.pgexploreritems import PgConnectionItem
@@ -13,7 +12,7 @@ class ExplorerIntegrationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.explorer = OpenGeoExplorer(singletab = True)
-        cls.cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver")
+        cls.cat = utils.getGeoServerCatalog().catalog
         utils.populateCatalog(cls.cat)
         cls.catalogItem = GsCatalogItem(cls.cat, "catalog", "")
         cls.explorer.explorerWidget.gsItem.addChild(cls.catalogItem)

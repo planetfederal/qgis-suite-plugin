@@ -445,7 +445,7 @@ class OGCatalog(object):
         uri = uri_utils.layerUri(layer)  
                
         if resource.resource_type == "featureType":                             
-            qgslayer = QgsVectorLayer(uri, destName or layer.title, "WFS") 
+            qgslayer = QgsVectorLayer(uri, destName or layer.resource.title, "WFS")
             if not qgslayer.isValid():
                 raise Exception ("Layer at %s is not a valid layer" % uri)    
             ok = True
@@ -462,7 +462,7 @@ class OGCatalog(object):
             if not ok:
                raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")        
         elif resource.resource_type == "coverage":                        
-            qgslayer = QgsRasterLayer(uri, destName or layer.title, "wcs" )
+            qgslayer = QgsRasterLayer(uri, destName or layer.resource.title, "wcs" )
             if not qgslayer.isValid():
                 raise Exception ("Layer at %s is not a valid layer" % uri)                  
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])

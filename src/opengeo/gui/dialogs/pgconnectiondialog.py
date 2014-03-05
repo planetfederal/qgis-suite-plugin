@@ -127,18 +127,18 @@ class NewPgConnectionDialog(QDialog):
     
     def accept(self):           
         if self.nameBox.text().strip() == "":
-            self.nameBox.text.setStyleSheet("QLineEdit{background: yellow}")
+            self.nameBox.setStyleSheet("QLineEdit{background: yellow}")
             return
         if self.databaseBox.text().strip() == "":
-            self.databaseBox.text.setStyleSheet("QLineEdit{background: yellow}")
+            self.databaseBox.setStyleSheet("QLineEdit{background: yellow}")
             return
         if self.hostBox.text().strip() == "":
-            self.hostBox.text.setStyleSheet("QLineEdit{background: yellow}")
+            self.hostBox.setStyleSheet("QLineEdit{background: yellow}")
             return
         try:
             int(self.portBox.text())
         except:
-            self.portBox.text.setStyleSheet("QLineEdit{background: yellow}")                 
+            self.portBox.setStyleSheet("QLineEdit{background: yellow}")                 
         settings = QSettings();
         settings.beginGroup("/PostgreSQL/connections/" + self.nameBox.text())                                                                
         settings.setValue("host", self.hostBox.text());

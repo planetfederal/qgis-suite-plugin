@@ -1,4 +1,5 @@
 import unittest
+from PyQt4.QtCore import QSettings
 from opengeo.gui.explorer import OpenGeoExplorer
 from geoserver.catalog import Catalog
 from opengeo.test import utils
@@ -21,7 +22,8 @@ class ExplorerIntegrationTest(unittest.TestCase):
         cls.conn = utils.getPostgresConnection()
         cls.pgItem = PgConnectionItem(cls.conn)
         cls.explorer.explorerWidget.pgItem.addChild(cls.pgItem)
-        
+        # @TODO - make tests pass using importer
+        cls.useRestApi = QSettings().setValue("/OpenGeo/Settings/GeoServer/UseRestApi", True)
 
     @classmethod
     def tearDownClass(cls):

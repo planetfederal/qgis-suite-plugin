@@ -82,7 +82,10 @@ class TableIndex:
 class DbError(Exception):
     def __init__(self, message, query=None):
         # save error. funny that the variables are in utf8, not
-        self.message = unicode(message, 'utf-8')
+        try:
+            self.message = unicode(message, 'utf-8')
+        except TypeError:
+            self.message = message
         self.query = unicode(query, 'utf-8') if query is not None else None
     def __str__(self):
         return "MESSAGE: %s\nQUERY: %s" % (self.message, self.query)
@@ -148,6 +151,7 @@ class GeoDB:
         if self.dbname: con_str += "dbname='%s' "   % self.dbname
         if self.user:   con_str += "user='%s' "     % self.user
         if self.passwd: con_str += "password='%s' " % self.passwd
+        con_str += ' connect_timeout=10'
         return con_str
 
     def get_info(self):

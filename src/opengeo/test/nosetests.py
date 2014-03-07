@@ -67,12 +67,18 @@ def run_nose(module='opengeo.test', open=False):
     open - open results in browser
     '''
 
+    print 'writing test output to %s' % output_dir
+
     # and only those in this package
     nose_args = base_nose_args + [module]
 
     # if anything goes bad, nose tries to call usage so hack this in place
     sys.argv = ['nose']
     try:
+        # ugly - coverage will plop down it's file in cwd potentially causing
+        # failures if not writable
+        cwd = os.getcwd()
+        os.chdir(output_dir)
         nose.run(exit=False, argv=nose_args, addplugins=[HTML()])
     except SystemExit:
         # keep invalid options from killing everything
@@ -80,6 +86,8 @@ def run_nose(module='opengeo.test', open=False):
         pass
     finally:
         sys.argv = None
+        # change back to original directory
+        os.chdir(cwd)
 
     if open:
         webbrowser.open(join(coverage_dir, 'index.html'))

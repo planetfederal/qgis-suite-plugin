@@ -128,8 +128,12 @@ class PgConnectionItem(PgTreeItem):
         return actions
         
     def _getDescriptionHtml(self, tree, explorer):  
-        if not self.element.isValid:            
-            html = ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
+        if not self.element.isValid:
+            if self.element.connectionFailureMessage:
+                msg = self.element.connectionFailureMessage.replace('\n','<br>')
+                html = '<p>There was an error connecting to the database:</p><p>%s</p>' % msg
+            else:
+                html = ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
                     'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')     
             return html
         else:

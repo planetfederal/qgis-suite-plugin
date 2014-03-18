@@ -111,7 +111,7 @@ class DefineCatalogDialog(QtGui.QDialog):
             
        
     def okPressed(self):        
-        self.url = unicode(self.urlBox.text() + '/rest')
+        self.url = unicode(self.urlBox.text().strip('/')     + '/rest')
         if not self.url.startswith('http'):
             self.url = 'http://%s' % self.url
         self.username = unicode(self.usernameBox.text())

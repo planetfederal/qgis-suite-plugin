@@ -7,11 +7,11 @@ def layerUri(layer):
     resource = layer.resource                
     if resource.resource_type == 'featureType':                 
         params = {
-            'service': 'WFS',
-            'version': '1.0.0',
-            'request': 'GetFeature',
-            'typename': resource.workspace.name + ":" + layer.name,
-            'srsname': resource.projection
+            'SERVICE': 'WFS',
+            'VERSION': '1.0.0',
+            'REQUEST': 'GetFeature',
+            'TYPENAME': resource.workspace.name + ":" + layer.name,
+            'SRSNAME': resource.projection
         }                        
         uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))
         return uri                                                            

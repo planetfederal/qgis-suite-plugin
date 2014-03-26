@@ -168,7 +168,7 @@ class OGCatalog(object):
     
     def _publishExisting(self, layer, workspace, overwrite):
         connName = self.getConnectionNameFromLayer(layer)
-        uri = QgsDataSourceURI(provider.dataSourceUri())                                                                     
+        uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
         store = createPGFeatureStore(self.catalog,
                                      connName,
                                      workspace = workspace,
@@ -179,7 +179,7 @@ class OGCatalog(object):
                                      port = uri.port(),
                                      user = uri.username(),
                                      passwd = uri.password())
-        self.catalog.publish_feature(uri.table(), store, layer.crs().authid())
+        self.catalog.publish_featuretype(uri.table(), store, layer.crs().authid())
 
 
     def _uploadRest(self, layer, workspace, overwrite, name):

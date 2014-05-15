@@ -298,7 +298,7 @@ class PgSchemaItem(PgTreeItem):
             dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), self.element.conn, schema = self.element, toImport = files)
             dlg.exec_()
             if dlg.ok:
-                importToPostGIS(explorer, self.element, dlg.toImport, 
+                importToPostGIS(explorer, self.element.conn, dlg.toImport, 
                                 dlg.schema, dlg.tablename, dlg.add, dlg.single)                     
                 return [self]
             return []

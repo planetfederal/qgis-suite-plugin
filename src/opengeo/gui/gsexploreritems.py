@@ -36,6 +36,7 @@ from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
     addDraggedUrisToWorkspace, publishDraggedTable, publishDraggedStyle,\
     addDraggedStyleToLayer, addDraggedLayerToGroup
 from opengeo.gui.confirm import confirmDelete
+from opengeo.geoserver.pkicatalog import PKICatalog
 
 class GsTreeItem(TreeItem):
     
@@ -239,7 +240,16 @@ class GsCatalogsItem(GsTreeItem):
         if dlg.ok:            
             try:
                 QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
-                cat = Catalog(dlg.url, dlg.username, dlg.password)               
+                def _setting(name):                    
+                    value = QSettings().value("/OpenGeo/Settings/General/" + name, "")
+                    value = value if (value != NULL and value.strip()) != "" else None
+                    return value
+                key = _setting("KeyFile")
+                cert = _setting("CertFile")
+                if key is not None and cert is not None:
+                    cat = PKICatalog(dlg.url, key, cert)
+                else:
+                    cat = Catalog(dlg.url, dlg.username, dlg.password)                               
                 v = cat.gsversion()
                 supported = v.startswith("2.3") or v.startswith("2.4")
                 if not supported:
@@ -507,7 +517,6 @@ class GsCatalogItem(GsTreeItem):
                 try:
                     self.func()            
                     self.finished.emit()
-                    print "emitido"
                 except Exception, e:                      
                     self.exception = e
                     self.finished.emit()

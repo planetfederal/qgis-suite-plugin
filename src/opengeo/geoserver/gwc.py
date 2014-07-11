@@ -4,26 +4,31 @@ import xml.etree.ElementTree as ET
 from urlparse import urlparse
 from geoserver.catalog import FailedRequestError
 import json
+from opengeo.geoserver.pkicatalog import PKICatalog
 
 class Gwc(object):
         
     def __init__(self, catalog):
         self.catalog = catalog
         self.url = catalog.gs_base_url + 'gwc/rest/'
-        http = httplib2.Http()
-        http.add_credentials(catalog.username, catalog.password)
-        netloc = urlparse(self.url).netloc
-        http.authorizations.append(
-            httplib2.BasicAuthentication(
-                (catalog.username, catalog.password),
-                netloc,
-                self.url,
-                {},
-                None,
-                None,
-                http
+        if isinstance(catalog, PKICatalog): 
+            http = httplib2.Http(catalog.ca_cert)
+            http.add_certificate(catalog.key, catalog.cert)        
+        else:                  
+            http = httplib2.Http()
+            http.add_credentials(catalog.username, catalog.password)
+            netloc = urlparse(self.url).netloc
+            http.authorizations.append(
+                httplib2.BasicAuthentication(
+                    (catalog.username, catalog.password),
+                    netloc,
+                    self.url,
+                    {},
+                    None,
+                    None,
+                    http
+                )
             )
-        )
         self.http = http 
        
     def layers(self):

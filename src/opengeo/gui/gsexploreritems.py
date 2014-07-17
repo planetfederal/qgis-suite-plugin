@@ -783,14 +783,15 @@ class GsLayerItem(GsTreeItem):
             deleteLayerAction = QtGui.QAction(icon, "Delete", None)
             deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
             actions.append(deleteLayerAction)
-            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")
-            addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
-            addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
-            actions.append(addLayerAction)
-            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")
-            publishToGeonodeAction = QtGui.QAction(icon, "Publish to GeoNode", explorer)
-            publishToGeonodeAction.triggered.connect(lambda: self.publishToGeonode(tree, explorer))
-            actions.append(publishToGeonodeAction)
+            if not isinstance(self.catalog, PKICatalog):
+                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")
+                addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
+                addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
+                actions.append(addLayerAction)
+                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")
+                publishToGeonodeAction = QtGui.QAction(icon, "Publish to GeoNode", explorer)
+                publishToGeonodeAction.triggered.connect(lambda: self.publishToGeonode(tree, explorer))
+                actions.append(publishToGeonodeAction)
 
         return actions
 

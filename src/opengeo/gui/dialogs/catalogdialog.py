@@ -158,7 +158,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.url = unicode(self.urlBox.text().strip('/')     + '/rest')
         if not self.url.startswith('http'):
             self.url = 'http://%s' % self.url
-        if self.tabWidget.currentIndex == 0:
+        if self.tabWidget.currentIndex() == 0:
             self.username = unicode(self.usernameBox.text())
             self.password = unicode(self.passwordBox.text())
             self.certfile = None

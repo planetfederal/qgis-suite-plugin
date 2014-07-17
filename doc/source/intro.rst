@@ -215,3 +215,16 @@ The following is a list of known limitations in SLD handling:
 
   * When converting from a GeoServer style to a QGIS style, the style is always defined as a *Rule-based* style. That means that, even if the style is created using another type, such as *Graduated*, when it is uploaded to a GeoServer catalog and then edited again from QGIS, it will not appear as a *Graduated* style. This is due to how QGIS handles SLD styles, always interpreting them as symbology of type *Rule-based*
   * Basic labeling is supported, but not all labeling will be exported from QGIS to SLD and uploaded to GeoServer. In particular, advanced data-dependent labelling is not supported.
+
+.. _pkilimitations:
+
+Limitations when using PKI authentication
+------------------------------------------ 
+
+The following operations are not available when connecting to a GeoServer that uses PKI auth:
+
+* Adding layer to QGIS project: Disabled, since QGIS itself does not support PKI and cannot connect to any service that requires it.
+
+* Dragging a GeoServer layer into the the QGIS canvas: Same as above.
+
+* GeoNode functionality: GeoNode has a different security mechanism and it is not supported. If a GeoNode URL is entered, it will be ignored when creating the catalog connection.

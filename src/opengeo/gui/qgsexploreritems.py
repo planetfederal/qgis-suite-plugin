@@ -12,6 +12,11 @@ from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
 from geoserver.catalog import ConflictingDataError
 from opengeo.gui.confirm import publishLayer
+from opengeo.metadata.standard import MetaInfoStandard
+from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
+import sys
+from opengeo.metadata.metadata_provider import MetadataProvider
+from opengeo.gui.dialogs.metatoolsviewer import MetatoolsViewer
                 
 class QgsTreeItem(TreeItem):
     
@@ -117,9 +122,91 @@ class QgsLayerItem(QgsTreeItem):
         importToPostGisAction = QtGui.QAction(icon, "Import into PostGIS...", explorer)
         importToPostGisAction.triggered.connect(lambda: self.importLayerToPostGis(tree, explorer))
         importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
+        editMetadataAction = QtGui.QAction(icon, "Edit layer metadata...", explorer)
+        editMetadataAction.triggered.connect(lambda: self.editMetadata(tree, explorer))
+        editMetadataAction.setEnabled(True)
+        viewMetadataAction = QtGui.QAction(icon, "View layer metadata...", explorer)
+        viewMetadataAction.triggered.connect(lambda: self.viewMetadata(tree, explorer))
+        viewMetadataAction.setEnabled(True)
+        importMetadataAction = QtGui.QAction(icon, "Import metadata from file...", explorer)
+        importMetadataAction.triggered.connect(lambda: self.importMetadataFromFile([self.element], explorer))
+        importMetadataAction.setEnabled(True)
         
-        return [publishLayerAction, createStoreFromLayerAction, importToPostGisAction]   
+        return [publishLayerAction, createStoreFromLayerAction, importToPostGisAction, 
+                editMetadataAction, viewMetadataAction, importMetadataAction]   
     
+    def editMetadata(self, tree, explorer):
+        md = self.getMetadata(explorer)
+        if md is None:
+            return
+        standard = MetaInfoStandard.tryDetermineStandard(md)
+        if standard != MetaInfoStandard.ISO19115 and standard != MetaInfoStandard.FGDC:
+            explorer.setWarning("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
+            return
+    
+        dlg = MetatoolsEditor()
+        dlg.setContent(md)
+        dlg.exec_()
+        
+        
+    def viewMetadata(self, tree, explorer):
+        md = MetadataProvider.getProvider(self.element)
+        if not md.checkExists():
+            explorer.setWarning("The layer does not have metadata.")
+            return
+        
+        standard = MetaInfoStandard.tryDetermineStandard(md)
+        if standard != MetaInfoStandard.ISO19115 and standard != MetaInfoStandard.FGDC:
+            explorer.setWarning("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
+            return
+    
+        if standard == MetaInfoStandard.ISO19115:
+            xsltFilePath = os.path.join(os.path.dirname(__file__), "metadata", "xsl", "iso19115.xsl")
+        if standard == MetaInfoStandard.FGDC:
+            xsltFilePath = os.path.join(os.path.dirname(__file__), "metadata", "xsl", "fgdc.xsl")
+    
+        dlg = MetatoolsViewer()
+        if dlg.setContent(md, xsltFilePath):
+            dlg.exec_() 
+        
+        
+    def checkMetadata(self, explorer):
+        md = MetadataProvider.getProvider(self.element)
+        if not md.checkExists():
+            result = QtGui.QMessageBox.question(config.iface.mainWindow(),
+                                        QtCore.QCoreApplication.translate("Metatools", "Metatools"),
+                                        QtCore.QCoreApplication.translate("Metatools", "The layer does not have metadata.\nDo you want to create it?"),
+                                        QtGui.QDialogButtonBox.Yes, QtGui.QDialogButtonBox.No
+                                       )
+    
+            if result == QtGui.QDialogButtonBox.Yes:
+                try:
+                    profilePath = os.path.join(os.path.dirname(__file__), "metadata", "xml_profiles", "csir_sac_profile.xml")
+                    md.importFromFile(profilePath)
+                except:
+                    explorer.setWarning("Metatools", "Metadata file can't be created.")
+                    return None
+                return md
+            else:
+                return None
+        else:
+            return md
+        
+    def importMetadataFromFile(self, layers, explorer):
+        fileName = QtGui.QFileDialog.getOpenFileName(config.iface.mainWindow(),
+                                           "Select metadata file",
+                                           "",
+                                           'XML files (*.xml);;Text files (*.txt *.TXT);;All files (*.*)'
+                                          )
+        if fileName != "":
+            try:
+                for layer in layers:
+                    md = MetadataProvider.getProvider(layer)
+                    md.importFromFile(unicode(fileName))
+                    explorer.setInfo("Metadata was imported successfully")
+            except Exception, e:
+                explorer.setWarning("Metadata can't be imported: " +  e.args[0]) 
+
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):    
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")    
         publishLayersAction = QtGui.QAction(icon, "Publish to GeoServer...", explorer)
@@ -133,7 +220,10 @@ class QgsLayerItem(QgsTreeItem):
         importToPostGisAction = QtGui.QAction("Import into PostGIS...", explorer)
         importToPostGisAction.triggered.connect(lambda: self.importLayersToPostGis(tree, explorer, selected))
         importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)  
-        return [publishLayersAction, createStoresFromLayersAction, importToPostGisAction] 
+        importMetadataAction = QtGui.QAction("Import metadata from file...", explorer)
+        importMetadataAction.triggered.connect(lambda: self.importMetadataFromFile([item.element for item in selected], explorer))
+        importMetadataAction.setEnabled(True)
+        return [publishLayersAction, createStoresFromLayersAction, importToPostGisAction, importMetadataAction] 
     
     def publishLayers(self, tree, explorer, selected):        
         layers = [item.element for item in selected]        

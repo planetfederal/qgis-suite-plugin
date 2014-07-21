@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="..\..\..\Temp\Metadata%20-%20пример\fgdc_xsd\fgdc-std-001-1998.xsd">
+<idinfo>
+<citation>
+<citeinfo>
+</citeinfo>
+</citation>
+<descript>
+<abstract>Countries  represents the official boundaries of the world countries as they existed for that period of time (2004). Updates have been made in 2007 by BV professionals.</abstract>
+<purpose>Administrative boundaries of the world countries 2004 have been obtained for the purpose to show world data on maps in EIDSS project.</purpose>
+<supplinf>Largest scale when displaying the data: 1:15,000,000.</supplinf>
+</descript>
+<timeperd>
+<timeinfo>
+<sngdate>
+<caldate>2007</caldate>
+</sngdate>
+</timeinfo>
+<current>2007</current>
+</timeperd>
+<status>
+<progress>Complete</progress>
+<update>As needed. Updates according to getting any official information about changes of the world countries.</update>
+</status>
+<spdom>
+<bounding>
+<westbc>-180.000000</westbc>
+<eastbc>180.000000</eastbc>
+<northbc>83.604150</northbc>
+<southbc>-89.900000</southbc>
+</bounding>
+</spdom>
+<keywords>
+<theme>
+<themekt>ISO 19115 Topic Category</themekt>
+<themekey>polygon</themekey>
+<themekey>population</themekey>
+<themekey>boundaries</themekey>
+<themekey>area</themekey>
+</theme>
+<place>
+<placekt>ISO 19115 Topic Category</placekt>
+<placekey>World</placekey>
+</place>
+<stratum>
+<stratkt>None</stratkt>
+<stratkey>None</stratkey>
+</stratum>
+<temporal>
+<tempkt>None</tempkt>
+<tempkey>None</tempkey>
+</temporal>
+</keywords>
+<accconst>Access according to the EIDSS license rules</accconst>
+<useconst>Use constraints if present according to the EIDSS general rules</useconst>
+<ptcontac>
+<cntinfo>
+<cntorgp>
+<cntorg>Black &amp; Veatch Special Projects Corp.</cntorg>
+<cntper>GIS Team</cntper>
+</cntorgp>
+<cntaddr>
+<address>16 Marksistakaya St.,</address>
+<city>Moscow</city>
+<postal>109147</postal>
+<country>Russia</country>
+</cntaddr>
+<cntvoice>+7-495-232-6738</cntvoice>
+<cntemail>gubarevaY@bv.com</cntemail>
+</cntinfo>
+</ptcontac>
+<browse>
+<browset>None</browset>
+</browse>
+<secinfo>
+<secclass>Unclassified</secclass>
+</secinfo>
+<native>Microsoft Windows 2000, EIDSS v.3, size unknown</native>
+</idinfo>
+<dataqual>
+<attracc>
+<attraccr>No data available</attraccr>
+</attracc>
+<lineage>
+<srcinfo>
+<srccite>
+<citeinfo>
+<origin>ESRI</origin>
+<pubdate>1996</pubdate>
+<title>ArcWorld Supplement</title>
+<edition>1</edition>
+<geoform>vector digital data</geoform>
+<pubinfo>
+<pubplace>Redlands, California, USA</pubplace>
+<publish>ESRI</publish>
+</pubinfo>
+</citeinfo>
+</srccite>
+</srcinfo>
+</lineage>
+</dataqual>
+<spref>
+<horizsys>
+<geograph>
+<latres>0.000010</latres>
+<longres>0.000010</longres>
+<geogunit>Decimal degrees</geogunit>
+</geograph>
+<geodetic>
+<horizdn>D_Krasovsky_1940</horizdn>
+<ellips>Krasovsky_1940</ellips>
+<semiaxis>6378245.000000</semiaxis>
+<denflat>298.300000</denflat>
+</geodetic>
+</horizsys>
+<vertdef>
+<altsys>
+<altres>0.000010</altres>
+<altenc></altenc>
+</altsys>
+</vertdef>
+</spref>
+<eainfo>
+<detailed>
+<enttyp>
+<enttypl>countries</enttypl>
+<enttypd>The polygons represent the boundaries for the countries of the world, as they existed in January 2004.</enttypd>
+<enttypds>ESRI</enttypds>
+</enttyp>
+<attr>
+<attrlabl>ObjectID</attrlabl>
+<attrdef>Internal feature number</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+<udom>Sequential unique whole numbers that are automatically generated.</udom>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>SHAPE</attrlabl>
+<attrdef>Feature geometry.</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+<udom>Coordinates defining the features.</udom>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>HASC</attrlabl>
+<attrdef>The country (six-letters) code.</attrdef>
+<attrdefs>Administrative Divisions of Countries ("Statoids").</attrdefs>
+<attrdomv>
+<codesetd>
+<codesetn>ISO 3166-1</codesetn>
+<codesets>EInternational Organization for Standardization</codesets>
+</codesetd>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>Name_en</attrlabl>
+<attrdef>The country name in English.</attrdef>
+<attrdefs>ArcWorld Supplement,â Geographic and Global Issues, CIA Factbook</attrdefs>
+<attrdomv>
+<udom>Names for the features.</udom>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>Name_ka</attrlabl>
+<attrdef>The country name in Georgian.</attrdef>
+<attrdefs>ArcWorld Supplement,â Geographic and Global Issues, CIA Factbook . Translated in Georgian.</attrdefs>
+<attrdomv>
+<udom>Names for the features.</udom>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>SHAPE_Length</attrlabl>
+<attrdef>Length of feature in internal units.</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+<udom>Positive real numbers that are automatically generated.</udom>
+</attrdomv>
+</attr>
+<attr>
+<attrlabl>SHAPE_Area</attrlabl>
+<attrdef>Area of feature in internal units squared.</attrdef>
+<attrdefs>ESRI</attrdefs>
+<attrdomv>
+<udom>Positive real numbers that are automatically generated.</udom>
+</attrdomv>
+</attr>
+</detailed>
+</eainfo>
+<metainfo>
+<metd>2007-09-18</metd>
+<metrd>March 2011</metrd>
+<metfrd>April 2011</metfrd>
+<metc>
+<cntinfo>
+<cntorgp>
+<cntorg>BV</cntorg>
+<cntper>Data team</cntper>
+</cntorgp>
+<cntpos>GIS professionals</cntpos>
+<cntaddr>
+<addrtype>mailing and physical</addrtype>
+<address>Marksistskaya 16</address>
+<city>Moscow</city>
+<state>MO</state>
+<postal>109147</postal>
+<country>Russia</country>
+</cntaddr>
+<cntvoice>+7-495-232-6738</cntvoice>
+<cntemail>gubarevaY@bv.com</cntemail>
+</cntinfo>
+</metc>
+<metstdn>FGDC Content Standards for Digital Geospatial Metadata</metstdn>
+<metstdv>FGDC-STD-001-1998</metstdv>
+<metac>None</metac>
+<metsi>
+<metsc>None</metsc>
+</metsi>
+</metainfo>
+</metadata>

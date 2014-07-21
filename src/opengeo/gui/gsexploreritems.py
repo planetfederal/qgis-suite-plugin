@@ -497,37 +497,6 @@ class GsCatalogItem(GsTreeItem):
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled) 
                 
     def populate(self):
-        class MyThread(QThread):    
-            finished = pyqtSignal()               
-            def __init__(self, func):
-                QThread.__init__(self)       
-                self.func = func                 
-                self.exception = None                                                                                 
-            def run (self):                
-                try:
-                    self.func()            
-                    self.finished.emit()
-                    print "emitido"
-                except Exception, e:                      
-                    self.exception = e
-                    self.finished.emit()
-        try:
-            t = MyThread(self._populate)            
-            loop = QEventLoop()            
-            t.finished.connect(loop.exit)
-            dlg = QtGui.QProgressDialog("Retrieving catalog information", None, 0, 0  , config.iface.mainWindow())
-            dlg.setWindowModality(Qt.WindowModal);
-            dlg.setMinimumDuration(1)  
-            dlg.showNormal()
-            QtGui.QApplication.processEvents()  
-            t.start()            
-            loop.exec_(flags=QEventLoop.ExcludeUserInputEvents)        
-            if t.exception is not None:
-                raise t.exception     
-        finally:                    
-            dlg.hide()                            
-        
-    def _populate(self):
         self.isConnected = False        
         self.workspacesItem = GsWorkspacesItem(self.catalog)                                      
         self.workspacesItem.populate()

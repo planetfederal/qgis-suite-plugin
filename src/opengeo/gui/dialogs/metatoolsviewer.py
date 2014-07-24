@@ -34,8 +34,8 @@ from PyQt4.QtXmlPatterns  import *
 from qgis.core import *
 from qgis.gui import *
 
-from ui.ui_viewer import Ui_MetatoolsViewer
-from error_handler import ErrorHandler
+from ui_viewer import Ui_MetatoolsViewer
+from opengeo.metadata.error_handler import ErrorHandler
 
 class MetatoolsViewer(QDialog, Ui_MetatoolsViewer):
   def __init__(self):
@@ -99,12 +99,6 @@ class MetatoolsViewer(QDialog, Ui_MetatoolsViewer):
 
     result = qry.evaluateToString()
 
-    #workaround, for PyQt < 4.8
-    #array = ""
-    #buf = QBuffer(array)
-    #buf.open(QIODevice.WriteOnly)
-    #qry.evaluateTo(buf)
-    #result = unicode(array)
 
     if result:
       #QXmlPattern not support CDATA section

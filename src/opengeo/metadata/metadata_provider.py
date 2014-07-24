@@ -28,7 +28,6 @@ from qgis.core import *
 from os import path, remove
 import codecs
 from error_handler import ErrorHandler
-from standard import MetaInfoStandard
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -72,8 +71,8 @@ class MetadataProvider:
     metaFile = codecs.open(inputFilePath, "r", encoding="utf-8")
     content = metaFile.read()
     metaFile.close()
-    
-    # check matadata standard
+
+    # check metadata standard
     standard = MetaInfoStandard.tryDetermineStandard(content)
     if standard == MetaInfoStandard.UNKNOWN:
         raise Exception("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
@@ -81,11 +80,11 @@ class MetadataProvider:
         from PyQt4.QtXmlPatterns import QXmlSchema, QXmlSchemaValidator
         # setup xml schema
         schema = QXmlSchema()
-    
+
         # setup handler
         self.handler = ErrorHandler("Metadata is invalid")
         schema.setMessageHandler(self.handler)
-    
+
         # load schema from file
         xsdFilePath = self.pluginPath + '/xsd/fgdc/fgdc-std-001-1998.xsd'
         #if standard != MetaInfoStandard.FGDC:
@@ -94,16 +93,19 @@ class MetadataProvider:
         loadResult = schema.load(schemaUrl)
         if not loadResult or self.handler.errorOccured:
             raise Exception("Could not load schema for validation")
-    
+
         #setup validator
         validator = QXmlSchemaValidator(schema)
         validator.setMessageHandler(self.handler)
-    
+
         #validate
         metadata = self.metaProvider.getMetadata().encode('utf-8')
         if not validator.validate(metadata):
             raise Exception("Metadata did not validate")
-    
+    else:
+        pass
+        #TODO: validate ISO
+
     #save to provider
     self.setMetadata(content)
 
@@ -145,7 +147,7 @@ class MetadataProvider:
 
   @staticmethod
   def getProvider(layer):
-      ok, msg = MetadataProvider.isLayerSupport(layer)
+      ok, msg = MetadataProvider.isLayerSupported(layer)
       if not ok:
           raise Exception(msg)
 
@@ -259,3 +261,22 @@ class PostgresMetadataProvider(RemoteDbMetadataProvider):
     except psycopg2.DatabaseError, e:
       print "Exception executing sql: ", e
       return False
+
+class MetaInfoStandard:
+  UNKNOWN, ISO19115, FGDC, DC = range(4)
+
+  @staticmethod
+  def tryDetermineStandard(metadata):
+    if isinstance(metadata, MetadataProvider):
+        metadata = metadata.getMetadata()
+
+    # simple test for iso doc
+    if metadata.find("MD_Metadata") >= 0 or metadata.find("MI_Metadata") >= 0:
+        return MetaInfoStandard.ISO19115
+
+    # simple test for fgdc doc
+    if metadata.find("idinfo") >= 0 and metadata.find("metainfo") >= 0:
+        return MetaInfoStandard.FGDC
+
+    # only iso and fgdc support now
+    return MetaInfoStandard.UNKNOWN

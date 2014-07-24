@@ -39,7 +39,7 @@ class ErrorHandler(QAbstractMessageHandler):
 
   def handleMessage(self, msg_type, desc, identifier, loc):
     #QMessageBox.information(None, "Error", desc + " Ident: " + identifier.toString() + " Line: " + QString(str(loc.line())))
-    from metatoolsviewer import MetatoolsViewer
+    from opengeo.gui.dialogs.metatoolsviewer import MetatoolsViewer
 
     message_type = {0:'Debug', 1:'Warning', 2:'Critical', 3:'Fatal'}
 
@@ -48,7 +48,7 @@ class ErrorHandler(QAbstractMessageHandler):
 
     desc.replace('<p>', '')
     desc.replace('</p>', '')
-    desc.replace("<body>", "<head><style>.XQuery-keyword, .XQuery-type {color: red;} infolabel {color: blue; text-weight: bold; text-size: 14px}</style></head><body>") #add styles 
+    desc.replace("<body>", "<head><style>.XQuery-keyword, .XQuery-type {color: red;} infolabel {color: blue; text-weight: bold; text-size: 14px}</style></head><body>") #add styles
     desc.replace("<body>", "<infolabel>Problem type: </infolabel>%s <br/><infolabel>Problem line: </infolabel>%s <br/><infolabel>Problem description: </infolabel>" % (message_type[msg_type], loc.line())) #add info
 
     dlg = MetatoolsViewer()

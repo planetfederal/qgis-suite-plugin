@@ -1,4 +1,5 @@
 import os
+import sys
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from opengeo.gui.exploreritems import TreeItem
@@ -12,60 +13,59 @@ from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
 from geoserver.catalog import ConflictingDataError
 from opengeo.gui.confirm import publishLayer
-from opengeo.metadata.standard import MetaInfoStandard
 from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
-import sys
-from opengeo.metadata.metadata_provider import MetadataProvider
+
+from opengeo.metadata.metadata_provider import MetadataProvider, MetaInfoStandard
 from opengeo.gui.dialogs.metatoolsviewer import MetatoolsViewer
-                
+
 class QgsTreeItem(TreeItem):
-    
+
     def iconPath(self):
         return os.path.dirname(__file__) + "/../images/qgis.png"
-        
-class QgsProjectItem(QgsTreeItem): 
-    def __init__(self): 
+
+class QgsProjectItem(QgsTreeItem):
+    def __init__(self):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
-        TreeItem.__init__(self, None, icon, "QGIS project")        
-                 
-    def populate(self):                    
+        TreeItem.__init__(self, None, icon, "QGIS project")
+
+    def populate(self):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        layersItem = QgsTreeItem(None, icon, "QGIS Layers")        
+        layersItem = QgsTreeItem(None, icon, "QGIS Layers")
         layersItem.setIcon(0, icon)
         layers = qgislayers.getAllLayers()
         for layer in layers:
-            layerItem = QgsLayerItem(layer)            
+            layerItem = QgsLayerItem(layer)
             layersItem.addChild(layerItem)
         self.addChild(layersItem)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        groupsItem = QgsTreeItem(None, icon, "QGIS Groups")        
+        groupsItem = QgsTreeItem(None, icon, "QGIS Groups")
         groups = qgislayers.getGroups()
         for group in groups:
-            groupItem = QgsGroupItem(group)                                
+            groupItem = QgsGroupItem(group)
             groupsItem.addChild(groupItem)
             groupItem.populate()
         self.addChild(groupsItem)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        stylesItem = QgsTreeItem(None, icon, "QGIS Styles")               
+        stylesItem = QgsTreeItem(None, icon, "QGIS Styles")
         stylesItem.setIcon(0, icon)
         styles = qgislayers.getAllLayers()
         for style in styles:
-            styleItem = QgsStyleItem(style)            
+            styleItem = QgsStyleItem(style)
             stylesItem.addChild(styleItem)
-        self.addChild(stylesItem)        
-            
+        self.addChild(stylesItem)
+
     def contextMenuActions(self, tree, explorer):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")        
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishProjectAction = QtGui.QAction(icon, "Publish...", explorer)
         publishProjectAction.triggered.connect(lambda: self.publishProject(tree, explorer))
-        publishProjectAction.setEnabled(len(explorer.catalogs())>0)        
+        publishProjectAction.setEnabled(len(explorer.catalogs())>0)
         return [publishProjectAction]
-                       
-        
-    def publishProject(self, tree, explorer):        
-        layers = qgislayers.getAllLayers()                
+
+
+    def publishProject(self, tree, explorer):
+        layers = qgislayers.getAllLayers()
         dlg = PublishProjectDialog(explorer.catalogs())
-        dlg.exec_()   
+        dlg.exec_()
         catalog  = dlg.catalog
         if catalog is None:
             return
@@ -73,48 +73,48 @@ class QgsProjectItem(QgsTreeItem):
         groupName = dlg.groupName
         explorer.setProgressMaximum(len(layers), "Publish layers")
         progress = 0
-        ogcat = OGCatalog(catalog)                    
+        ogcat = OGCatalog(catalog)
         for layer in layers:
-            explorer.setProgress(progress)                                         
+            explorer.setProgress(progress)
             if not explorer.run(publishLayer,
-                     None, 
+                     None,
                      [],
                      ogcat, layer, workspace, True):
                 explorer.setProgress(0)
                 return
-            progress += 1                
-            explorer.setProgress(progress)  
+            progress += 1
+            explorer.setProgress(progress)
         explorer.resetActivity()
         groups = qgislayers.getGroups()
         for group in groups:
-            names = [layer.name() for layer in groups[group]] 
+            names = [layer.name() for layer in groups[group]]
             try:
                 layergroup = catalog.create_layergroup(group, names, names)
-                explorer.run(catalog.save, "Create layer group '" + group + "'", 
+                explorer.run(catalog.save, "Create layer group '" + group + "'",
                      [], layergroup)
             except ConflictingDataError, e:
                 explorer.setWarning(str(e))
-        
+
         if groupName is not None:
-            names = [layer.name() for layer in layers]      
+            names = [layer.name() for layer in layers]
             layergroup = catalog.create_layergroup(groupName, names, names)
-            explorer.run(catalog.save, "Create global layer group", 
-                     [], layergroup)                
-        tree.findAllItems(catalog)[0].refreshContent(explorer)     
-                                             
-                    
-class QgsLayerItem(QgsTreeItem): 
-    def __init__(self, layer ): 
+            explorer.run(catalog.save, "Create global layer group",
+                     [], layergroup)
+        tree.findAllItems(catalog)[0].refreshContent(explorer)
+
+
+class QgsLayerItem(QgsTreeItem):
+    def __init__(self, layer ):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        TreeItem.__init__(self, layer, icon)   
-        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)      
-     
+        TreeItem.__init__(self, layer, icon)
+        self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishLayerAction = QtGui.QAction(icon, "Publish to GeoServer...", explorer)
-        publishLayerAction.triggered.connect(lambda: self.publishLayer(tree, explorer)) 
-        publishLayerAction.setEnabled(len(explorer.catalogs())>0)    
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/create-store-from-layer.png")   
+        publishLayerAction.triggered.connect(lambda: self.publishLayer(tree, explorer))
+        publishLayerAction.setEnabled(len(explorer.catalogs())>0)
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/create-store-from-layer.png")
         createStoreFromLayerAction= QtGui.QAction(icon, "Create store from layer...", explorer)
         createStoreFromLayerAction.triggered.connect(lambda: self.createStoreFromLayer(tree, explorer))
         createStoreFromLayerAction.setEnabled(len(explorer.catalogs())>0)
@@ -122,19 +122,24 @@ class QgsLayerItem(QgsTreeItem):
         importToPostGisAction = QtGui.QAction(icon, "Import into PostGIS...", explorer)
         importToPostGisAction.triggered.connect(lambda: self.importLayerToPostGis(tree, explorer))
         importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
-        editMetadataAction = QtGui.QAction(icon, "Edit layer metadata...", explorer)
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/metadata.png")
+        editMetadataAction = QtGui.QAction(icon, "Edit/view layer metadata...", explorer)
         editMetadataAction.triggered.connect(lambda: self.editMetadata(tree, explorer))
         editMetadataAction.setEnabled(True)
-        viewMetadataAction = QtGui.QAction(icon, "View layer metadata...", explorer)
-        viewMetadataAction.triggered.connect(lambda: self.viewMetadata(tree, explorer))
-        viewMetadataAction.setEnabled(True)
         importMetadataAction = QtGui.QAction(icon, "Import metadata from file...", explorer)
         importMetadataAction.triggered.connect(lambda: self.importMetadataFromFile([self.element], explorer))
         importMetadataAction.setEnabled(True)
-        
-        return [publishLayerAction, createStoreFromLayerAction, importToPostGisAction, 
-                editMetadataAction, viewMetadataAction, importMetadataAction]   
-    
+
+        return [publishLayerAction, createStoreFromLayerAction, importToPostGisAction,
+                editMetadataAction, importMetadataAction]
+
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
+        importMetadataAction = QtGui.QAction(icon, "Import metadata from file...", explorer)
+        importMetadataAction.triggered.connect(lambda: self.importMetadataFromFile(selected, explorer))
+        importMetadataAction.setEnabled(True)
+        deleteAction.triggered.connect(lambda: self.deleteTables(explorer, selected))
+        return [deleteAction]
+
     def editMetadata(self, tree, explorer):
         md = self.getMetadata(explorer)
         if md is None:
@@ -143,34 +148,34 @@ class QgsLayerItem(QgsTreeItem):
         if standard != MetaInfoStandard.ISO19115 and standard != MetaInfoStandard.FGDC:
             explorer.setWarning("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
             return
-    
+
         dlg = MetatoolsEditor()
         dlg.setContent(md)
         dlg.exec_()
-        
-        
+
+
     def viewMetadata(self, tree, explorer):
         md = MetadataProvider.getProvider(self.element)
         if not md.checkExists():
             explorer.setWarning("The layer does not have metadata.")
             return
-        
+
         standard = MetaInfoStandard.tryDetermineStandard(md)
         if standard != MetaInfoStandard.ISO19115 and standard != MetaInfoStandard.FGDC:
             explorer.setWarning("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
             return
-    
+
         if standard == MetaInfoStandard.ISO19115:
             xsltFilePath = os.path.join(os.path.dirname(__file__), "metadata", "xsl", "iso19115.xsl")
         if standard == MetaInfoStandard.FGDC:
             xsltFilePath = os.path.join(os.path.dirname(__file__), "metadata", "xsl", "fgdc.xsl")
-    
+
         dlg = MetatoolsViewer()
         if dlg.setContent(md, xsltFilePath):
-            dlg.exec_() 
-        
-        
-    def checkMetadata(self, explorer):
+            dlg.exec_()
+
+
+    def getMetadata(self, explorer):
         md = MetadataProvider.getProvider(self.element)
         if not md.checkExists():
             result = QtGui.QMessageBox.question(config.iface.mainWindow(),
@@ -178,114 +183,117 @@ class QgsLayerItem(QgsTreeItem):
                                         QtCore.QCoreApplication.translate("Metatools", "The layer does not have metadata.\nDo you want to create it?"),
                                         QtGui.QDialogButtonBox.Yes, QtGui.QDialogButtonBox.No
                                        )
-    
+
             if result == QtGui.QDialogButtonBox.Yes:
                 try:
-                    profilePath = os.path.join(os.path.dirname(__file__), "metadata", "xml_profiles", "csir_sac_profile.xml")
+                    profilePath = os.path.join(os.path.dirname(__file__), os.pardir, "metadata", "xml_profiles", "csir_sac_profile.xml")
+                    print profilePath
                     md.importFromFile(profilePath)
                 except:
-                    explorer.setWarning("Metatools", "Metadata file can't be created.")
+                    import traceback
+                    traceback.print_exc()
+                    explorer.setWarning("Metadata file can't be created.")
                     return None
                 return md
             else:
                 return None
         else:
             return md
-        
+
     def importMetadataFromFile(self, layers, explorer):
         fileName = QtGui.QFileDialog.getOpenFileName(config.iface.mainWindow(),
                                            "Select metadata file",
                                            "",
                                            'XML files (*.xml);;Text files (*.txt *.TXT);;All files (*.*)'
                                           )
-        if fileName != "":
+        if fileName:
             try:
                 for layer in layers:
                     md = MetadataProvider.getProvider(layer)
                     md.importFromFile(unicode(fileName))
-                    explorer.setInfo("Metadata was imported successfully")
             except Exception, e:
-                explorer.setWarning("Metadata can't be imported: " +  e.args[0]) 
+                explorer.setWarning("Metadata can't be imported: " +  e.args[0])
+            explorer.setInfo("Metadata was imported successfully")
 
-    def multipleSelectionContextMenuActions(self, tree, explorer, selected):    
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")    
+    def multipleSelectionContextMenuActions(self, tree, explorer, selected):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishLayersAction = QtGui.QAction(icon, "Publish to GeoServer...", explorer)
         publishLayersAction.triggered.connect(lambda: self.publishLayers(tree, explorer, selected))
-        publishLayersAction.setEnabled(len(explorer.catalogs())>0)        
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/create-store-from-layer.png") 
+        publishLayersAction.setEnabled(len(explorer.catalogs())>0)
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/create-store-from-layer.png")
         createStoresFromLayersAction= QtGui.QAction(icon, "Create stores from layers...", explorer)
         createStoresFromLayersAction.triggered.connect(lambda: self.createStoresFromLayers(tree, explorer, selected))
-        createStoresFromLayersAction.setEnabled(len(explorer.catalogs())>0)  
-        
+        createStoresFromLayersAction.setEnabled(len(explorer.catalogs())>0)
+
         importToPostGisAction = QtGui.QAction("Import into PostGIS...", explorer)
         importToPostGisAction.triggered.connect(lambda: self.importLayersToPostGis(tree, explorer, selected))
-        importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)  
+        importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
         importMetadataAction = QtGui.QAction("Import metadata from file...", explorer)
         importMetadataAction.triggered.connect(lambda: self.importMetadataFromFile([item.element for item in selected], explorer))
         importMetadataAction.setEnabled(True)
-        return [publishLayersAction, createStoresFromLayersAction, importToPostGisAction, importMetadataAction] 
-    
-    def publishLayers(self, tree, explorer, selected):        
-        layers = [item.element for item in selected]        
+        return [publishLayersAction, createStoresFromLayersAction, importToPostGisAction, importMetadataAction]
+
+    def publishLayers(self, tree, explorer, selected):
+        layers = [item.element for item in selected]
         dlg = PublishLayersDialog(explorer.catalogs(), layers)
-        dlg.exec_()     
+        dlg.exec_()
         toPublish  = dlg.topublish
         if toPublish is None:
             return
         explorer.setProgressMaximum(len(toPublish), "Publish layers")
-        progress = 0        
+        progress = 0
         toUpdate = set();
         for layer, catalog, workspace in toPublish:
-            explorer.setProgress(progress)            
-            ogcat = OGCatalog(catalog)                 
+            explorer.setProgress(progress)
+            ogcat = OGCatalog(catalog)
             if explorer.run(publishLayer,
                      None,
                      [],
-                     ogcat, layer, workspace, True):            
+                     ogcat, layer, workspace, True):
                 toUpdate.add(tree.findAllItems(catalog)[0])
             progress += 1
             explorer.setProgress(progress)
-        
+
         for item in toUpdate:
             item.refreshContent(explorer)
-        explorer.resetActivity()    
-                           
+        explorer.resetActivity()
+
 
     def importLayerToPostGis(self, tree, explorer):
         self.importLayersToPostGis(tree, explorer, [self])
-        
-    
+
+
     def importLayersToPostGis(self, tree, explorer, selected):
-        layers = [item.element for item in selected]    
+        layers = [item.element for item in selected]
         dlg = ImportIntoPostGISDialog(explorer.pgDatabases(), toImport = layers)
         dlg.exec_()
         if dlg.ok:
             schema = [s for s in dlg.connection.schemas() if s.name == dlg.schema][0]
             if len(dlg.toImport) > 1:
-                explorer.setProgressMaximum(len(dlg.toImport), "Import layers to PostGIS")           
-            for i, layer in enumerate(dlg.toImport):                
-                explorer.run(dlg.connection.importFileOrLayer, 
+                explorer.setProgressMaximum(len(dlg.toImport), "Import layers to PostGIS")
+            for i, layer in enumerate(dlg.toImport):
+                explorer.run(dlg.connection.importFileOrLayer,
                             "Import layer into PostGIS",
                             tree.findAllItems(schema),
                             layer, dlg.schema, dlg.tablename, not dlg.add, dlg.single)
-                explorer.setProgress(i + 1)     
-            explorer.resetActivity() 
-                              
-        
-        
-    def createStoresFromLayers(self, tree, explorer, selected):        
-        layers = [item.element for item in selected]        
+                explorer.setProgress(i + 1)
+            explorer.resetActivity()
+
+
+
+    def createStoresFromLayers(self, tree, explorer, selected):
+        layers = [item.element for item in selected]
         dlg = PublishLayersDialog(explorer.catalogs(), layers)
-        dlg.exec_()     
+        dlg.exec_()
         toPublish  = dlg.topublish
         if toPublish is None:
             return
         explorer.setProgressMaximum(len(toPublish), "Upload layers")
-        progress = 0        
+        progress = 0
         toUpdate = set();
         for layer, catalog, workspace in toPublish:
-            explorer.setProgress(progress)            
-            ogcat = OGCatalog(catalog)                 
+            explorer.setProgress(progress)
+            ogcat = OGCatalog(catalog)
             explorer.run(ogcat.upload,
                      None,
                      [],
@@ -293,109 +301,109 @@ class QgsLayerItem(QgsTreeItem):
             progress += 1
             toUpdate.add(tree.findAllItems(catalog))
             explorer.setProgress(progress)
-        
+
         for item in toUpdate:
             item.refreshContent(explorer)
         explorer.resetActivity()
-        
+
     def createStoreFromLayer(self, tree, explorer):
         dlg = PublishLayerDialog(explorer.catalogs())
-        dlg.exec_()      
+        dlg.exec_()
         if dlg.catalog is None:
             return
-        cat = dlg.catalog  
+        cat = dlg.catalog
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
-        toUpdate = [catItem]                    
+        toUpdate = [catItem]
         explorer.run(ogcat.upload,
                  "Create store from layer '" + self.element.name() + "'",
                  toUpdate,
                  self.element, dlg.workspace, True)
-                    
+
     def publishLayer(self, tree, explorer):
         dlg = PublishLayerDialog(explorer.catalogs())
-        dlg.exec_()      
+        dlg.exec_()
         if dlg.catalog is None:
             return
-        cat = dlg.catalog  
+        cat = dlg.catalog
         ogcat = OGCatalog(cat)
-        catItem = tree.findAllItems(cat)[0]                            
+        catItem = tree.findAllItems(cat)[0]
         explorer.run(publishLayer,
                  "Publish layer '" + self.element.name() + "'",
                  [catItem],
                  ogcat, self.element, dlg.workspace, True)
 
-             
-class QgsGroupItem(QgsTreeItem): 
-    def __init__(self, group): 
+
+class QgsGroupItem(QgsTreeItem):
+    def __init__(self, group):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        TreeItem.__init__(self, group , icon)   
+        TreeItem.__init__(self, group , icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
-        
-    def populate(self):            
+
+    def populate(self):
         grouplayers = qgislayers.getGroups()[self.element]
         for layer in grouplayers:
-            layerItem = QgsLayerItem(layer)                                
+            layerItem = QgsLayerItem(layer)
             self.addChild(layerItem)
 
-    def contextMenuActions(self, tree, explorer): 
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")                
+    def contextMenuActions(self, tree, explorer):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishGroupAction = QtGui.QAction(icon, "Publish...", explorer)
         publishGroupAction.triggered.connect(lambda: self.publishGroup(tree, explorer))
         publishGroupAction.setEnabled(len(explorer.catalogs())>0)
-        return[publishGroupAction]  
-        
+        return[publishGroupAction]
+
     def publishGroup(self, tree, explorer):
         groupname = self.element
-        groups = qgislayers.getGroups()   
-        group = groups[groupname]     
+        groups = qgislayers.getGroups()
+        group = groups[groupname]
         cat = selectCatalog(explorer.catalogs())
         if cat is None:
-            return                            
+            return
         gslayers= [layer.name for layer in cat.get_layers()]
-        missing = []        
-        overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool)) 
-        for layer in group:            
+        missing = []
+        overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))
+        for layer in group:
             if layer.name() not in gslayers or overwrite:
-                missing.append(layer) 
+                missing.append(layer)
         toUpdate = set();
         toUpdate.add(tree.findAllItems(cat)[0])
-        
+
         if missing:
             catalogs = dict([(k ,v) for k, v in explorer.catalogs().iteritems() if v == cat])
             dlg = PublishLayersDialog(catalogs, missing)
-            dlg.exec_()     
+            dlg.exec_()
             toPublish  = dlg.topublish
             if toPublish is None:
                 return
             explorer.setProgressMaximum(len(toPublish), "Publish layers")
-            progress = 0                    
+            progress = 0
             for layer, catalog, workspace in toPublish:
-                explorer.setProgress(progress)            
-                ogcat = OGCatalog(catalog)                 
+                explorer.setProgress(progress)
+                ogcat = OGCatalog(catalog)
                 if not explorer.run(ogcat.publishLayer,
                          None,
                          [],
                          layer, workspace, True):
                     explorer.setProgress(0)
                     return
-                progress += 1                
+                progress += 1
                 explorer.setProgress(progress)
-            explorer.resetActivity()      
+            explorer.resetActivity()
         names = [layer.name() for layer in group]
-        def _createGroup():      
+        def _createGroup():
             layergroup = cat.create_layergroup(groupname, names, names)
             cat.save(layergroup)
-        explorer.run(_createGroup, "Create layer group from group '" + groupname + "'", 
-                     toUpdate)    
-       
-               
-class QgsStyleItem(QgsTreeItem): 
-    def __init__(self, layer): 
+        explorer.run(_createGroup, "Create layer group from group '" + groupname + "'",
+                     toUpdate)
+
+
+class QgsStyleItem(QgsTreeItem):
+    def __init__(self, layer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        TreeItem.__init__(self, layer, icon, "Style of layer '" + layer.name() + "'") 
+        TreeItem.__init__(self, layer, icon, "Style of layer '" + layer.name() + "'")
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
-        
+
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishStyleAction = QtGui.QAction(icon, "Publish...", explorer)
@@ -403,19 +411,19 @@ class QgsStyleItem(QgsTreeItem):
         publishStyleAction.setEnabled(len(explorer.catalogs()) > 0)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
         editAction = QtGui.QAction(icon, "Edit...", explorer)
-        editAction.triggered.connect(lambda: config.iface.showLayerProperties(self.element))   
-        return [publishStyleAction, editAction]    
-        
+        editAction.triggered.connect(lambda: config.iface.showLayerProperties(self.element))
+        return [publishStyleAction, editAction]
+
     def publishStyle(self, tree, explorer):
         dlg = PublishStyleDialog(explorer.catalogs().keys())
-        dlg.exec_()      
+        dlg.exec_()
         if dlg.catalog is None:
             return
-        cat = explorer.catalogs()[dlg.catalog]  
+        cat = explorer.catalogs()[dlg.catalog]
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
-        toUpdate = [catItem.stylesItem]                        
+        toUpdate = [catItem.stylesItem]
         explorer.run(ogcat.publishStyle,
                  "Publish style from layer '" + self.element.name() + "'",
                  toUpdate,
-                 self.element, True, dlg.name)              
+                 self.element, True, dlg.name)

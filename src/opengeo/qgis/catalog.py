@@ -2,10 +2,10 @@
 
 '''
 Main functions for plugin functionality.
-This is supposed to contain the functions to be called when using plugin 
+This is supposed to contain the functions to be called when using plugin
 functionality from the QGIS console.
 
-It is basically a wrapper for a Catalog object, with some extra functionality 
+It is basically a wrapper for a Catalog object, with some extra functionality
 and methods to interact with GIS objects
 '''
 
@@ -36,59 +36,59 @@ try:
     processingOk = True
 except:
     processingOk = False
-    
-def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest", 
+
+def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest",
                  username="admin", password="geoserver", disable_ssl_certificate_validation=False):
     catalog = GSCatalog(service_url, username, password, disable_ssl_certificate_validation)
     return OGCatalog(catalog)
-    
+
 
 class OGCatalog(object):
     '''
     This class is a wrapper for a catalog object, with convenience methods to use it with QGIS layers
     '''
-    
+
     def __init__(self, catalog):
         self.catalog = catalog
-        #we also create a Client object pointing to the same url        
+        #we also create a Client object pointing to the same url
         self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
-        
+
     def clean(self):
         self.cleanUnusedStyles()
         self.cleanUnusedResources()
-        
+
     def cleanUnusedStyles(self):
         '''cleans styles that are not used by any layer'''
         usedStyles = set()
         styles = self.catalog.get_styles()
-        layers = self.catalog.get_layers()        
+        layers = self.catalog.get_layers()
         for layer in layers:
             usedStyles.add(layer.default_style.name)
             usedStyles.update([s.name for s in layer.styles if s is not None])
-                
-        toDelete = [s for s in styles if s.name not in usedStyles]         
-        for style in toDelete:            
-            style.catalog.delete(style, purge = True)   
-            
+
+        toDelete = [s for s in styles if s.name not in usedStyles]
+        for style in toDelete:
+            style.catalog.delete(style, purge = True)
+
     def cleanUnusedResources(self):
         '''cleans resources that are not published through any layer in the catalog'''
         usedResources = set()
         resources = self.catalog.get_resources()
-        layers = self.catalog.get_layers()        
+        layers = self.catalog.get_layers()
         for layer in layers:
             usedResources.add(layer.resource.name)
-            
-        toDelete = [r for r in resources if r.name not in usedResources]         
-        for resource in toDelete:                      
+
+        toDelete = [r for r in resources if r.name not in usedResources]
+        for resource in toDelete:
             resource.catalog.delete(resource)
-            
+
         for store in self.catalog.get_stores():
             if len(store.get_resources()) == 0:
                 self.catalog.delete(store)
-                
+
     def consolidateStyles(self):
         '''
-        Deletes styles that are redundant and just keeps one copy of them 
+        Deletes styles that are redundant and just keeps one copy of them
         in the catalog, configuring the corresponding layers to use that copy
         '''
         used = {}
@@ -98,22 +98,22 @@ class OGCatalog(object):
             if sld in used.keys():
                 used[sld].append(style)
             else:
-                used[sld] = [style]                        
-                
-        for sld, styles in used.iteritems():            
+                used[sld] = [style]
+
+        for sld, styles in used.iteritems():
             if len(styles) == 1:
                 continue
             #find the layers that use any of the secondary styles in the list, and make them use the first one
             styleNames = [s.name for s in styles[1:]]
             layers = self.catalog.get_layers()
-            for layer in layers:  
-                changed = False                              
+            for layer in layers:
+                changed = False
                 if layer.default_style.name in styleNames:
                     layer.default_style = styles[0]
-                    changed = True                    
+                    changed = True
                 alternateStyles = layer.styles
                 newAlternateStyles = set()
-                for alternateStyle in alternateStyles:                    
+                for alternateStyle in alternateStyles:
                     if alternateStyle.name in styleNames:
                         newAlternateStyles.add(styles[0])
                     else:
@@ -121,42 +121,42 @@ class OGCatalog(object):
                 newAlternateStyles = list(newAlternateStyles)
                 if newAlternateStyles != alternateStyles:
                     layer.styles = newAlternateStyles
-                    changed = True                    
+                    changed = True
                 if changed:
-                    self.catalog.save(layer) 
-                        
-        
-        
+                    self.catalog.save(layer)
 
-    
+
+
+
+
     def publishStyle(self, layer, overwrite = True, name = None):
         '''
-        Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True, 
+        Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True,
         it will overwrite a style with that name in case it exists
-        '''        
-        
+        '''
+
         if isinstance(layer, basestring):
-            layer = layers.resolveLayer(layer)         
-        sld = getGsCompatibleSld(layer) 
-        if sld is not None:       
+            layer = layers.resolveLayer(layer)
+        sld = getGsCompatibleSld(layer)
+        if sld is not None:
             name = name if name is not None else layer.name()
-            name = name.replace(" ", "_")            
+            name = name.replace(" ", "_")
             self.catalog.create_style(name, sld, overwrite)
         return sld
-       
+
     def getDataFromLayer(self, layer):
         '''
         Returns the data corresponding to a given layer, ready to be passed to the
         method in the Catalog class for uploading to the server.
-        If needed, it performs an export to ensure that the file format is supported 
+        If needed, it performs an export to ensure that the file format is supported
         by the upload API to be used for import. In that case, the data returned
         will point to the exported copy of the data, not the original data source
         '''
         if layer.type() == layer.RasterLayer:
-            data = exporter.exportRasterLayer(layer)                              
-        else:      
-            filename = exporter.exportVectorLayer(layer)        
-            basename, extension = os.path.splitext(filename)        
+            data = exporter.exportRasterLayer(layer)
+        else:
+            filename = exporter.exportVectorLayer(layer)
+            basename, extension = os.path.splitext(filename)
             data = {
                 'shp': basename + '.shp',
                 'shx': basename + '.shx',
@@ -165,7 +165,7 @@ class OGCatalog(object):
             }
         return data
 
-    
+
     def _publishExisting(self, layer, workspace, overwrite):
         connName = self.getConnectionNameFromLayer(layer)
         uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
@@ -222,11 +222,11 @@ class OGCatalog(object):
         session.commit()
 
 
-    def upload(self, layer, workspace=None, overwrite=True, name=None):        
-        '''uploads the specified layer'''  
+    def upload(self, layer, workspace=None, overwrite=True, name=None):
+        '''uploads the specified layer'''
 
         if isinstance(layer, basestring):
-            layer = layers.resolveLayer(layer)     
+            layer = layers.resolveLayer(layer)
 
         name = name if name is not None else layer.name()
         title = name
@@ -261,8 +261,8 @@ class OGCatalog(object):
                    'GeoServer.' % (layer.name(), str(e)))
             e.args = (msg,)
             raise e
-    
-    
+
+
         # Verify the resource was created
         resource = self.catalog.get_resource(name)
         if resource is not None:
@@ -270,7 +270,7 @@ class OGCatalog(object):
         else:
             msg = ('could not create layer %s.' % name)
             raise Exception(msg)
-        
+
         if title != name:
             resource.dirty["title"] = title
             self.catalog.save(resource)
@@ -286,13 +286,13 @@ class OGCatalog(object):
                 msg = ('Could not set projection for layer '
                        '[%s]. the layer has been created, but its projection should be set manually.')
                 raise Exception(msg % layer.name())
-            
+
     def getConnectionNameFromLayer(self, layer):
         connName = "postgis_store"
-        uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())                
+        uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
         host = uri.host()
         database = uri.database()
-        port = uri.port()                
+        port = uri.port()
         settings = QSettings()
         settings.beginGroup(u'/PostgreSQL/connections')
         for name in settings.childGroups():
@@ -302,113 +302,113 @@ class OGCatalog(object):
             port2 = str(settings.value('port'))
             settings.endGroup()
             if port == port2 and database == database2 and host == host2:
-                connName = name + "_" + str(uri.schema()) 
+                connName = name + "_" + str(uri.schema())
         settings.endGroup()
-        return connName  
-              
+        return connName
+
     def publishGroup(self, name, destName = None, workspace = None, overwrite = False, overwriteLayers = False):
-        
-        ''' 
+
+        '''
         Publishes a group in the given catalog
-        
+
         name: the name of the QGIS group to publish. It will also be used as the GeoServer layergroup name
-        
+
         workspace: The workspace to add the group to
-        
+
         overwrite: if True, it will overwrite a previous group with the specified name, if it exists
-        
+
         overwriteLayers: if False, in case a layer in the group is not found in the specified workspace, the corresponding layer
         from the current QGIS project will be published, but all layers of the group that can be found in the GeoServer
-        workspace will not be published. If True, all layers in the group are published, even if layers with the same name 
+        workspace will not be published. If True, all layers in the group are published, even if layers with the same name
         exist in the workspace
         '''
-                
+
         groups = layers.getGroups()
         if name not in groups:
             raise Exception("The specified group does not exist")
-        
+
         destName = destName if destName is not None else name
         gsgroup = self.catalog.get_layergroup(destName)
         if gsgroup is not None and not overwrite:
             return
-        
-        
+
+
         group = groups[name]
-        
+
         for layer in group:
             gslayer = self.catalog.get_layer(layer.name())
             if gslayer is None or overwriteLayers:
                 self.publishLayer(layer, workspace, True)
-                
-        names = [layer.name() for layer in group]        
-        
+
+        names = [layer.name() for layer in group]
+
         layergroup = self.catalog.create_layergroup(destName, names, names)
         self.catalog.save(layergroup)
-        
+
     def publishLayer (self, layer, workspace=None, overwrite=True, name=None):
         '''
-        Publishes a QGIS layer. 
+        Publishes a QGIS layer.
         It creates the corresponding store and the layer itself.
-        If a pre-upload hook is set, its runs it and publishes the resulting layer  
-        
+        If a pre-upload hook is set, its runs it and publishes the resulting layer
+
         layer: the layer to publish, whether as a QgsMapLayer object or its name in the QGIS TOC.
-            
-        workspace: the workspace to publish to. USes the default workspace if not passed 
-        or None 
-        
-        name: the name for the published layer. Uses the QGIS layer name if not passed 
+
+        workspace: the workspace to publish to. USes the default workspace if not passed
         or None
-        
+
+        name: the name for the published layer. Uses the QGIS layer name if not passed
+        or None
+
         '''
-        
+
         if isinstance(layer, basestring):
-            layer = layers.resolveLayer(layer)   
-                
+            layer = layers.resolveLayer(layer)
+
         name = name if name is not None else layer.name()
-        
+
         gslayer = self.catalog.get_layer(name)
         if gslayer is not None and not overwrite:
-            return 
-        
+            return
+
         title = name
-        name = name.replace(" ", "_")        
-          
+        name = name.replace(" ", "_")
+
         sld = self.publishStyle(layer, overwrite, name)
-            
-        layer = self.preprocess(layer)            
-        self.upload(layer, workspace, overwrite, title)          
+
+        layer = self.preprocess(layer)
+        self.upload(layer, workspace, overwrite, title)
 
         if sld is not None:
-            #assign style to created store  
-            publishing = self.catalog.get_layer(name)        
+            #assign style to created store
+            publishing = self.catalog.get_layer(name)
             publishing.default_style = self.catalog.get_style(name)
             self.catalog.save(publishing)
-            
-    def preprocess(self, layer):    
+
+    def preprocess(self, layer):
         '''
-        Preprocesses the layer with the corresponding preprocess hook and returns the path to the 
+        Preprocesses the layer with the corresponding preprocess hook and returns the path to the
         resulting layer. If no preprocessing is performed, it returns the input layer itself
-        '''    
+        '''
         if not processingOk:
             return layer
-        
-        if layer.type() == layer.RasterLayer:                        
+
+        if layer.type() == layer.RasterLayer:
             try:
                 hookFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadRasterHook", ""))
-                alg = self.getAlgorithmFromHookFile(hookFile)                
-                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterRaster) 
+                alg = self.getAlgorithmFromHookFile(hookFile)
+                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterRaster)
                     and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputRaster)):
                     alg.parameters[0].setValue(layer)
                     if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
                         return load(alg.outputs[0].value)
                     return layer
             except:
-                return layer                                    
-        elif layer.type() == layer.VectorLayer: 
+                return layer
+        elif layer.type() == layer.VectorLayer:
             try:
                 hookFile = str(QSettings().value("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", ""))
-                alg = self.getAlgorithmFromHookFile(hookFile)                
-                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterVector) 
+                alg = self.getAlgorithmFromHookFile(hookFile)
+                if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterVector)
                     and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputVector)):
                     alg.parameters[0].setValue(layer)
                     if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
@@ -416,7 +416,7 @@ class OGCatalog(object):
                     return layer
             except:
                 return layer
-            
+
     def getAlgorithmFromHookFile(self, hookFile):
         if hookFile.endswith('py'):
             script = ScriptAlgorithm(hookFile)
@@ -424,12 +424,12 @@ class OGCatalog(object):
             return script
         elif hookFile.endswith('model'):
             model = ModelerAlgorithm()
-            model.openModel(hookFile)                
+            model.openModel(hookFile)
             model.provider = Providers.providers['model']
             return model
         else:
             raise Exception ("Wrong hook file")
-        
+
     def addLayerToProject(self, name, destName = None):
         '''
         Adds a new layer to the current project based on a layer in a GeoServer catalog
@@ -440,31 +440,31 @@ class OGCatalog(object):
         layer = self.catalog.get_layer(name)
         if layer is None:
             raise Exception ("A layer with the name '" + name + "' was not found in the catalog")
-            
-        resource = layer.resource        
-        uri = uri_utils.layerUri(layer)  
-               
-        if resource.resource_type == "featureType":                             
+
+        resource = layer.resource
+        uri = uri_utils.layerUri(layer)
+
+        if resource.resource_type == "featureType":
             qgslayer = QgsVectorLayer(uri, destName or layer.resource.title, "WFS")
             if not qgslayer.isValid():
-                raise Exception ("Layer at %s is not a valid layer" % uri)    
+                raise Exception ("Layer at %s is not a valid layer" % uri)
             ok = True
             try:
-                sld = layer.default_style.sld_body  
-                sld = adaptGsToQgs(sld)              
-                sldfile = tempFilename("sld") 
+                sld = layer.default_style.sld_body
+                sld = adaptGsToQgs(sld)
+                sldfile = tempFilename("sld")
                 with open(sldfile, 'w') as f:
-                    f.write(sld)             
-                msg, ok = qgslayer.loadSldStyle(sldfile)                                                        
-            except Exception, e:       
+                    f.write(sld)
+                msg, ok = qgslayer.loadSldStyle(sldfile)
+            except Exception, e:
                 ok = False
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             if not ok:
-               raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")        
-        elif resource.resource_type == "coverage":                        
+               raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")
+        elif resource.resource_type == "coverage":
             qgslayer = QgsRasterLayer(uri, destName or layer.resource.title, "wcs" )
             if not qgslayer.isValid():
-                raise Exception ("Layer at %s is not a valid layer" % uri)                  
+                raise Exception ("Layer at %s is not a valid layer" % uri)
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
 
 def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
@@ -493,4 +493,3 @@ def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
         passwd=passwd, dbtype="postgis")
     catalog.save(store)
     return store
-                        

@@ -1,0 +1,1692 @@
+{
+    "parentIdentifier": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Parent identifier"
+    }, 
+    "sourceCitation": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Source citation"
+    }, 
+    "code": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Code"
+    }, 
+    "protocol": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "protocol"
+    }, 
+    "utilitiesCommunication": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "westBoundLongitude": {
+        "obligation": "mandatory", 
+        "type": "Decimal", 
+        "label": "West bound longitude"
+    }, 
+    "illuminationAzimuthAngle": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Ilumination azimuth angle"
+    }, 
+    "toneGradation": {
+        "obligation": "optional", 
+        "type": "Integer", 
+        "label": "Tone gradation"
+    }, 
+    "extendedElementInformation": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Extended element information"
+    }, 
+    "spatialExtent": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Spatial extent"
+    }, 
+    "sourceStep": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Source step"
+    }, 
+    "metadataExtensionInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Metadata extension information"
+    }, 
+    "imageQualityCode": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Image quality code"
+    }, 
+    "applicationProfile": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Application profile"
+    }, 
+    "maintenanceNote": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Maintenance note"
+    }, 
+    "attributeType": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Attribute Type"
+    }, 
+    "userNote": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "User note"
+    }, 
+    "dimension": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Dimension"
+    }, 
+    "topicCategory": {
+        "obligation": "conditional", 
+        "type": "MD_TopicCategoryCode", 
+        "label": "Topic category"
+    }, 
+    "accessConstraints": {
+        "obligation": "optional", 
+        "type": "MD_RestrictionCode", 
+        "label": "Access constraints"
+    }, 
+    "features": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Features"
+    }, 
+    "srsName": {
+        "obligation": "optional", 
+        "type": "attribute", 
+        "label": "SRS Name"
+    }, 
+    "nextEdge": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Next Edge"
+    }, 
+    "verticalCRS": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Vertical CRS"
+    }, 
+    "transformationParameterAvailability": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Transformation parameter availability"
+    }, 
+    "title": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Title"
+    }, 
+    "radiometricCalibrationDataAvailability": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Radiometric calibration data availability"
+    }, 
+    "evaluationMethodDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Evaluation method description"
+    }, 
+    "distributorContact": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Distributor contact"
+    }, 
+    "complex": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Complex"
+    }, 
+    "coordinates": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Coordinates"
+    }, 
+    "hierarchyLevel": {
+        "obligation": "conditional", 
+        "type": "MD_ScopeCode", 
+        "label": "Hierarchy level"
+    }, 
+    "complianceCode": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Compliance Code"
+    }, 
+    "source": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Source"
+    }, 
+    "resourceMaintenance": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Resource maintenance"
+    }, 
+    "location": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "fileDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "File description"
+    }, 
+    "turnaround": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Turn around"
+    }, 
+    "attributeDescription": {
+        "obligation": "mandatory", 
+        "type": "RecordType", 
+        "label": "Attribute description"
+    }, 
+    "descriptionReference": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Description Reference"
+    }, 
+    "health": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "density": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Density"
+    }, 
+    "scaleDenominator": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Scale denominator"
+    }, 
+    "transformationDimensionMapping": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Transformation dimension mapping"
+    }, 
+    "environmentDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Environment description"
+    }, 
+    "contentType": {
+        "obligation": "mandatory", 
+        "type": "MD_CoverageContentTypeCode", 
+        "label": "Content type"
+    }, 
+    "metaDataProperty": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Metadata Property"
+    }, 
+    "distance": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Distance"
+    }, 
+    "upperRight": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "oceans": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "measureDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Measure description"
+    }, 
+    "checkPointAvailability": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Check Point Availability"
+    }, 
+    "axisAbbrev": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Axis Abbreviation"
+    }, 
+    "fileName": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "File name"
+    }, 
+    "fees": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Fees"
+    }, 
+    "units": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Units"
+    }, 
+    "Length": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Lenght"
+    }, 
+    "geometricObjectCount": {
+        "obligation": "optional", 
+        "type": "Integer", 
+        "label": "Geometric object count"
+    }, 
+    "contactInstructions": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Contact instructions"
+    }, 
+    "derivationUnitTerm": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "uomLabels": {
+        "obligation": "optional", 
+        "type": "attribute", 
+        "label": "Unit of Measure Labels"
+    }, 
+    "onLine": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "On-line resource"
+    }, 
+    "report": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Report"
+    }, 
+    "numberOfDimensions": {
+        "obligation": "mandatory", 
+        "type": "Integer", 
+        "label": "Number of dimensions"
+    }, 
+    "offLine": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Offline"
+    }, 
+    "dataset": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Dataset"
+    }, 
+    "condition": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Condition"
+    }, 
+    "geometricObjects": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Geometric objects"
+    }, 
+    "lineage": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Lineage"
+    }, 
+    "presentationForm": {
+        "obligation": "optional", 
+        "type": "CI_PresentationFormCode", 
+        "label": "Presentation form"
+    }, 
+    "beginPosition": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Begin position"
+    }, 
+    "referenceSystemIdentifier": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Reference system identifier"
+    }, 
+    "name": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Name"
+    }, 
+    "spatialRepresentationType": {
+        "obligation": "optional", 
+        "type": "MD_SpatialRepresentationTypeCode", 
+        "label": "Spatial representation type"
+    }, 
+    "level": {
+        "obligation": "mandatory", 
+        "type": "MD_ScopeCode", 
+        "label": "Level"
+    }, 
+    "evaluationMethodType": {
+        "obligation": "optional", 
+        "type": "DQ_EvaluationMethodTypeCode", 
+        "label": "Evaluation method type"
+    }, 
+    "portrayalCatalogueCitation": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Portrayal catalogue citation"
+    }, 
+    "formatDistributor": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Format distributor"
+    }, 
+    "dateTime": {
+        "obligation": "optional", 
+        "type": "DateTime", 
+        "label": "Date time"
+    }, 
+    "biota": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "usageDateTime": {
+        "obligation": "optional", 
+        "type": "DateTime", 
+        "label": "Usage date time"
+    }, 
+    "facsimile": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Facsimile"
+    }, 
+    "imageryBaseMapsEarthCover": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "updateScopeDescription": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Update scope description"
+    }, 
+    "triangulationIndicator": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Triangulation indicator"
+    }, 
+    "identifier": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Identifier"
+    }, 
+    "page": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Page"
+    }, 
+    "portrayalCatalogueInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "portrayalCatalogueInfo"
+    }, 
+    "languageCode": {
+        "obligation": "mandatory", 
+        "type": "LanguageCode", 
+        "label": "Language Code"
+    }, 
+    "amendmentNumber": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Amendment number"
+    }, 
+    "Scale": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Scale"
+    }, 
+    "resourceSpecificUsage": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Resource specific usage"
+    }, 
+    "version": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Version"
+    }, 
+    "timePosition": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Time position"
+    }, 
+    "orderingInstructions": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Ordering instructions"
+    }, 
+    "locale": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Locale"
+    }, 
+    "series": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Series"
+    }, 
+    "dimensionSize": {
+        "obligation": "mandatory", 
+        "type": "Integer", 
+        "label": "Dimension size"
+    }, 
+    "conditional": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "inlandWaters": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "authority": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Authority"
+    }, 
+    "minValue": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Minimum value"
+    }, 
+    "verticalDatum": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Vertical datum"
+    }, 
+    "edition": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Edition"
+    }, 
+    "evaluationProcedure": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Evaluation procedure"
+    }, 
+    "quantityTypeReference": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Quantity Type Reference"
+    }, 
+    "result": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Result"
+    }, 
+    "distributorTransferOptions": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Distributor transfer options"
+    }, 
+    "pass": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Pass"
+    }, 
+    "distributor": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Distributor"
+    }, 
+    "mediumFormat": {
+        "obligation": "optional", 
+        "type": "MD_MediumFormatCode", 
+        "label": "Medium format"
+    }, 
+    "pointInPixel": {
+        "obligation": "mandatory", 
+        "type": "MD_PixelOrientationCode", 
+        "label": "Point in pixel"
+    }, 
+    "pointOfContact": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Point of contact"
+    }, 
+    "valueUnit": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Value unit"
+    }, 
+    "axisLabels": {
+        "obligation": "optional", 
+        "type": "attribute", 
+        "label": "Axis Labels"
+    }, 
+    "otherConstraints": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Other constraints"
+    }, 
+    "dateOfNextUpdate": {
+        "obligation": "optional", 
+        "type": "Date", 
+        "label": "Date of next update"
+    }, 
+    "parentEntity": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Parent entity"
+    }, 
+    "srsDimension": {
+        "obligation": "optional", 
+        "type": "attribute", 
+        "label": "SRS Dimension"
+    }, 
+    "aggregateDataSetIdentifier": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Agregated dataset identifier"
+    }, 
+    "specification": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Specification"
+    }, 
+    "domainValue": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Domain value"
+    }, 
+    "sourceExtent": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Source extent"
+    }, 
+    "boundaries": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "timeInterval": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Time Interval"
+    }, 
+    "elevation": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "includedWithDataset": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Included with dataset"
+    }, 
+    "optional": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "levelDescription": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Level description"
+    }, 
+    "distributionFormat": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Distribution format"
+    }, 
+    "plannedAvailableDateTime": {
+        "obligation": "optional", 
+        "type": "DateTime", 
+        "label": "Planned available date time"
+    }, 
+    "centerPoint": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Center point"
+    }, 
+    "axisDimensionProperties": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Axis dimension properties"
+    }, 
+    "distributionInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Distribution information"
+    }, 
+    "geoscientificInformation": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "thesaurusName": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Thesaurus name"
+    }, 
+    "positionName": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Position name"
+    }, 
+    "useLimitation": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Use limitation"
+    }, 
+    "equivalentScale": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Equivalent scale"
+    }, 
+    "geographicIdentifier": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Geographic identifier"
+    }, 
+    "alternateTitle": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Alternate title"
+    }, 
+    "bitsPerValue": {
+        "obligation": "optional", 
+        "type": "Integer", 
+        "label": "Bits per value"
+    }, 
+    "climatologyMeteorologyAtmosphere": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "userContactInfo": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "User contact info"
+    }, 
+    "updateScope": {
+        "obligation": "optional", 
+        "type": "MD_ScopeCode", 
+        "label": "Update scope"
+    }, 
+    "extent": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Extent"
+    }, 
+    "address": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Address"
+    }, 
+    "shortName": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Short name"
+    }, 
+    "scaleFactor": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Scale factor"
+    }, 
+    "linkage": {
+        "obligation": "mandatory", 
+        "type": "URL", 
+        "label": "Linkage"
+    }, 
+    "definition": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Definition"
+    }, 
+    "aggregateDataSetName": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Aggregated dataset name"
+    }, 
+    "densityUnits": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Density units"
+    }, 
+    "language": {
+        "obligation": "conditional", 
+        "type": "LanguageCode", 
+        "label": "Language"
+    }, 
+    "environment": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "country": {
+        "obligation": "optional", 
+        "type": "ISO3166", 
+        "label": "Country"
+    }, 
+    "attributeInstances": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Attribute instances"
+    }, 
+    "onlineResource": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Online resource"
+    }, 
+    "lowerRight": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "denominator": {
+        "obligation": "mandatory", 
+        "type": "Integer", 
+        "label": "Denominator"
+    }, 
+    "initiativeType": {
+        "obligation": "optional", 
+        "type": "DS_InitiativeTypeCode", 
+        "label": "Initiative type"
+    }, 
+    "constraintLanguage": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Constraint language"
+    }, 
+    "pointRep": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Point Rep"
+    }, 
+    "pos": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Position"
+    }, 
+    "distributionOrderProcess": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Distribution order process"
+    }, 
+    "errorStatistic": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Error statistic"
+    }, 
+    "otherCitationDetails": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Other citation details"
+    }, 
+    "cellGeometry": {
+        "obligation": "mandatory", 
+        "type": "MD_CellGeometryCode", 
+        "label": "Cell geometry"
+    }, 
+    "fileIdentifier": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Metadata file identifier"
+    }, 
+    "citedResponsibleParty": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Cited responsible party"
+    }, 
+    "dateType": {
+        "obligation": "mandatory", 
+        "type": "CI_DateTypeCode", 
+        "label": "Date Type"
+    }, 
+    "aName": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "a Name"
+    }, 
+    "mediumNote": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Medium note"
+    }, 
+    "maximumOccurrence": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Maximum occurrence"
+    }, 
+    "organisationName": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Organisation name"
+    }, 
+    "cameraCalibrationInformationAvailability": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Camera calibration information availability"
+    }, 
+    "classification": {
+        "obligation": "mandatory", 
+        "type": "MD_ClassificationCode", 
+        "label": "Classification"
+    }, 
+    "supplementalInformation": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Supplemental information"
+    }, 
+    "posList": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Position List"
+    }, 
+    "offset": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Offset"
+    }, 
+    "userDeterminedLimitations": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "User determined limitations"
+    }, 
+    "schemaAscii": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Schema ASCII"
+    }, 
+    "controlPointAvailability": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Control point availability"
+    }, 
+    "processingLevelCode": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Procesing level code"
+    }, 
+    "imagingCondition": {
+        "obligation": "optional", 
+        "type": "MD_ImagingConditionCode", 
+        "label": "Imaging condition"
+    }, 
+    "maintenanceAndUpdateFrequency": {
+        "obligation": "mandatory", 
+        "type": "MD_MaintenanceFrequencyCode", 
+        "label": "Maintenance and update frequency"
+    }, 
+    "quantityType": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Quantity Type"
+    }, 
+    "temporalElement": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Temporal element"
+    }, 
+    "attributes": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Attributes"
+    }, 
+    "dateStamp": {
+        "obligation": "mandatory", 
+        "type": "Date", 
+        "label": "Metadata date stamp"
+    }, 
+    "ISBN": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "ISBN"
+    }, 
+    "transferSize": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Transfer size (Mb)"
+    }, 
+    "previousEdge": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Previous Edge"
+    }, 
+    "issueIdentification": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Issue identification"
+    }, 
+    "obligation": {
+        "obligation": "conditional", 
+        "type": "MD_ObligationCode", 
+        "label": "Obligation"
+    }, 
+    "metadataConstraints": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Metadata constraints"
+    }, 
+    "endPosition": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "End position"
+    }, 
+    "city": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "City"
+    }, 
+    "associationType": {
+        "obligation": "mandatory", 
+        "type": "DS_AssociationTypeCode", 
+        "label": "Association type"
+    }, 
+    "hierarchyLevelName": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Hierarchy level name"
+    }, 
+    "start": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Start"
+    }, 
+    "maximumValue": {
+        "obligation": "mandatory", 
+        "type": "Real", 
+        "label": "Maximum value"
+    }, 
+    "collectiveTitle": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Collective Title"
+    }, 
+    "spatialRepresentationInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Spatial representation information"
+    }, 
+    "center": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "descriptiveKeywords": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Descriptive keywords"
+    }, 
+    "filmDistortionInformationAvailability": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Film distorsion information availability"
+    }, 
+    "sourceReferenceSystem": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Source reference system"
+    }, 
+    "structure": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "statement": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Statement"
+    }, 
+    "domainCode": {
+        "obligation": "conditional", 
+        "type": "Integer", 
+        "label": "Domain code"
+    }, 
+    "scope": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Scope"
+    }, 
+    "illuminationElevationAngle": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Ilumination elevation angle"
+    }, 
+    "farming": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "type": {
+        "obligation": "optional", 
+        "type": "MD_KeywordTypeCode", 
+        "label": "Type"
+    }, 
+    "abstract": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Abstract"
+    }, 
+    "userDefinedMaintenanceFrequency": {
+        "obligation": "optional", 
+        "type": "TM_PeriodDuration", 
+        "label": "User defined maintenance frequency"
+    }, 
+    "function": {
+        "obligation": "optional", 
+        "type": "CI_OnLineFunctionCode", 
+        "label": "Function"
+    }, 
+    "characterSet": {
+        "obligation": "conditional", 
+        "type": "MD_CharacterSetCode", 
+        "label": "Character set"
+    }, 
+    "transportation": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "cornerPoints": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Corner Points"
+    }, 
+    "useConstraints": {
+        "obligation": "optional", 
+        "type": "MD_RestrictionCode", 
+        "label": "Use constraints"
+    }, 
+    "dataType": {
+        "obligation": "mandatory", 
+        "type": "MD_DatatypeCode", 
+        "label": "Data type"
+    }, 
+    "extensionOnLineResource": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Extension OnLine resource"
+    }, 
+    "explanation": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Explanation"
+    }, 
+    "eastBoundLongitude": {
+        "obligation": "mandatory", 
+        "type": "Decimal", 
+        "label": "East bound longitude"
+    }, 
+    "phone": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Phone"
+    }, 
+    "remarks": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Remarks"
+    }, 
+    "nameOfMeasure": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Name of measure"
+    }, 
+    "spatialResolution": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Spatial resolution"
+    }, 
+    "intelligenceMilitary": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "hoursOfService": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Hours of service"
+    }, 
+    "fileDecompressionTechnique": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "File descompression technique"
+    }, 
+    "catalogSymbol": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Catalog Symbol"
+    }, 
+    "geometricObjectType": {
+        "obligation": "mandatory", 
+        "type": "MD_GeometricObjectTypeCode", 
+        "label": "Geometric object type"
+    }, 
+    "verticalCS": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Vertical CS"
+    }, 
+    "transformationDimensionDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Transformation dimension description"
+    }, 
+    "lensDistortionInformationAvailability": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Lens distorision information availability"
+    }, 
+    "keyword": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Keyword"
+    }, 
+    "society": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "specificUsage": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Specific usage"
+    }, 
+    "editionDate": {
+        "obligation": "optional", 
+        "type": "Date", 
+        "label": "Edition date"
+    }, 
+    "checkPointDescription": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Check Point Description"
+    }, 
+    "roughConversionToPreferredUnit": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Rough conversion to preferred unit"
+    }, 
+    "planningCadastre": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "transferOptions": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Transfer options"
+    }, 
+    "value": {
+        "obligation": "mandatory", 
+        "type": "Record", 
+        "label": "Value"
+    }, 
+    "metadataStandardName": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Metadata standard name"
+    }, 
+    "other": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Other"
+    }, 
+    "descriptor": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Descriptor"
+    }, 
+    "resourceFormat": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Resource format"
+    }, 
+    "handlingDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Handling description"
+    }, 
+    "uom": {
+        "obligation": "mandatory", 
+        "type": "attribute", 
+        "label": "Unit of Measure"
+    }, 
+    "Measure": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Measure"
+    }, 
+    "voice": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Voice"
+    }, 
+    "dataSetURI": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Dataset URI"
+    }, 
+    "georeferencedParameters": {
+        "obligation": "mandatory", 
+        "type": "Record", 
+        "label": "Georeferenced parameters"
+    }, 
+    "conversionToPreferredUnit": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Conversion to preferred unit"
+    }, 
+    "metadataStandardVersion": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Metadata standard version"
+    }, 
+    "Angle": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Angle"
+    }, 
+    "exterior": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Exterior"
+    }, 
+    "identificationInfo": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Identification Information"
+    }, 
+    "verticalElement": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Vertical element"
+    }, 
+    "valueType": {
+        "obligation": "optional", 
+        "type": "RecordType", 
+        "label": "Value type"
+    }, 
+    "citation": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Citation"
+    }, 
+    "pointProperty": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Point Property"
+    }, 
+    "codeSpace": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Code space"
+    }, 
+    "dimensionName": {
+        "obligation": "mandatory", 
+        "type": "MD_DimensionNameTypeCode", 
+        "label": "Dimension name"
+    }, 
+    "orientationParameterDescription": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Orientation parameter description"
+    }, 
+    "unitsOfDistribution": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Units of distribution"
+    }, 
+    "processStep": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Process step"
+    }, 
+    "southBoundLatitude": {
+        "obligation": "mandatory", 
+        "type": "Decimal", 
+        "label": "South bound latitude"
+    }, 
+    "lowerLeft": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "orientationParameterAvailability": {
+        "obligation": "mandatory", 
+        "type": "Boolean", 
+        "label": "Orientation parameter availability"
+    }, 
+    "contactInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Contact information"
+    }, 
+    "relatedTime": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Related Time"
+    }, 
+    "id": {
+        "obligation": "mandatory", 
+        "type": "attribute", 
+        "label": "Id"
+    }, 
+    "compressionGenerationQuantity": {
+        "obligation": "optional", 
+        "type": "Integer", 
+        "label": "Compression generation quantity"
+    }, 
+    "axis": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Axis"
+    }, 
+    "electronicMailAddress": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Electronic mail address"
+    }, 
+    "featureTypes": {
+        "obligation": "optional", 
+        "type": "LocalName", 
+        "label": "Feature types"
+    }, 
+    "mandatory": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "minimumValue": {
+        "obligation": "mandatory", 
+        "type": "Real", 
+        "label": "Minimum value"
+    }, 
+    "end": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "End"
+    }, 
+    "polygon": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Polygon"
+    }, 
+    "credit": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Credit"
+    }, 
+    "featureInstances": {
+        "obligation": "conditional", 
+        "type": "", 
+        "label": "Feature instances"
+    }, 
+    "softwareDevelopmentFile": {
+        "obligation": "optional", 
+        "type": "Binary", 
+        "label": "Software development file"
+    }, 
+    "ISSN": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "ISSN"
+    }, 
+    "applicationSchemaInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Application schema information"
+    }, 
+    "contact": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Contact"
+    }, 
+    "aggregationInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Aggregation Information"
+    }, 
+    "resourceConstraints": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Resource constraints"
+    }, 
+    "role": {
+        "obligation": "mandatory", 
+        "type": "CI_RoleCode", 
+        "label": "Role"
+    }, 
+    "postalCode": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Postal code"
+    }, 
+    "axisDirection": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Axis Direction"
+    }, 
+    "graphicOverview": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Graphic overview"
+    }, 
+    "featureCatalogueCitation": {
+        "obligation": "mandatory", 
+        "type": null, 
+        "label": "Feature catalogue citation"
+    }, 
+    "economy": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "status": {
+        "obligation": "optional", 
+        "type": "MD_ProgressCode", 
+        "label": "Status"
+    }, 
+    "Distance": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Distance"
+    }, 
+    "begin": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Begin"
+    }, 
+    "characterEncoding": {
+        "obligation": "mandatory", 
+        "type": "MD_CharacterSetCode", 
+        "label": "Character Encoding"
+    }, 
+    "description": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "Description"
+    }, 
+    "geographicElement": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Geographic element"
+    }, 
+    "softwareDevelopmentFileFormat": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Software development file format"
+    }, 
+    "topologyLevel": {
+        "obligation": "optional", 
+        "type": "MD_TopologyLevelCode", 
+        "label": "Topology level"
+    }, 
+    "referenceSystemInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Reference System information"
+    }, 
+    "peakResponse": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Peak response"
+    }, 
+    "maxValue": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Maximum value"
+    }, 
+    "unitsSystem": {
+        "obligation": "mandatory", 
+        "type": "", 
+        "label": "Units System"
+    }, 
+    "sequenceIdentifier": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Sequence identifier"
+    }, 
+    "schemaLanguage": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Schema language"
+    }, 
+    "interior": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Interior"
+    }, 
+    "distributorFormat": {
+        "obligation": "conditional", 
+        "type": null, 
+        "label": "Distributor format"
+    }, 
+    "dataQualityInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Data quality information"
+    }, 
+    "purpose": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Purpose"
+    }, 
+    "rationale": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Rationale"
+    }, 
+    "deliveryPoint": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Delivery point"
+    }, 
+    "date": {
+        "obligation": "mandatory", 
+        "type": "Date", 
+        "label": "Date"
+    }, 
+    "metadataMaintenance": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Metadata maintenance"
+    }, 
+    "individualName": {
+        "obligation": "conditional", 
+        "type": "CharacterString", 
+        "label": "Individual name"
+    }, 
+    "classificationSystem": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Classification system"
+    }, 
+    "graphicsFile": {
+        "obligation": "optional", 
+        "type": "Binary", 
+        "label": "Graphics file"
+    }, 
+    "upperLeft": {
+        "obligation": "optional", 
+        "type": "", 
+        "label": "null"
+    }, 
+    "northBoundLatitude": {
+        "obligation": "mandatory", 
+        "type": "Decimal", 
+        "label": "North bound latitude"
+    }, 
+    "parameterCitation": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Parameter citation"
+    }, 
+    "contentInfo": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Content information"
+    }, 
+    "rule": {
+        "obligation": "mandatory", 
+        "type": "CharacterString", 
+        "label": "Rule"
+    }, 
+    "processor": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Processor"
+    }, 
+    "cloudCoverPercentage": {
+        "obligation": "optional", 
+        "type": "Real", 
+        "label": "Cloud cover percentage"
+    }, 
+    "extentTypeCode": {
+        "obligation": "optional", 
+        "type": "Boolean", 
+        "label": "Extent type code"
+    }, 
+    "administrativeArea": {
+        "obligation": "optional", 
+        "type": "CharacterString", 
+        "label": "Administrative area"
+    }, 
+    "volumes": {
+        "obligation": "optional", 
+        "type": "Integer", 
+        "label": "Volumes"
+    }, 
+    "position": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Position"
+    }, 
+    "resolution": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Resolution"
+    }, 
+    "fileType": {
+        "obligation": "optional", 
+        "type": "bgFileTypeCode", 
+        "label": "File type"
+    }, 
+    "measureIdentification": {
+        "obligation": "optional", 
+        "type": null, 
+        "label": "Measure identification"
+    }
+}

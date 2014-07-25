@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--***********************************************************************
+* CatMDEdit 4.6.8-BETA - Metadata Editor
+Copyright (C) 2012, TeIDE.
+
+CatMDEdit has been developed by the The Advanced Information Systems group 
+of the University of Zaragoza and GeoSpatiumLab S.L.
+
+University of Zaragoza
+Computer Science and Systems Engineering Department
+Advanced Information Systems Laboratory (IAAA)
+http://iaaa.cps.unizar.es/
+
+GeoSpatiumLab S.L.
+http://www.geoslab.com/
+
+In case of referencing CatMDEdit tool in research reports and publications, 
+please use the bibliographic citations listed within "Related publications".
+
+ 
+Contributors
+
+The tool has been partially supported through the following projects:
+
+IDEE project (Infraestructura de Datos Espaciales Española). 
+Agreement of collaboration between the National Geographic Institute and 
+the University of Zaragoza (as representative of the TeIDE consortium) 
+for the creation of the site for the Spanish Spatial Data Infrastructure 
+and software for related activities.
+
+SDIGER project (A cross-border inter-administration Spatial Data Infrastructure 
+to support WFD information access for Adour-Garonne and Ebro River Basins). 
+A pilot project on the implementation of the Infrastructure for Spatial Information 
+in Europe (INSPIRE), funded by the Statistical Office of The European Communities 
+(Eurostat) and supervised by the Joint Research Centre (JRC).
+
+EURADIN (European Addresses Infrastructure) aims at constituting a Best Practice
+Network in order to promote the European Addresses harmonization regarding the
+definition, registration and access to the European Addresses Data. The results shall
+be used as a reference for all European Member States to fulfil the INSPIRE
+recommendations with respect to addresses. EURADIN partnership gathers 30 partners
+from 16 different European countries: Germany, Denmark, Italy, Norway, Sweden,
+Finland, Czech Republic, Portugal, Netherlands, Austria, United Kingdom, France,
+Latvia, Lithuania, Hungary and Spain.
+
+The complete list of entities that have contributed to the CatMDEdit tool is the following:
+
+CNIG (Centro Nacional de Información Geográfica)
+http://www.cnig.es/ (SDIGER)
+
+Direcção Regional de Geografia e Cadastro
+Secretaria Regional do Equipamento Social e Transportes – Região Autónoma da Madeira
+www.sres.pt (Portuguese translation)
+
+Eurostat (Statistical Office of the European Communities)
+www.europa.eu.int/comm/eurostat (SDIGER)
+
+IGN France International
+http://www.ignfi.fr (SDIGER, French translation)
+
+Institut Géographique National (IGN France)
+http://www.ign.fr/ (SDIGER)
+
+Institute of geoinformatics, VSB-TU Ostrava
+and Czech Association for Geoinformation 
+Czech Republic
+http://gis.vsb.cz/ (Czech translation)
+
+Instituto Geográfico Nacional (IGN Spain)
+http://www.ign.es/ (IDEE)
+
+Joint Research Centre
+Institute of Environment and Sustainability
+Spatial Data Infrastructures Unit
+http://sdi.jrc.it (SDIGER)
+
+Tecnologías para Infraestructuras de Datos Espaciales (TeIDE)
+http://teide.unizar.es/ (TeIDE)
+
+Universidad Jaume I de Castellón.
+Departamento de Lenguajes y Sistemas Informáticos (LSI)
+Grupo de Información Geográfica
+http://www.geoinfo.uji.es/ (Member of TeIDE)
+
+Universidad Politécnica de Madrid
+Departamento de Ingeniería Topográfica y Cartografía
+Grupo MERCATOR de Tecnologías de la Geoinformación
+http://www.mercator.es (Member of TeIDE)
+
+WOJEWÓDZKI OSRODEK DOKUMENTACJI
+GEODEZYJNEJ I KARTOGRAFICZNEJ
+W KATOWICACH
+http://www.wodgik.katowice.pl/ (Polish translation)
+
+ 
+Technical Support
+
+University of Zaragoza
+Computer Science and Systems Engineering Department
+Advanced Information Systems Laboratory (IAAA)
+María de Luna, 1   E-50018 Zaragoza. (Spain)
+Phone: (34) 976 762134 Fax: (34) 976 761914
+iaaa@unizar.es   http://iaaa.cps.unizar.es/
+
+ 
+Related publications
+
+Nogueras-Iso J, Zarazaga-Soria FJ, Muro-Medrano PR (2005). 
+Geographic Information Metadata for Spatial Data Infrastructures - 
+Resources, Interoperability and Information Retrieval. 
+Springer Verlag, ISBN: 3-540-24464-6 .
+
+Zarazaga-Soria FJ, Lacasta J, Nogueras-Iso J, Torres MP, Muro-Medrano PR (2003). 
+A Java Tool for Creating ISO/FGDC Geographic Metadata. In Geodaten- und 
+Geodienste-Infrastrukturen - von der Forschung zur praktischen Anwendung. 
+Beiträge zu den Münsteraner GI-Tagen 26./27. Juni 2003, pp 17-30. 
+IFGIprints 18, Münster, Germany.
+
+ 
+License
+
+The CatMDEdit library is free software; you can redistribute it and/or modify it 
+under the terms of the GNU Lesser General Public License as published by the 
+Free Software Foundation; either version 2.1 of the License, or (at your option) 
+any later version. 
+This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for 
+more details. 
+You should have received a copy of the GNU Lesser General Public License along 
+with this library; if not, write to the Free Software Foundation, Inc., 
+51 Franklin St, Fifth Floor, Boston, MA   02110-1301  USA
+ 
+
+Last update: 19 February 2014
+* ************************************************************************-->
+<CT_UomCatalogue xmlns="http://www.isotc211.org/2005/gmx" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmx ../../gmx/gmx.xsd http://www.isotc211.org/2005/gco ../../gco/gco.xsd http://www.opengis.net/gml ../../gml/gml.xsd http://www.w3.org/1999/xlink ../../xlink/xlinks.xsd">
+	<!--=====Catalogue description=====-->
+	<name><gco:CharacterString>gmxUom</gco:CharacterString></name>
+	<scope><gco:CharacterString>units of measure dictionary compliant with SI definitions</gco:CharacterString></scope>
+	<fieldOfApplication><gco:CharacterString>ISO/TC 211 GMX (and imported) namespace</gco:CharacterString></fieldOfApplication>
+	<versionNumber><gco:CharacterString>0.0</gco:CharacterString></versionNumber>
+	<versionDate><gco:Date>2005-03-18</gco:Date></versionDate>
+	<!--============================================================================-->
+	<!--============================================================================-->
+	<!--============================= UOM items ======================================-->
+	<!--====== METRE =====-->
+	<uomItem>
+		<gml:BaseUnit gml:id="m">
+			<gml:description>The metre is the length of the path travelled by ligth in vaccum during a time interval of 1/299 792 458 of a second</gml:description>
+			<gml:identifier codeSpace="http://www.bipm.fr/en/si/base_units">metre</gml:identifier>
+			<gml:quantityType>length</gml:quantityType>
+			<gml:catalogSymbol codeSpace="http://www.bipm.org/en/si/base_units">m</gml:catalogSymbol>
+			<gml:unitsSystem xlink:href="http://www.bipm.fr/en/si"/>
+		</gml:BaseUnit>
+	</uomItem>
+	<!--====== DEGREE =====-->
+	<uomItem>
+		<gml:ConventionalUnit gml:id="deg">
+				<gml:description>Measure of angle equal to Pi/180 radians, widely used in geography</gml:description>
+				<gml:identifier codeSpace="ISO31-1">degree</gml:identifier>
+				<gml:quantityType>angle</gml:quantityType>
+				<gml:conversionToPreferredUnit uom="#xpointer(//*[@gml:id='rad'])"><gml:factor>1.74532925199433E-02</gml:factor></gml:conversionToPreferredUnit>
+			</gml:ConventionalUnit>
+	</uomItem>
+	<!--====== RADIAN =====-->
+	<uomItem>
+		<gml:DerivedUnit gml:id="rad">
+			<gml:description>Radian is an unit of angle measure. It is defined as the ratio of arc length to the radius of the circle.</gml:description>
+			<gml:identifier codeSpace="http://www.bipm.fr/en/s/derived_unitsi">radian</gml:identifier>
+			<gml:quantityType>plane angle</gml:quantityType>
+			<gml:catalogSymbol codeSpace="http://www1.bipm.org/en/si/derived_units">rad</gml:catalogSymbol>
+			<gml:derivationUnitTerm uom="#xpointer(//*[@gml:id='m'])" exponent="1"/>
+			<gml:derivationUnitTerm uom="#xpointer(//*[@gml:id='m'])" exponent="-1"/>
+		</gml:DerivedUnit>
+	</uomItem>
+	<!--=== EOF ===-->
+</CT_UomCatalogue>

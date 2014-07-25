@@ -26,9 +26,8 @@
 from PyQt4.QtXmlPatterns import QAbstractMessageHandler
 
 class ErrorHandler(QAbstractMessageHandler):
-  def __init__(self, windowTitle):
+  def __init__(self):
     QAbstractMessageHandler.__init__(self)
-    self.windowTitle = windowTitle
     self.errorOccured = False
 
   def resetError(self):
@@ -38,8 +37,6 @@ class ErrorHandler(QAbstractMessageHandler):
     self.handleMessage(msg_type, desc, identifier, loc)
 
   def handleMessage(self, msg_type, desc, identifier, loc):
-    #QMessageBox.information(None, "Error", desc + " Ident: " + identifier.toString() + " Line: " + QString(str(loc.line())))
-    from opengeo.gui.dialogs.metatoolsviewer import MetatoolsViewer
 
     message_type = {0:'Debug', 1:'Warning', 2:'Critical', 3:'Fatal'}
 
@@ -51,8 +48,6 @@ class ErrorHandler(QAbstractMessageHandler):
     desc.replace("<body>", "<head><style>.XQuery-keyword, .XQuery-type {color: red;} infolabel {color: blue; text-weight: bold; text-size: 14px}</style></head><body>") #add styles
     desc.replace("<body>", "<infolabel>Problem type: </infolabel>%s <br/><infolabel>Problem line: </infolabel>%s <br/><infolabel>Problem description: </infolabel>" % (message_type[msg_type], loc.line())) #add info
 
-    dlg = MetatoolsViewer()
-    dlg.resize(dlg.width(), 200)
-    dlg.setHtml(desc)
-    dlg.setWindowTitle(self.windowTitle)
-    dlg.exec_()
+    print desc
+
+

@@ -27,6 +27,9 @@
 #******************************************************************************
 
 import os
+import sys
+import dateutil.parser
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtXml import *
@@ -35,206 +38,369 @@ from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import *
 from qgis.gui import *
 
-import sys
+from opengeo import config
 from opengeo.metadata.dom_model import DomModel, FilterDomModel
-from opengeo.metadata.metadata_provider import MetaInfoStandard
+from opengeo.metadata.tools import *
+from opengeo.metadata.metadata_provider import MetadataProvider
+from opengeo.metadata.standards import *
 from ui_editor import Ui_MetatoolsEditor
 
-class MetatoolsEditor(QDialog, Ui_MetatoolsEditor):
-    def __init__(self):
-        QDialog.__init__(self)
+
+class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
+    def __init__(self, parent = None):
+        QMainWindow.__init__(self)
         self.setupUi(self)
         self.setWindowFlags(Qt.Window | Qt.WindowMaximizeButtonHint)
-
         self.lblNodePath.setText("")
-
-        self.btnSave = self.buttonBox.button(QDialogButtonBox.Save)
-        self.btnClose = self.buttonBox.button(QDialogButtonBox.Close)
-
-        #contextmenu
+        self.numberValue.setValidator(QDoubleValidator(self))
         self.lblNodePath.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.lblNodePath.addAction(self.actionCopyPath)
         self.connect(self.actionCopyPath, SIGNAL("activated()"), self.slotCopyPath)
-
+        self.actionSave.triggered.connect(self.saveMetadata)
+        self.actionClose.triggered.connect(self._closeWindow)
+        self.actionImport.triggered.connect(self.importFromFile)
+        self.actionFGDC.triggered.connect(self.createFgdc)
+        self.actionISO.triggered.connect(self.createIso)
+        self.actionFillFromLayer.triggered.connect(self.autofill)
+        self.actionShowOptional.toggled.connect(self.updateDisplay)
+        self.actionShowConditional.toggled.connect(self.updateDisplay)
+        self.actionHighlightEmpty.toggled.connect(self.updateDisplay)
         self.treeFull.itemClicked.connect(self.itemSelected)
-
         self.textValue.textChanged.connect(self.valueModified)
-
-        self.buttonBox.accepted.disconnect(self.accept)
-        self.btnSave.clicked.connect(self.saveMetadata)
-
+        self.comboValue.currentIndexChanged.connect(self.valueModified)
+        self.numberValue.textChanged.connect(self.valueModified)
         self.tabWidget.currentChanged.connect(self.tabChanged)
-
-        self.filterBox.textChanged.connect(self.filterChanged)
+        self.filterBox.textChanged.connect(self.updateDisplay)
         self.buttonCollapse.clicked.connect(self.collapse)
         self.buttonExpand.clicked.connect(self.expand)
-        self.autoFillButton.clicked.connect(self.autofill)
-        self.checkHighlight.stateChanged.connect(self.highlightChanged)
+
+        self.textValue.setVisible(False)
+        self.comboValue.setVisible(True)
+        self.dateValue.setVisible(False)
+        self.numberValue.setVisible(False)
 
         self.lastValueItem = None
-
-
+        self.hasChanged = False
 
 
     def autofill(self):
-        pass
+        transform = QgsCoordinateTransform(self.layer.crs(), QgsCoordinateReferenceSystem("EPSG:4326"))
+        layerExtent = transform.transform(self.layer.extent())
 
-    def highlightChanged(self, state):
-        if state == Qt.Checked:
-            pass
+        xmin = layerExtent.xMinimum()
+        xmax = layerExtent.xMaximum()
+        ymin = layerExtent.yMinimum()
+        ymax = layerExtent.yMaximum()
+
+        self.metaProvider.setExtent(self.metaXML, (xmin, xmax, ymin, ymax))
+        #self.metaProvider.setNumFeatures(self.layer.featureCount())
+        self.updateTree
+        self.hasChanged = True
+        QMessageBox.information(self, "Autofill metadata",
+                                      "Metadata has been correctly completed using layer values.",
+                                      QMessageBox.Ok)
+
+        self.updateTree()
+
+
+    def updateDisplay(self):
+        text = self.filterBox.text().strip(' ').lower()
+        self._updateItem(self.treeFull.invisibleRootItem(), text)
+        if text:
+            self.treeFull.expandAll()
         else:
-            pass
+            self.treeFull.collapseAll()
+            self.treeFull.invisibleRootItem().child(0).setExpanded(True)
 
-    def filterChanged(self):
-        pass
+    def _updateItem(self, item, text):
+        if (item.childCount() > 0):
+            show = False
+            for i in xrange(item.childCount()):
+                child = item.child(i)
+                showChild = self._updateItem(child, text)
+                show = showChild or show
+            item.setHidden(not show)
+            return show
+        elif isinstance(item, ValueItem):
+            hide = bool(text) and (text not in item.text(0).lower())
+            showOptional = self.actionShowOptional.isChecked()
+            showConditional = self.actionShowConditional.isChecked()
+            highlightEmpty = self.actionHighlightEmpty.isChecked()
+            if item.obligation == OBLIGATION_OPTIONAL and not showOptional:
+                hide = True
+            if item.obligation == OBLIGATION_CONDITIONAL and not showConditional:
+                hide = True
+            item.highlight(highlightEmpty)
+            item.setHidden(hide)
+            return not hide
+        else:
+            item.setHidden(True)
+            return False
 
     def expand(self):
-        pass
+        self.treeFull.expandAll()
 
     def collapse(self):
-        pass
+        self.treeFull.collapseAll()
 
     def slotCopyPath(self):
-      QApplication.clipboard().setText(self.lblNodePath.text())
+        QApplication.clipboard().setText(self.lblNodePath.text())
 
+    def importFromFile(self):
+        if self.askOverwrite():
+            filename = QFileDialog.getOpenFileName(self,
+                                       "Select metadata file",
+                                       "",
+                                       'XML files (*.xml);;Text files (*.txt *.TXT);;All files (*.*)'
+                                      )
+            if filename:
+                try:
+                    self.metaProvider.importFromFile(filename)
+                    self.setContent(self.metaProvider, self.layer)
+                except Exception, e:
+                    QMessageBox.warning(self, "Import metadata", "Could not import metadata.\n" +
+                                                unicode(e), QMessageBox.Ok)
 
-    def setContent(self, metaProvider):
+    def askOverwrite(self):
+        if not self.metaProvider.checkExists():
+            return True
+        ret = QMessageBox.warning(self, "Create metadata", "The layer already has metadata.\n"
+                                        "Do you really want to overwrite the existing metadata?",
+                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        return ret == QMessageBox.Yes
+
+    def _createNew(self, std):
+        if self.askOverwrite():
+            try:
+                template = std.getTemplate(self.layer)
+                self.metaProvider.setMetadata(template)
+                self.setContent(self.metaProvider, self.layer)
+            except Exception, e:
+                QMessageBox.warning(self, "Import metadata", "Could not import metadata.\n" +
+                            unicode(e), QMessageBox.Ok)
+    def createIso(self):
+        self._createNew(IsoStandard())
+
+    def createFgdc(self):
+        self._createNew(FgdcStandard())
+
+    def setContent(self, metaProvider, layer):
+        self.actionFillFromLayer.setEnabled(False)
+        self.actionSave.setEnabled(False)
         self.metaProvider = metaProvider
+        self.layer = layer
 
-        # load main model
-        #self.file = QFile(metaFilePath)
+        if not self.metaProvider.checkExists():
+            return
+
+        self.metaProvider.validate()
+
+        self.actionFillFromLayer.setEnabled(True)
+        self.actionSave.setEnabled(True)
+
         self.metaXML = QDomDocument()
         metadata = self.metaProvider.getMetadata().encode("utf-8")
         self.metaXML.setContent(metadata)
 
+        self.updateTree()
+
+    def updateTree(self):
+        self.treeFull.clear()
         root = self.metaXML.documentElement()
         n = root.firstChild()
         while not n.isNull():
-            item = _getItemForNode(n)
+            item = self._getItemForNode(n)
             n = n.nextSibling()
             if item is not None:
                 self.treeFull.addTopLevelItem(item)
+        self.lastValueItem = None
+        self.textValue.setVisible(True)
+        self.comboValue.setVisible(False)
+        self.groupBox.setEnabled(False)
+        self.updateDisplay()
 
-        self.btnSave.setEnabled(False)
+
 
     def itemSelected(self, item, column):
+        self.textValue.blockSignals(True)
         self.applyEdits()
         self.textValue.clear()
         if isinstance(item, ValueItem):
-            self.text = item.value
-            self.textValue.setPlainText(self.text)
             self.lastValueItem = item
+            clist = codelist(item.scheme)
+            if clist is not None:
+                self.comboValue.clear()
+                self.comboValue.addItems(clist)
+                idx = self.comboValue.findText(item.value)
+                if idx != -1:
+                    self.comboValue.setCurrentIndex(idx)
+                else:
+                    pass
+                    #TODO
+                self.textValue.setVisible(False)
+                self.comboValue.setVisible(True)
+                self.dateValue.setVisible(False)
+                self.numberValue.setVisible(False)
+            elif item.scheme.endswith("Date"):
+                self.textValue.setVisible(False)
+                self.comboValue.setVisible(False)
+                self.dateValue.setVisible(True)
+                self.numberValue.setVisible(False)
+                try:
+                    date = dateutil.parser.parse(item.value)
+                    self.dateValue.setSelectedDate(date)
+                except:
+                    #TODO
+                    pass
+            elif item.scheme.endswith("Decimal"):
+                self.textValue.setVisible(False)
+                self.comboValue.setVisible(False)
+                self.dateValue.setVisible(False)
+                self.numberValue.setVisible(True)
+                self.numberValue.setText(item.value)
+            else:
+                self.textValue.setPlainText(item.value)
+                self.textValue.setVisible(True)
+                self.comboValue.setVisible(False)
+                self.dateValue.setVisible(False)
+
             self.groupBox.setEnabled(True)
         else:
             self.lastValueItem = None
+            self.textValue.setVisible(False)
+            self.comboValue.setVisible(False)
             self.groupBox.setEnabled(False)
-
-        path = getPath(item)
+        self.textValue.blockSignals(False)
+        path = getPath(item.node)
         self.lblNodePath.setText(path)
 
     def tabChanged(self, tab):
-      if tab == 1:
-          standard = MetaInfoStandard.tryDetermineStandard(self.metaProvider)
-          if standard == MetaInfoStandard.ISO19115:
-              xsltFilePath = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "metadata", "xsl", "iso19115.xsl")
-          if standard == MetaInfoStandard.FGDC:
-              xsltFilePath = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, "metadata", "xsl", "fgdc.xsl")
-          xsltFile = QFile(xsltFilePath)
-          xsltFile.open(QIODevice.ReadOnly)
-          xslt = unicode(xsltFile.readAll())
-          xsltFile.close()
+        if tab == 1:
+            html = self.metaProvider.getHtml()
+            if html:
+                #QXmlPattern not support CDATA section
+                html = html.replace('&amp;', '&')
+                html = html.replace('&gt;', '>')
+                result = html.replace('&lt;', '<')
 
-          src = self.metaProvider.getMetadata()
-
-          # translate
-          qry = QXmlQuery(QXmlQuery.XSLT20)
-
-          '''self.handler = ErrorHandler(self.tr("Translation error"))
-          qry.setMessageHandler(self.handler)'''
-
-          qry.setFocus(src)
-          qry.setQuery(xslt)
-
-          result = qry.evaluateToString()
-
-          if result:
-            #QXmlPattern not support CDATA section
-            result = result.replace('&amp;', '&')
-            result = result.replace('&gt;', '>')
-            result = result.replace('&lt;', '<')
-
-            self.webView.setHtml(result)
-
+                self.webView.setHtml(result)
 
     def valueModified(self):
-        self.btnSave.setEnabled(True)
+        self.hasChanged = True
 
     def applyEdits(self):
         if self.lastValueItem is not None:
-            value = self.textValue.toPlainText()
-            self.lastValueItem.value = value
-            node = self.lastValueItem.node
-            if not node.hasChildNodes():
-                textNode = node.ownerDocument().createTextNode(value)
-                node.appendChild(textNode)
-            else:
-                node.childNodes().at(0).setNodeValue(value)
+            value = None
+            if self.textValue.isVisible():
+                value = self.textValue.toPlainText()
+            elif self.comboValue.isVisible():
+                value = self.comboValue.currentText()
+            elif self.dateValue.isVisible():
+                value = str(self.dateValue.selectedDate)
+            elif self.numberValue.isVisible():
+                value = str(self.numberValue.text())
+            if value:
+                self.lastValueItem.value = value
+                node = self.lastValueItem.node
+                if not node.hasChildNodes():
+                    textNode = node.ownerDocument().createTextNode(value)
+                    node.appendChild(textNode)
+                else:
+                    node.childNodes().at(0).setNodeValue(value)
+                self.lastValueItem.highlight(True)
 
 
     def saveMetadata(self):
-      try:
-        self.metaProvider.setMetadata(unicode(self.metaXML.toString()))
-        # TODO: create preview image if need
-        self.btnSave.setEnabled(False)
-      except:
-        QMessageBox.warning(self,
-                            self.tr("Error saving metadata"),
-                            self.tr("Metadata can't be saved:\n") + unicode(sys.exc_info()[0])
-                           )
+        try:
+            self.metaProvider.setMetadata(unicode(self.metaXML.toString()))
+            self.hasChanged = False
+        except:
+            QMessageBox.warning(self,
+                                self.tr("Error saving metadata"),
+                                self.tr("Metadata can't be saved:\n") + unicode(sys.exc_info()[0])
+                             )
 
 
-    def accept(self):
-      #TODO check that there is no need to save
-      QDialog.accept(self)
+    def _closeWindow(self):
+        if self.hasChanged:
+            ret = QMessageBox.warning(self, "Close",
+                                      "There are unsaved values. Do you want to close without saving?",
+                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if ret == QMessageBox.Yes:
+                self.hide()
+
+    def closeEvent(self, evt):
+        if self.hasChanged:
+            ret = QMessageBox.question(self,"Close",
+                                       "There are unsaved changes. Do you want to close without saving?",
+                                       QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+            if ret == QMessageBox.Yes:
+                evt.accept()
+            else:
+                evt.ignore()
+        else:
+            evt.accept()
+
+    def _getItemForNode(self, node):
+        subnodes = node.childNodes()
+
+        if subnodes.at(0).nodeType() == QDomNode.TextNode:
+            return subnodes.at(0).toText().nodeValue(), node.nodeName()
+        elif subnodes.isEmpty():
+            clist = codelist(node.nodeName())
+            if clist is not None or node.nodeName().startswith("gco"):
+                return None, node.nodeName()
+            return ValueItem(node, node.nodeName(), None, None)
+        else:
+            item = NodeItem(node)
+            for i in xrange(subnodes.length()):
+                n = subnodes.at(i)
+                ret = self._getItemForNode(n)
+                if isinstance(ret, (NodeItem, ValueItem)):
+                    item.addChild(ret)
+                else:
+                    return ValueItem(n, node.nodeName(), ret[0], ret[1])
+            return item
+
 
 def getPath(node):
-  path = ""
-  if not node.parentNode().isNull() and node.parentNode().nodeType() != QDomNode.DocumentNode:
-    path = getPath(node.parentNode()) + " -> "
+    path = ""
+    if not node.parentNode().isNull() and node.parentNode().nodeType() != QDomNode.DocumentNode:
+        path = getPath(node.parentNode()) + " -> "
 
-  return path + node.nodeName()
+    return path + node.nodeName()
 
-def _getItemForNode(node):
-    subnodes = node.childNodes()
 
-    if subnodes.isEmpty():
-        return None
-    elif subnodes.at(0).nodeType() == QDomNode.TextNode:
-        return subnodes.at(0).toText().nodeValue()
-    else:
-        item = NodeItem(node)
-        for i in xrange(subnodes.length()):
-            n = subnodes.at(i)
-            ret = _getItemForNode(n)
-            if isinstance(ret, (NodeItem, ValueItem)):
-                item.addChild(ret)
-            else:
-                return ValueItem(n, node.nodeName(), ret)
-        return item
 
 class NodeItem(QTreeWidgetItem):
     def __init__(self, node):
         QTreeWidgetItem.__init__(self)
         self.node = node
-        self.setText(0, node.nodeName())
-        #self.setIcon(0, None)
+        self.obligation = elementObligation(node.nodeName())
+        self.setText(0, elementLabel(node.nodeName()))
+        self.setIcon(0, self.obligationIcon())
 
-class ValueItem(QTreeWidgetItem):
-    def __init__(self, node, name, value):
+
+    def obligationIcon(self):
+        return QIcon(os.path.join(os.path.dirname(__file__), os.pardir,
+                                  os.pardir, "images", "%s.gif" % self.obligation))
+
+class ValueItem(NodeItem):
+    def __init__(self, node, name, value, scheme):
         QTreeWidgetItem.__init__(self)
         self.node = node
         self.name = name
         self.value = value
-        self.setText(0, self.name)
+        self.scheme = scheme
+        self.obligation = elementObligation(name)
+        self.setText(0, elementLabel(name))
+        self.setIcon(0, self.obligationIcon())
+
+    def highlight(self, b):
+        font = self.font(0);
+        empty = self.value is None
+        font.setBold(b and empty);
+        self.setFont(0, font)
 
 

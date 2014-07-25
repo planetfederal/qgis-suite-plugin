@@ -49,7 +49,11 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QLineEdit" name="filterBox"/>
+              <widget class="QLineEdit" name="filterBox">
+               <property name="placeholderText">
+                <string>[Enter text to filter element list]</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QToolButton" name="buttonExpand">

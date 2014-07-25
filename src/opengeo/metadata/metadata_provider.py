@@ -30,6 +30,8 @@ import codecs
 from error_handler import ErrorHandler
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+import os
+from standards import tryDetermineStandard, UnknownStandard
 
 NO_PSYCOPG2 = False
 try:
@@ -39,144 +41,117 @@ except:
 
 
 class MetadataProvider:
-  tempFilePaths = []
+    tempFilePaths = []
 
-  def __del__(self):
-    for tempFilePath in self.tempFilePaths:
-      if path.exists(tempFilePath):
-        try:
-          remove(tempFilePath)
-        except:
-          pass
+    def __del__(self):
+      for tempFilePath in self.tempFilePaths:
+        if path.exists(tempFilePath):
+          try:
+            remove(tempFilePath)
+          except:
+            pass
 
-  def checkExists(self):
-    raise Exception()
+    def validate(self):
+        return
+        md = self.getMetadata().encode("utf-8")
+        standard = tryDetermineStandard(md)
+        if isinstance(standard, UnknownStandard):
+            raise Exception("Unsupported metadata standard")
+        standard.validate(md)
 
-  # always return unicode string!
-  def getMetadata(self):
-    raise Exception()
+    def checkExists(self):
+        raise Exception()
 
-  # metadata - unicode string!
-  def setMetadata(self, metadata):
-    raise Exception()
+    # always return unicode string!
+    def getMetadata(self):
+        raise Exception()
+
+    # metadata - unicode string!
+    def setMetadata(self, metadata):
+        raise Exception()
 
 
-  def exportToFile(self, outputFilePath):
-    metaFile = codecs.open(outputFilePath, "w", encoding="utf-8")
-    metaFile.write(self.getMetadata())
-    metaFile.close()
+    def exportToFile(self, outputFilePath):
+        metaFile = codecs.open(outputFilePath, "w", encoding="utf-8")
+        metaFile.write(self.getMetadata())
+        metaFile.close()
 
-  def importFromFile(self, inputFilePath):
-    #read metadata from file
-    metaFile = codecs.open(inputFilePath, "r", encoding="utf-8")
-    content = metaFile.read()
-    metaFile.close()
+    def setExtent(self, dom, bbox):
+        md = self.getMetadata()
+        standard = tryDetermineStandard(md)
+        md = standard.setExtent(dom, bbox)
 
-    # check metadata standard
-    standard = MetaInfoStandard.tryDetermineStandard(content)
-    if standard == MetaInfoStandard.UNKNOWN:
-        raise Exception("Unsupported metadata standard. Only ISO19115 and FGDC are supported")
-    if standard == MetaInfoStandard.FGDC:
-        from PyQt4.QtXmlPatterns import QXmlSchema, QXmlSchemaValidator
-        # setup xml schema
-        schema = QXmlSchema()
+    def getHtml(self):
+        md = self.getMetadata().encode("utf-8")
+        standard = tryDetermineStandard(md)
+        return standard.getHtml(md)
 
-        # setup handler
-        self.handler = ErrorHandler("Metadata is invalid")
-        schema.setMessageHandler(self.handler)
 
-        # load schema from file
-        xsdFilePath = self.pluginPath + '/xsd/fgdc/fgdc-std-001-1998.xsd'
-        #if standard != MetaInfoStandard.FGDC:
-        #    xsdFilePath = 'c:/xsd/gml/basicTypes.xsd' #   gmd/gmd.xsd'
-        schemaUrl = QUrl(xsdFilePath)
-        loadResult = schema.load(schemaUrl)
-        if not loadResult or self.handler.errorOccured:
-            raise Exception("Could not load schema for validation")
+    def importFromFile(self, inputFilePath):
+        #read metadata from file
+        metaFile = codecs.open(inputFilePath, "r", encoding="utf-8")
+        content = metaFile.read()
+        metaFile.close()
 
-        #setup validator
-        validator = QXmlSchemaValidator(schema)
-        validator.setMessageHandler(self.handler)
+        standard = tryDetermineStandard(content)
+        if isinstance(standard, UnknownStandard):
+            raise Exception("Unsupported metadata standard")
+        standard.validate(content)
 
-        #validate
-        metadata = self.metaProvider.getMetadata().encode('utf-8')
-        if not validator.validate(metadata):
-            raise Exception("Metadata did not validate")
-    else:
-        pass
-        #TODO: validate ISO
+        self.setMetadata(content)
 
-    #save to provider
-    self.setMetadata(content)
+    @staticmethod
+    def isLayerSupported(layer):
+      # Null layers are not supported :)
+      if layer is None:
+        return (False, "Null layers are not supported :)")
 
-  @staticmethod
-  def isLayerSupported(layer):
-    # Null layers are not supported :)
-    if layer is None:
-      return (False, "Null layers are not supported :)")
+      if layer.type() != QgsMapLayer.VectorLayer and layer.type() != QgsMapLayer.RasterLayer:
+        return (False, "Only vector and raster layers are supported")
 
-    # Only vector and raster layers are supported now
-    if layer.type() != QgsMapLayer.VectorLayer and layer.type() != QgsMapLayer.RasterLayer:
-      return (False, "Only vector and raster layers are supported")
+      if layer.type() == QgsMapLayer.VectorLayer and layer.providerType() == "postgres":
+          if NO_PSYCOPG2:
+            return (False, "psycopg2 libraries are not installed")
+          if not PostgresMetadataProvider.checkExtension(layer.source()):
+            if not PostgresMetadataProvider.installExtension(layer.source()):
+              return (False, "MetadataPostgis extension is not installed for this DB or connection has failed.")
 
-    # Check raster layers
-    if layer.type() == QgsMapLayer.RasterLayer:
-      # Only gdal-based raster are supported now!
-      if layer.providerType() != "gdal":
-        return (False, "Only gdal-based raster are supported")
-      # Only file based rasters are supported now
-      if not path.exists(unicode(layer.source())):
-        return (False, "Only file based rasters are supported")
+      if not os.path.exists(layer.source()):
+          return (False, "Only file based layers are supported")
 
-    #Check vector layers
-    if layer.type() == QgsMapLayer.VectorLayer:
-      if layer.providerType() not in ["ogr", "postgres"]:
-        return (False, "Only ogr and postgres vector layers are supported now")
-      if layer.providerType() == "ogr":
-        if layer.storageType() != "ESRI Shapefile":
-          return (False, "Only 'ESRI Shapefile' ogr provider is supported now!")
-      if layer.providerType() == "postgres":
-        if NO_PSYCOPG2:
-          return (False, "psycopg2 libraries are not installed")
-        if not PostgresMetadataProvider.checkExtension(layer.source()):
-          if not PostgresMetadataProvider.installExtension(layer.source()):
-            return (False, "MetadataPostgis extension are not installed for this DB or connection has failed.")
+      return (True, "Layer is supported")
 
-    # layer is supported
-    return (True, "Layer is supported")
+    @staticmethod
+    def getProvider(layer):
+        ok, msg = MetadataProvider.isLayerSupported(layer)
+        if not ok:
+            raise Exception(msg)
 
-  @staticmethod
-  def getProvider(layer):
-      ok, msg = MetadataProvider.isLayerSupported(layer)
-      if not ok:
-          raise Exception(msg)
+      # only file based rasters
+        if layer.type() == QgsMapLayer.RasterLayer:
+            return FileMetadataProvider(layer)
 
-    # only file based rasters
-      if layer.type() == QgsMapLayer.RasterLayer:
-          return FileMetadataProvider(layer)
+      # vectors
+        if layer.providerType() == "ogr":
+            return FileMetadataProvider(layer)
 
-    # vectors
-      if layer.providerType() == "ogr":
-          return FileMetadataProvider(layer)
+        if layer.providerType() == "postgres":
+            return PostgresMetadataProvider(layer)
 
-      if layer.providerType() == "postgres":
-          return PostgresMetadataProvider(layer)
-
-      return None
+        return None
 
 # Metadata provider based on files
 class FileMetadataProvider(MetadataProvider):
   META_EXT = '.xml'
 
   def __init__(self, layer):
-    if type(layer) == type(unicode()):
+    if isinstance(layer, basestring):
       self.layerFilePath = layer
     else:
       self.layerFilePath = unicode(layer.source())
     self.metaFilePath = self.layerFilePath + self.META_EXT
 
   def checkExists(self):
-    # TODO: Add content check on empty
     return path.exists(self.metaFilePath)
 
   def getMetadata(self):
@@ -262,21 +237,4 @@ class PostgresMetadataProvider(RemoteDbMetadataProvider):
       print "Exception executing sql: ", e
       return False
 
-class MetaInfoStandard:
-  UNKNOWN, ISO19115, FGDC, DC = range(4)
 
-  @staticmethod
-  def tryDetermineStandard(metadata):
-    if isinstance(metadata, MetadataProvider):
-        metadata = metadata.getMetadata()
-
-    # simple test for iso doc
-    if metadata.find("MD_Metadata") >= 0 or metadata.find("MI_Metadata") >= 0:
-        return MetaInfoStandard.ISO19115
-
-    # simple test for fgdc doc
-    if metadata.find("idinfo") >= 0 and metadata.find("metainfo") >= 0:
-        return MetaInfoStandard.FGDC
-
-    # only iso and fgdc support now
-    return MetaInfoStandard.UNKNOWN

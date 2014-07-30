@@ -262,6 +262,8 @@ QGIS project
 
 	- :guilabel:`Create store from layer`. Like the command above, but it does not publish or use the styling. 
 
+	- :guilabel:`Edit/view layer metadata`. Open the metadata editor/viewer. More information about the metadata interface is provided in the :ref:`metadata` section.
+
 
 - QGIS group item
 

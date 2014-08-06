@@ -96,7 +96,7 @@ class MetadataProvider:
         standard = tryDetermineStandard(content)
         if isinstance(standard, UnknownStandard):
             raise Exception("Unsupported metadata standard")
-        standard.validate(content)
+        #standard.validate(content)
 
         self.setMetadata(content)
 

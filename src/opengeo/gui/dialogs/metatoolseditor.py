@@ -59,8 +59,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         self.actionSave.triggered.connect(self.saveMetadata)
         self.actionClose.triggered.connect(self._closeWindow)
         self.actionImport.triggered.connect(self.importFromFile)
-        self.actionFGDC.triggered.connect(self.createFgdc)
-        self.actionISO.triggered.connect(self.createIso)
+        self.actionNew.triggered.connect(self.createIso)
         self.actionFillFromLayer.triggered.connect(self.autofill)
         self.actionShowOptional.toggled.connect(self.updateDisplay)
         self.actionShowConditional.toggled.connect(self.updateDisplay)
@@ -181,9 +180,6 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
     def createIso(self):
         self._createNew(IsoStandard())
 
-    def createFgdc(self):
-        self._createNew(FgdcStandard())
-
     def setContent(self, metaProvider, layer):
         self.actionFillFromLayer.setEnabled(False)
         self.actionSave.setEnabled(False)
@@ -215,12 +211,9 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         root = self.metaXML.documentElement()
         n = root.firstChild()
         while not n.isNull():
-            print n.nodeName()
             item = self._getItemForNode(n)
             n = n.nextSibling()
             if item is not None:
-                print item
-                print item.text(0)
                 self.treeFull.addTopLevelItem(item)
         self.lastValueItem = None
         self.labelWarning.setVisible(False)
@@ -231,56 +224,55 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         self.groupBox.setEnabled(False)
         self.updateDisplay()
 
-
-
     def itemSelected(self, item, column):
         self.textValue.blockSignals(True)
         self.applyEdits()
         self.labelWarning.setVisible(False)
+        self.textValue.setVisible(False)
+        self.numberValue.setVisible(False)
+        self.dateValue.setVisible(False)
+        self.comboValue.setVisible(False)
         if isinstance(item, ValueItem):
             self.lastValueItem = item
             clist = codelist(item.scheme)
             if clist is not None:
                 self.comboValue.clear()
                 self.comboValue.addItems(clist)
+                self.comboValue.setCurrentIndex(0)
                 idx = self.comboValue.findText(item.value)
                 if idx != -1:
                     self.comboValue.setCurrentIndex(idx)
-                else:
+                elif item.value is not None:
                     self.labelWarning.setText("The existing value is not a correct option: " + item.value)
                     self.labelWarning.setVisible(True)
-                self.textValue.setVisible(False)
                 self.comboValue.setVisible(True)
-                self.dateValue.setVisible(False)
-                self.numberValue.setVisible(False)
             elif item.scheme.endswith("Date"):
-                self.textValue.setVisible(False)
-                self.comboValue.setVisible(False)
                 self.dateValue.setVisible(True)
-                self.numberValue.setVisible(False)
                 try:
                     date = dateutil.parser.parse(item.value)
                     self.dateValue.setSelectedDate(date)
                 except:
-                    self.labelWarning.setText("The existing value is not a correct date: " + item.value)
-                    self.labelWarning.setVisible(True)
+                    if item.value is not None:
+                        self.labelWarning.setText("The existing value is not a correct date: " + item.value)
+                        self.labelWarning.setVisible(True)
             elif item.scheme.endswith("Decimal"):
-                self.textValue.setVisible(False)
-                self.comboValue.setVisible(False)
-                self.dateValue.setVisible(False)
                 self.numberValue.setVisible(True)
-                self.numberValue.setText(item.value)
+                if item.value is not None:
+                    self.numberValue.setText(item.value)
+                else:
+                    self.numberValue.setText("")
             else:
-                self.textValue.setPlainText(item.value)
+                if item.value is not None:
+                    self.textValue.setPlainText(item.value)
+                else:
+                    self.textValue.setPlainText("")
                 self.textValue.setVisible(True)
-                self.comboValue.setVisible(False)
-                self.dateValue.setVisible(False)
+
 
             self.groupBox.setEnabled(True)
         else:
             self.lastValueItem = None
-            self.textValue.setVisible(False)
-            self.comboValue.setVisible(False)
+
             self.groupBox.setEnabled(False)
         self.textValue.blockSignals(False)
         path = getPath(item.node)
@@ -372,7 +364,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                     item.addChild(ret)
                 else:
                     child = ValueItem(n, node.nodeName(), ret[0], ret[1])
-                    if subnodes.length == 1:
+                    if subnodes.length() == 1:
                         return child
                     else:
                         item.addChild(child)

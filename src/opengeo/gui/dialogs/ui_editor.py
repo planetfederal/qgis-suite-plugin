@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_metadata.ui'
 #
-# Created: Wed Jul 30 13:58:11 2014
+# Created: Thu Jul 31 17:57:42 2014
 #      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -130,8 +130,6 @@ class Ui_MetatoolsEditor(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
-        self.menuNew = QtGui.QMenu(self.menuFile)
-        self.menuNew.setObjectName(_fromUtf8("menuNew"))
         self.menuTools = QtGui.QMenu(self.menubar)
         self.menuTools.setObjectName(_fromUtf8("menuTools"))
         self.menuView = QtGui.QMenu(self.menubar)
@@ -169,9 +167,9 @@ class Ui_MetatoolsEditor(object):
         self.actionCopyPath.setObjectName(_fromUtf8("actionCopyPath"))
         self.actionImport = QtGui.QAction(MetatoolsEditor)
         self.actionImport.setObjectName(_fromUtf8("actionImport"))
-        self.menuNew.addAction(self.actionFGDC)
-        self.menuNew.addAction(self.actionISO)
-        self.menuFile.addAction(self.menuNew.menuAction())
+        self.actionNew = QtGui.QAction(MetatoolsEditor)
+        self.actionNew.setObjectName(_fromUtf8("actionNew"))
+        self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionImport)
         self.menuFile.addSeparator()
@@ -199,7 +197,6 @@ class Ui_MetatoolsEditor(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MetatoolsEditor", "Edit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MetatoolsEditor", "HTML View", None))
         self.menuFile.setTitle(_translate("MetatoolsEditor", "File", None))
-        self.menuNew.setTitle(_translate("MetatoolsEditor", "New", None))
         self.menuTools.setTitle(_translate("MetatoolsEditor", "Tools", None))
         self.menuView.setTitle(_translate("MetatoolsEditor", "View", None))
         self.actionFGDC.setText(_translate("MetatoolsEditor", "FGDC", None))
@@ -213,6 +210,7 @@ class Ui_MetatoolsEditor(object):
         self.actionCopyPath.setText(_translate("MetatoolsEditor", "Copy path", None))
         self.actionCopyPath.setToolTip(_translate("MetatoolsEditor", "Copy node path to clipboard", None))
         self.actionImport.setText(_translate("MetatoolsEditor", "Import...", None))
+        self.actionNew.setText(_translate("MetatoolsEditor", "New from template", None))
 
 from PyQt4 import QtWebKit
 import resources_rc

@@ -9,9 +9,15 @@ from error_handler import ErrorHandler
 
 class Standard(object):
 
-    def _setNodeValue(self, node, value):
+    def _setNodeValue(self, dom, nodeName, value):
+        node = dom.elementsByTagName(nodeName).at(0)
+        print node
         if node is None:
-            return
+            node = dom.elementsByTagName(nodeName.split(":")[1]).at(0)
+            print node
+            if node is None:
+                print "return"
+                return
         if not node.hasChildNodes():
             textNode = node.ownerDocument().createTextNode(value)
             node.appendChild(textNode)
@@ -19,14 +25,10 @@ class Standard(object):
             node.childNodes().at(0).setNodeValue(value)
 
     def setExtent(self, dom, bbox):
-        node = dom.elementsByTagName(self.xminNode).at(0)
-        self._setNodeValue(node, str(bbox[0]))
-        node = dom.elementsByTagName(self.xmaxNode).at(0)
-        self._setNodeValue(node, str(bbox[1]))
-        node = dom.elementsByTagName(self.yminNode).at(0)
-        self._setNodeValue(node, str(bbox[2]))
-        node = dom.elementsByTagName(self.ymaxNode).at(0)
-        self._setNodeValue(node, str(bbox[3]))
+        self._setNodeValue(dom, self.xminNode, str(bbox[0]))
+        self._setNodeValue(dom, self.xmaxNode, str(bbox[1]))
+        self._setNodeValue(dom, self.yminNode, str(bbox[2]))
+        self._setNodeValue(dom, self.ymaxNode, str(bbox[3]))
 
     def getHtml(self, md):
         xsltFile = QFile(self.xsltFilePath)
@@ -77,9 +79,12 @@ class IsoStandard(Standard):
     xmaxNode = "gmd:eastBoundLongitude"
     xminNode = "gmd:westBoundLongitude"
 
-    def _setNodeValue(self, node, value):
-        if node is None:
-            return
+    def _setNodeValue(self, dom, nodeName, value):
+        node = dom.elementsByTagName(nodeName).at(0)
+        if node.isNull():
+            node = dom.elementsByTagName(nodeName.split(":")[1]).at(0)
+            if node.isNull():
+                return
         node = node.firstChild()
         if not node.hasChildNodes():
             textNode = node.ownerDocument().createTextNode(value)

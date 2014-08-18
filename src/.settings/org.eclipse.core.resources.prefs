@@ -9,7 +9,6 @@ encoding//opengeo/gui/dialogs/ui_editor.py=utf-8
 encoding//opengeo/gui/extentpanel.py=utf-8
 encoding//opengeo/gui/rectangletool.py=utf-8
 encoding//opengeo/metadata/dom_model.py=utf-8
-encoding//opengeo/metadata/error_handler.py=utf-8
 encoding//opengeo/metadata/metadata_provider.py=utf-8
 encoding//opengeo/plugin.py=utf-8
 encoding//opengeo/postgis/postgis_utils.py=utf-8

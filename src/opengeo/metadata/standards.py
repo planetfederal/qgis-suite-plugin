@@ -5,8 +5,7 @@ from lxml import etree
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtXml import *
-from PyQt4.QtXmlPatterns import QXmlQuery, QXmlSchema, QXmlSchemaValidator
-from error_handler import ErrorHandler
+from PyQt4.QtXmlPatterns import QXmlQuery
 
 class Standard(object):
 
@@ -39,8 +38,8 @@ class Standard(object):
 
         qry = QXmlQuery(QXmlQuery.XSLT20)
 
-        self.handler = ErrorHandler()
-        qry.setMessageHandler(self.handler)
+        '''self.handler = ErrorHandler()
+        qry.setMessageHandler(self.handler)'''
 
         qry.setFocus(md)
         qry.setQuery(xslt)
@@ -48,19 +47,6 @@ class Standard(object):
         return qry.evaluateToString()
 
     def validate(self, md):
-        '''schema = QXmlSchema()
-        schemaUrl = QUrl(self.xsdFilePath)
-
-        schema.load(schemaUrl)
-        if not schema.isValid():
-            raise Exception("Could not load schema for validation")
-
-        validator = QXmlSchemaValidator(schema)
-        handler = ErrorHandler()
-        validator.setMessageHandler(handler)
-
-        if not validator.validate(md):
-            raise Exception("Metadata did not validate")'''
 
         path, filename = os.path.split(self.xsdFilePath)
         os.chdir(path)

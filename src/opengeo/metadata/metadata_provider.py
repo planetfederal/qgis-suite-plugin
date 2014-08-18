@@ -27,7 +27,6 @@
 from qgis.core import *
 from os import path, remove
 import codecs
-from error_handler import ErrorHandler
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import os
@@ -35,9 +34,9 @@ from standards import tryDetermineStandard, UnknownStandard
 
 NO_PSYCOPG2 = False
 try:
-  import psycopg2
+    import psycopg2
 except:
-  NO_PSYCOPG2 = True
+    NO_PSYCOPG2 = True
 
 
 class MetadataProvider:

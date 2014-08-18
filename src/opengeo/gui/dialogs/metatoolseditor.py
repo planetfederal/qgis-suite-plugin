@@ -44,6 +44,7 @@ from opengeo.metadata.tools import *
 from opengeo.metadata.metadata_provider import MetadataProvider
 from opengeo.metadata.standards import *
 from ui_editor import Ui_MetatoolsEditor
+from opengeo.gui.dialogs.validationerrordialog import ValidationErrorDialog
 
 
 class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
@@ -105,12 +106,13 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
     def validate(self):
         if not self.metaProvider.checkExists():
             QMessageBox.information(self, "Validation", "No metadata to validate")
+            return
         try:
             self.metaProvider.validate()
             QMessageBox.information(self, "Validation", "Metadata correctly validated")
         except Exception, e:
-            print e
-            QMessageBox.warning(self, "Validation", "Metadata does not validate")
+            dlg = ValidationErrorDialog(e.args[0], self)
+            dlg.exec_()
 
     def updateDisplay(self):
         text = self.filterBox.text().strip(' ').lower()

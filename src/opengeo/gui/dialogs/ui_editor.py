@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_metadata.ui'
 #
-# Created: Wed Jul 30 12:13:52 2014
+# Created: Wed Jul 30 13:58:11 2014
 #      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -90,6 +90,15 @@ class Ui_MetatoolsEditor(object):
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.widgetValue)
         self.verticalLayout_3.setMargin(0)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
+        self.labelWarning = QtGui.QLabel(self.widgetValue)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.labelWarning.sizePolicy().hasHeightForWidth())
+        self.labelWarning.setSizePolicy(sizePolicy)
+        self.labelWarning.setStyleSheet(_fromUtf8("color: rgb(255, 0, 0);"))
+        self.labelWarning.setObjectName(_fromUtf8("labelWarning"))
+        self.verticalLayout_3.addWidget(self.labelWarning)
         self.textValue = QtGui.QPlainTextEdit(self.widgetValue)
         self.textValue.setObjectName(_fromUtf8("textValue"))
         self.verticalLayout_3.addWidget(self.textValue)
@@ -186,6 +195,7 @@ class Ui_MetatoolsEditor(object):
         self.buttonCollapse.setText(_translate("MetatoolsEditor", "...", None))
         self.groupBox.setTitle(_translate("MetatoolsEditor", "Edit value", None))
         self.lblNodePath.setText(_translate("MetatoolsEditor", "TextLabel", None))
+        self.labelWarning.setText(_translate("MetatoolsEditor", "Warning", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MetatoolsEditor", "Edit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MetatoolsEditor", "HTML View", None))
         self.menuFile.setTitle(_translate("MetatoolsEditor", "File", None))

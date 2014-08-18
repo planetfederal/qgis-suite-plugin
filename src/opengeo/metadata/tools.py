@@ -41,6 +41,8 @@ def elements():
     return _elements
 
 def codelist(scheme):
+    if scheme is None:
+        return None
     scheme = scheme.split(":")[-1]
     global _schemes
     if not _schemes is None:

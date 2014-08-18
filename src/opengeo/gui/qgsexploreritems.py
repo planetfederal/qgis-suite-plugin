@@ -134,7 +134,7 @@ class QgsLayerItem(QgsTreeItem):
         try:
             md = MetadataProvider.getProvider(self.element)
         except Exception, e:
-            explorer.setWarning(e.args[0])
+            explorer.setWarning(unicode(e.args[0]))
             return
 
         self.dlg = MetatoolsEditor(config.iface.mainWindow())
@@ -142,7 +142,7 @@ class QgsLayerItem(QgsTreeItem):
             self.dlg.setContent(md, self.element)
             self.dlg.show()
         except Exception, e:
-            explorer.setWarning("Cannot open layer metadata: " + e.args[0])
+            explorer.setWarning("Cannot open layer metadata: " + unicode(e.args[0]))
 
 
 

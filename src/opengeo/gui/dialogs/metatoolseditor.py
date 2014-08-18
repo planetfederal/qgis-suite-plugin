@@ -190,6 +190,12 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         self.metaProvider = metaProvider
         self.layer = layer
 
+        self.textValue.setVisible(False)
+        self.numberValue.setVisible(False)
+        self.comboValue.setVisible(False)
+        self.dateValue.setVisible(False)
+        self.labelWarning.setVisible(False)
+
         if not self.metaProvider.checkExists():
             return
 
@@ -209,13 +215,19 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         root = self.metaXML.documentElement()
         n = root.firstChild()
         while not n.isNull():
+            print n.nodeName()
             item = self._getItemForNode(n)
             n = n.nextSibling()
             if item is not None:
+                print item
+                print item.text(0)
                 self.treeFull.addTopLevelItem(item)
         self.lastValueItem = None
-        self.textValue.setVisible(True)
+        self.labelWarning.setVisible(False)
+        self.textValue.setVisible(False)
+        self.numberValue.setVisible(False)
         self.comboValue.setVisible(False)
+        self.dateValue.setVisible(False)
         self.groupBox.setEnabled(False)
         self.updateDisplay()
 
@@ -224,7 +236,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
     def itemSelected(self, item, column):
         self.textValue.blockSignals(True)
         self.applyEdits()
-        self.textValue.clear()
+        self.labelWarning.setVisible(False)
         if isinstance(item, ValueItem):
             self.lastValueItem = item
             clist = codelist(item.scheme)
@@ -235,8 +247,8 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                 if idx != -1:
                     self.comboValue.setCurrentIndex(idx)
                 else:
-                    pass
-                    #TODO
+                    self.labelWarning.setText("The existing value is not a correct option: " + item.value)
+                    self.labelWarning.setVisible(True)
                 self.textValue.setVisible(False)
                 self.comboValue.setVisible(True)
                 self.dateValue.setVisible(False)
@@ -250,8 +262,8 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                     date = dateutil.parser.parse(item.value)
                     self.dateValue.setSelectedDate(date)
                 except:
-                    #TODO
-                    pass
+                    self.labelWarning.setText("The existing value is not a correct date: " + item.value)
+                    self.labelWarning.setVisible(True)
             elif item.scheme.endswith("Decimal"):
                 self.textValue.setVisible(False)
                 self.comboValue.setVisible(False)
@@ -278,7 +290,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         if tab == 1:
             html = self.metaProvider.getHtml()
             if html:
-                #QXmlPattern not support CDATA section
+                #QXmlPattern does not support CDATA section
                 html = html.replace('&amp;', '&')
                 html = html.replace('&gt;', '>')
                 result = html.replace('&lt;', '<')
@@ -296,7 +308,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
             elif self.comboValue.isVisible():
                 value = self.comboValue.currentText()
             elif self.dateValue.isVisible():
-                value = str(self.dateValue.selectedDate)
+                value = str(self.dateValue.selectedDate())
             elif self.numberValue.isVisible():
                 value = str(self.numberValue.text())
             if value:
@@ -344,14 +356,13 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
 
     def _getItemForNode(self, node):
         subnodes = node.childNodes()
-
         if subnodes.at(0).nodeType() == QDomNode.TextNode:
             return subnodes.at(0).toText().nodeValue(), node.nodeName()
         elif subnodes.isEmpty():
             clist = codelist(node.nodeName())
             if clist is not None or node.nodeName().startswith("gco"):
                 return None, node.nodeName()
-            return ValueItem(node, node.nodeName(), None, None)
+            return ValueItem(node, node.nodeName(), None, node.nodeName())
         else:
             item = NodeItem(node)
             for i in xrange(subnodes.length()):
@@ -360,7 +371,11 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                 if isinstance(ret, (NodeItem, ValueItem)):
                     item.addChild(ret)
                 else:
-                    return ValueItem(n, node.nodeName(), ret[0], ret[1])
+                    child = ValueItem(n, node.nodeName(), ret[0], ret[1])
+                    if subnodes.length == 1:
+                        return child
+                    else:
+                        item.addChild(child)
             return item
 
 

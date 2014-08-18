@@ -27,7 +27,7 @@ In most cases, the value can be entered as a string in a text box.
 
 For certain data types, the correctness of the existing value (if it exists) is checked, and a warning message is displayed in case it is not correct, such as, for instance, a code value not included in the list of valid options or a date in a format that is not compliant with ISO-8601.
 
-.. image:: img/metadata/medatada_date_error.png
+.. image:: img/metadata/metadata_date_error.png
 	:align: center
 
 .. image:: img/metadata/metadata_option_error.png

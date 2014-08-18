@@ -57,6 +57,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         self.lblNodePath.addAction(self.actionCopyPath)
         self.connect(self.actionCopyPath, SIGNAL("activated()"), self.slotCopyPath)
         self.actionSave.triggered.connect(self.saveMetadata)
+        self.actionValidate.triggered.connect(self.validate)
         self.actionClose.triggered.connect(self._closeWindow)
         self.actionImport.triggered.connect(self.importFromFile)
         self.actionNew.triggered.connect(self.createIso)
@@ -93,7 +94,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
 
         self.metaProvider.setExtent(self.metaXML, (xmin, xmax, ymin, ymax))
         #self.metaProvider.setNumFeatures(self.layer.featureCount())
-        self.updateTree
+        self.updateTree()
         self.hasChanged = True
         QMessageBox.information(self, "Autofill metadata",
                                       "Metadata has been correctly completed using layer values.",
@@ -101,6 +102,15 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
 
         self.updateTree()
 
+    def validate(self):
+        if not self.metaProvider.checkExists():
+            QMessageBox.information(self, "Validation", "No metadata to validate")
+        try:
+            self.metaProvider.validate()
+            QMessageBox.information(self, "Validation", "Metadata correctly validated")
+        except Exception, e:
+            print e
+            QMessageBox.warning(self, "Validation", "Metadata does not validate")
 
     def updateDisplay(self):
         text = self.filterBox.text().strip(' ').lower()
@@ -195,7 +205,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         if not self.metaProvider.checkExists():
             return
 
-        self.metaProvider.validate()
+        #self.metaProvider.validate()
 
         self.actionFillFromLayer.setEnabled(True)
         self.actionSave.setEnabled(True)

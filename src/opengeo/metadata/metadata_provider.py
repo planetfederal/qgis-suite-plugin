@@ -44,15 +44,14 @@ class MetadataProvider:
     tempFilePaths = []
 
     def __del__(self):
-      for tempFilePath in self.tempFilePaths:
-        if path.exists(tempFilePath):
-          try:
-            remove(tempFilePath)
-          except:
-            pass
+        for tempFilePath in self.tempFilePaths:
+            if path.exists(tempFilePath):
+                try:
+                    remove(tempFilePath)
+                except:
+                    pass
 
     def validate(self):
-        return
         md = self.getMetadata().encode("utf-8")
         standard = tryDetermineStandard(md)
         if isinstance(standard, UnknownStandard):

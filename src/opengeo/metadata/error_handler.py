@@ -26,28 +26,27 @@
 from PyQt4.QtXmlPatterns import QAbstractMessageHandler
 
 class ErrorHandler(QAbstractMessageHandler):
-  def __init__(self):
-    QAbstractMessageHandler.__init__(self)
-    self.errorOccured = False
+    def __init__(self):
+        QAbstractMessageHandler.__init__(self)
+        self.errorOccured = False
 
-  def resetError(self):
-    self.errorOccured = False
+    def resetError(self):
+        self.errorOccured = False
 
-  def message(self, msg_type, desc, identifier, loc):
-    self.handleMessage(msg_type, desc, identifier, loc)
+    def message(self, msg_type, desc, identifier, loc):
+        self.handleMessage(msg_type, desc, identifier, loc)
 
-  def handleMessage(self, msg_type, desc, identifier, loc):
+    def handleMessage(self, msg_type, desc, identifier, loc):
+        message_type = {0:'Debug', 1:'Warning', 2:'Critical', 3:'Fatal'}
 
-    message_type = {0:'Debug', 1:'Warning', 2:'Critical', 3:'Fatal'}
+        if msg_type > 1:
+            self.errorOccured = True
 
-    if msg_type > 1:
-        self.errorOccured = True
+        desc.replace('<p>', '')
+        desc.replace('</p>', '')
+        desc.replace("<body>", "<head><style>.XQuery-keyword, .XQuery-type {color: red;} infolabel {color: blue; text-weight: bold; text-size: 14px}</style></head><body>") #add styles
+        desc.replace("<body>", "<infolabel>Problem type: </infolabel>%s <br/><infolabel>Problem line: </infolabel>%s <br/><infolabel>Problem description: </infolabel>" % (message_type[msg_type], loc.line())) #add info
 
-    desc.replace('<p>', '')
-    desc.replace('</p>', '')
-    desc.replace("<body>", "<head><style>.XQuery-keyword, .XQuery-type {color: red;} infolabel {color: blue; text-weight: bold; text-size: 14px}</style></head><body>") #add styles
-    desc.replace("<body>", "<infolabel>Problem type: </infolabel>%s <br/><infolabel>Problem line: </infolabel>%s <br/><infolabel>Problem description: </infolabel>" % (message_type[msg_type], loc.line())) #add info
-
-    print desc
+        print desc
 
 

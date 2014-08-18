@@ -1,6 +1,7 @@
 import os
 from qgis.core import *
 import codecs
+from lxml import etree
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtXml import *
@@ -47,7 +48,7 @@ class Standard(object):
         return qry.evaluateToString()
 
     def validate(self, md):
-        schema = QXmlSchema()
+        '''schema = QXmlSchema()
         schemaUrl = QUrl(self.xsdFilePath)
 
         schema.load(schemaUrl)
@@ -59,7 +60,17 @@ class Standard(object):
         validator.setMessageHandler(handler)
 
         if not validator.validate(md):
-            raise Exception("Metadata did not validate")
+            raise Exception("Metadata did not validate")'''
+
+        path, filename = os.path.split(self.xsdFilePath)
+        os.chdir(path)
+        with open(filename, 'r') as f:
+            schemaRoot = etree.XML(f.read())
+
+        schema = etree.XMLSchema(schemaRoot)
+        xmlparser = etree.XMLParser(schema=schema)
+        etree.fromstring(md, xmlparser)
+
 
     def getTemplate(self, layer):
         filename = self.name + "_vector.xml" if layer.type() == QgsMapLayer.VectorLayer else self.name + "_raster.xml"
@@ -109,7 +120,9 @@ class UnknownStandard(Standard):
 
 
 def tryDetermineStandard(metadata):
-    std = [FgdcStandard(), IsoStandard()]
+    std = [
+           #FgdcStandard(),
+           IsoStandard()]
     for s in std:
         if s.verify(metadata):
             return s

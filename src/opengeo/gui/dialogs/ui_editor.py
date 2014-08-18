@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_metadata.ui'
 #
-# Created: Thu Jul 31 17:57:42 2014
+# Created: Fri Aug 08 10:45:16 2014
 #      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -138,10 +138,6 @@ class Ui_MetatoolsEditor(object):
         self.statusbar = QtGui.QStatusBar(MetatoolsEditor)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         MetatoolsEditor.setStatusBar(self.statusbar)
-        self.actionFGDC = QtGui.QAction(MetatoolsEditor)
-        self.actionFGDC.setObjectName(_fromUtf8("actionFGDC"))
-        self.actionISO = QtGui.QAction(MetatoolsEditor)
-        self.actionISO.setObjectName(_fromUtf8("actionISO"))
         self.actionSave = QtGui.QAction(MetatoolsEditor)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionClose = QtGui.QAction(MetatoolsEditor)
@@ -169,12 +165,15 @@ class Ui_MetatoolsEditor(object):
         self.actionImport.setObjectName(_fromUtf8("actionImport"))
         self.actionNew = QtGui.QAction(MetatoolsEditor)
         self.actionNew.setObjectName(_fromUtf8("actionNew"))
+        self.actionValidate = QtGui.QAction(MetatoolsEditor)
+        self.actionValidate.setObjectName(_fromUtf8("actionValidate"))
         self.menuFile.addAction(self.actionNew)
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionImport)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose)
         self.menuTools.addAction(self.actionFillFromLayer)
+        self.menuTools.addAction(self.actionValidate)
         self.menuView.addAction(self.actionHighlightEmpty)
         self.menuView.addAction(self.actionShowOptional)
         self.menuView.addAction(self.actionShowConditional)
@@ -199,8 +198,6 @@ class Ui_MetatoolsEditor(object):
         self.menuFile.setTitle(_translate("MetatoolsEditor", "File", None))
         self.menuTools.setTitle(_translate("MetatoolsEditor", "Tools", None))
         self.menuView.setTitle(_translate("MetatoolsEditor", "View", None))
-        self.actionFGDC.setText(_translate("MetatoolsEditor", "FGDC", None))
-        self.actionISO.setText(_translate("MetatoolsEditor", "ISO -19115", None))
         self.actionSave.setText(_translate("MetatoolsEditor", "Save", None))
         self.actionClose.setText(_translate("MetatoolsEditor", "Close", None))
         self.actionFillFromLayer.setText(_translate("MetatoolsEditor", "Fill metadata from layer", None))
@@ -211,6 +208,7 @@ class Ui_MetatoolsEditor(object):
         self.actionCopyPath.setToolTip(_translate("MetatoolsEditor", "Copy node path to clipboard", None))
         self.actionImport.setText(_translate("MetatoolsEditor", "Import...", None))
         self.actionNew.setText(_translate("MetatoolsEditor", "New from template", None))
+        self.actionValidate.setText(_translate("MetatoolsEditor", "Validate metadata", None))
 
 from PyQt4 import QtWebKit
 import resources_rc

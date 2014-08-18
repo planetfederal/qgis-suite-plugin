@@ -14,9 +14,8 @@ from opengeo import config
 from geoserver.catalog import ConflictingDataError
 from opengeo.gui.confirm import publishLayer
 from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
-
 from opengeo.metadata.metadata_provider import MetadataProvider
-from opengeo.gui.dialogs.metatoolsviewer import MetatoolsViewer
+
 
 class QgsTreeItem(TreeItem):
 

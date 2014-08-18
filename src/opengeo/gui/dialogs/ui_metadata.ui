@@ -208,6 +208,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionFillFromLayer"/>
+    <addaction name="actionValidate"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -222,16 +223,6 @@
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionFGDC">
-   <property name="text">
-    <string>FGDC</string>
-   </property>
-  </action>
-  <action name="actionISO">
-   <property name="text">
-    <string>ISO -19115</string>
-   </property>
-  </action>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
@@ -300,6 +291,11 @@
   <action name="actionNew">
    <property name="text">
     <string>New from template</string>
+   </property>
+  </action>
+  <action name="actionValidate">
+   <property name="text">
+    <string>Validate metadata</string>
    </property>
   </action>
  </widget>

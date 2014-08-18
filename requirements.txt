@@ -2,6 +2,8 @@ httplib2==0.8
 requests==2.0.1
 raven==3.5.1
 python-dateutil==2.2
+lxml==3.3.5
+
 -e git+https://github.com/boundlessgeo/gsconfig.git#egg=gsconfig
 -e git+https://github.com/boundlessgeo/gsimporter.git#egg=gsimporter
 

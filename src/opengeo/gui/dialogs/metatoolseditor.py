@@ -328,6 +328,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
 
     def saveMetadata(self):
         try:
+            self.applyEdits()
             self.metaProvider.setMetadata(unicode(self.metaXML.toString()))
             self.hasChanged = False
         except:

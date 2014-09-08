@@ -82,6 +82,8 @@ class MetadataProvider:
     def getHtml(self):
         md = self.getMetadata().encode("utf-8")
         standard = tryDetermineStandard(md)
+        if isinstance(standard, UnknownStandard):
+            return ''
         return standard.getHtml(md)
 
 
@@ -154,10 +156,13 @@ class FileMetadataProvider(MetadataProvider):
 
   def getMetadata(self):
     #read metadata from file
-    metaFile = codecs.open(self.metaFilePath, "r", encoding="utf-8")
-    content = metaFile.read()
-    metaFile.close()
-    return content
+    try:
+        metaFile = codecs.open(self.metaFilePath, "r", encoding="utf-8")
+        content = metaFile.read()
+        metaFile.close()
+        return content
+    except:
+      return ''
 
   def setMetadata(self, metadata):
     metaFile = codecs.open(self.metaFilePath, "w", encoding="utf-8")

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MD_Metadata xmlns="http://www.isotc211.org/2005/gmd"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml"
-    xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gco="http://www.isotc211.org/2005/gco"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:gml="http://www.opengis.net/gml"
+    xmlns:gts="http://www.isotc211.org/2005/gts"
+    xmlns:gco="http://www.isotc211.org/2005/gco"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:gmd="http://www.isotc211.org/2005/gmd">
     <fileIdentifier>
@@ -268,10 +270,10 @@
                     <temporalElement>
                         <EX_TemporalExtent>
                             <extent>
-                                <gml:TimePeriod gml:id="">
-                                    <gml:beginPosition/>
-                                    <gml:endPosition/>
-                                </gml:TimePeriod>
+                                <TimePeriod>
+                                    <beginPosition/>
+                                    <endPosition/>
+                                </TimePeriod>
                             </extent>
                         </EX_TemporalExtent>
                     </temporalElement>

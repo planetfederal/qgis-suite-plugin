@@ -115,8 +115,7 @@ class MetadataProvider:
           if not PostgresMetadataProvider.checkExtension(layer.source()):
             if not PostgresMetadataProvider.installExtension(layer.source()):
               return (False, "MetadataPostgis extension is not installed for this DB or connection has failed.")
-
-      if not os.path.exists(layer.source()):
+      elif not os.path.exists(layer.source()):
           return (False, "Only file based layers are supported")
 
       return (True, "Layer is supported")

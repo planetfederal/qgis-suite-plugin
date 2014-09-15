@@ -37,6 +37,7 @@ from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
     addDraggedStyleToLayer, addDraggedLayerToGroup
 from opengeo.gui.confirm import confirmDelete
 from opengeo.geoserver.pki import PKICatalog
+from _ssl import SSLError
 
 class GsTreeItem(TreeItem):
 
@@ -270,6 +271,8 @@ class GsCatalogsItem(GsTreeItem):
             except FailedRequestError:
                 # a FailedRequestError implies an invalid URL, not an error
                 explorer.setWarning("Could not connect to the catalog at that URL")
+            except SSLError:
+                explorer.setWarning("Cannot connect using the provided certificate/key values")
             except:
                 explorer.setError("Could not connect to catalog:\n" + traceback.format_exc())
                 return

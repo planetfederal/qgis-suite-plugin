@@ -19,6 +19,12 @@ GeoServer catalogs are defined using the :guilabel:`New catalog...` option in th
 .. image:: img/intro/add_catalog.png
 	:align: center
 
+Basic authentication is supported, as well as certificate-based authentication. Select the corresponding tab and enter the required parameters. The active tab in the window will define the type of authentication to use, even if the other tab has data in its text boxes.
+
+The certificate parameters should both point at PEM files with certificates and keys. A CA root certificates file can be configured in the OpenGeo Suite plugin setting dialog, which will be used along with the key and certificate files.
+
+There are certain limitations when using PKI authentication. See the :ref:`pkilimitations`section to know more about them.
+
 The GeoNode url is needed if you want to publish a GeoServer layer to a GeoNode endpoint. Otherwise, it is optional, and you can leave the default value.
 
 The list of catalogs is empty by default when you start the OpenGeo Explorer. See the :ref:`gs_connections` section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.

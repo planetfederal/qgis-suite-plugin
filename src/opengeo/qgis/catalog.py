@@ -21,6 +21,7 @@ from opengeo.qgis.sldadapter import adaptGsToQgs,\
 from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
+from opengeo.geoserver.pki import PKICatalog, PKIClient
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -51,7 +52,11 @@ class OGCatalog(object):
     def __init__(self, catalog):
         self.catalog = catalog
         #we also create a Client object pointing to the same url
-        self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
+        if isinstance(catalog, PKICatalog):
+            self.client = PKIClient(catalog.service_url, catalog.key, catalog.cert)
+        else:
+            self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
+
 
     def clean(self):
         self.cleanUnusedStyles()

@@ -3,188 +3,190 @@ from qgis.core import *
 from opengeo.gui.gsexploreritems import *
 from opengeo.gui.qgsexploreritems import *
 from opengeo.qgis import uri as uri_utils
+from opengeo.geoserver.pki import PKICatalog
 
 
 class ExplorerTreeWidget(QtGui.QTreeWidget):
-   
-    def __init__(self, explorer):         
+
+    def __init__(self, explorer):
         self.explorer = explorer
-        QtGui.QTreeWidget.__init__(self, None) 
-        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)                    
-        self.setColumnCount(1)            
+        QtGui.QTreeWidget.__init__(self, None)
+        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.setColumnCount(1)
         self.header().hide()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.itemExpanded.connect(self.treeItemExpanded)
-        self.itemClicked.connect(self.treeItemClicked) 
+        self.itemClicked.connect(self.treeItemClicked)
         self.itemDoubleClicked.connect(self.treeItemDoubleClicked)
-        self.setDragDropMode(QtGui.QTreeWidget.DragDrop)  
-        self.setAutoScroll(True)              
+        self.setDragDropMode(QtGui.QTreeWidget.DragDrop)
+        self.setAutoScroll(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.catalogs = {}
         self.qgisItem = None
         self.lastClicked = None
-  
+
     def refreshContent(self):
-        pass        
-        #self.qgisItem.refreshContent()      
-        
+        pass
+        #self.qgisItem.refreshContent()
+
     def getSelectionTypes(self):
         items = self.selectedItems()
-        return set([type(item) for item in items])  
-        
-    def treeItemClicked(self, item, column): 
+        return set([type(item) for item in items])
+
+    def treeItemClicked(self, item, column):
         self.lastClicked = item
         if hasattr(item, 'descriptionWidget'):
             widget = item.descriptionWidget(self, self.explorer)
             if widget is not None:
-                self.explorer.setDescriptionWidget(widget) 
-        allTypes = self.getSelectionTypes()                
+                self.explorer.setDescriptionWidget(widget)
+        allTypes = self.getSelectionTypes()
         if len(allTypes) != 1:
-            return 
+            return
         items = self.selectedItems()
         if len(items) == 1:
             actions = item.contextMenuActions(self, self.explorer)
-            if (isinstance(item, TreeItem) and hasattr(item, 'populate')): 
-                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")           
+            if (isinstance(item, TreeItem) and hasattr(item, 'populate')):
+                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")
                 refreshAction = QtGui.QAction(icon, "Refresh", self.explorer)
                 refreshAction.triggered.connect(lambda: item.refreshContent(self.explorer))
-                actions.append(refreshAction) 
+                actions.append(refreshAction)
             self.explorer.setToolbarActions(actions)
-    
-    def treeItemDoubleClicked(self, item, column):        
+
+    def treeItemDoubleClicked(self, item, column):
         if not isinstance(item, TreeItem):
-            return                  
+            return
         actions = item.contextMenuActions(self, self.explorer)
         for action in actions:
             if "edit" in action.text().lower():
                 action.trigger()
                 return
-        
+
     def lastClickedItem(self):
-        return self.lastClicked                   
-        
+        return self.lastClicked
+
     def treeItemExpanded(self, item):
-        if item is not None and not item.childCount():            
-            item.refreshContent(self.explorer)      
-    
+        if item is not None and not item.childCount():
+            item.refreshContent(self.explorer)
+
     def showTreePopupMenu(self,point):
-        allTypes = self.getSelectionTypes()                
+        allTypes = self.getSelectionTypes()
         if len(allTypes) != 1:
-            return 
+            return
         items = self.selectedItems()
         if len(items) > 1:
             self.showMultipleSelectionPopupMenu(point)
         else:
             self.showSingleSelectionPopupMenu(point)
-                
-    def getDefaultWorkspace(self, catalog):                            
+
+    def getDefaultWorkspace(self, catalog):
         workspaces = catalog.get_workspaces()
         if workspaces:
             return catalog.get_default_workspace()
         else:
             return None
-                        
-    def showMultipleSelectionPopupMenu(self, point):        
-        self.selectedItem = self.itemAt(point)  
-        point = self.mapToGlobal(point)        
+
+    def showMultipleSelectionPopupMenu(self, point):
+        self.selectedItem = self.itemAt(point)
+        point = self.mapToGlobal(point)
         menu = QtGui.QMenu()
         actions = self.selectedItem.multipleSelectionContextMenuActions(self, self.explorer, self.selectedItems())
         for action in actions:
-            menu.addAction(action)            
-        menu.exec_(point)             
-                                            
-                
-    def showSingleSelectionPopupMenu(self, point):                
+            menu.addAction(action)
+        menu.exec_(point)
+
+
+    def showSingleSelectionPopupMenu(self, point):
         self.selectedItem = self.itemAt(point)
         if not isinstance(self.selectedItem, TreeItem):
-            return                  
+            return
         menu = QtGui.QMenu()
         if (isinstance(self.selectedItem, TreeItem) and hasattr(self.selectedItem, 'populate')):
-            refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")               
+            refreshIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")
             refreshAction = QtGui.QAction(refreshIcon, "Refresh", None)
             refreshAction.triggered.connect(lambda: self.selectedItem.refreshContent(self.explorer))
-            menu.addAction(refreshAction) 
-        point = self.mapToGlobal(point)    
+            menu.addAction(refreshAction)
+        point = self.mapToGlobal(point)
         actions = self.selectedItem.contextMenuActions(self, self.explorer)
         for action in actions:
-            menu.addAction(action)            
+            menu.addAction(action)
         menu.exec_(point)
 
     def findAllItems(self, element):
         allItems = []
         iterator = QtGui.QTreeWidgetItemIterator(self)
         value = iterator.value()
-        while value:            
+        while value:
             if hasattr(value, 'element'):
-                if hasattr(value.element, 'name') and hasattr(element, 'name'):                                    
+                if hasattr(value.element, 'name') and hasattr(element, 'name'):
                     if  value.element.name == element.name and value.element.__class__ == element.__class__:
                         allItems.append(value)
                 elif value.element == element:
-                    allItems.append(value)                
+                    allItems.append(value)
             iterator += 1
             value = iterator.value()
         if not allItems:
             allItems = [None] #Signal that the whole tree has to be updated
-        return allItems      
-    
+        return allItems
 
-                    
-###################################DRAG & DROP########################    
-    
+
+
+###################################DRAG & DROP########################
+
     QGIS_URI_MIME = "application/x-vnd.qgis.qgis.uri"
- 
+
     def mimeTypes(self):
         return ["application/x-qabstractitemmodeldatalist", self.QGIS_URI_MIME]
-     
-    def mimeData(self, items):        
-        mimeData = QtGui.QTreeWidget.mimeData(self, items)               
+
+    def mimeData(self, items):
+        mimeData = QtGui.QTreeWidget.mimeData(self, items)
         encodedData = QByteArray()
         stream = QDataStream(encodedData, QIODevice.WriteOnly)
-  
+
         for item in items:
-            if isinstance(item, GsLayerItem):                
-                layer = item.element
-                uri = uri_utils.layerMimeUri(layer)                                                       
-                stream.writeQString(uri)
+            if isinstance(item, GsLayerItem):
+                if not isinstance(item.catalog, PKICatalog):
+                    layer = item.element
+                    uri = uri_utils.layerMimeUri(layer)
+                    stream.writeQString(uri)
             elif isinstance(item, PgTableItem):
-                table = item.element                
-                uri = uri_utils.tableMimeUri(table)                        
-                stream.writeQString(uri)                
-  
-        mimeData.setData(self.QGIS_URI_MIME, encodedData)        
+                table = item.element
+                uri = uri_utils.tableMimeUri(table)
+                stream.writeQString(uri)
+
+        mimeData.setData(self.QGIS_URI_MIME, encodedData)
         return mimeData
-        
+
     def dropEvent(self, event):
         items = []
-        destinationItem=self.itemAt(event.pos())  
-        if destinationItem is None: 
-            return                  
+        destinationItem=self.itemAt(event.pos())
+        if destinationItem is None:
+            return
         if isinstance(event.source(), self.__class__):
             draggedTypes = set([item.__class__ for item in event.source().selectedItems()])
             if len(draggedTypes) > 1:
-                return                        
-            items = self.selectedItems()                                    
+                return
+            items = self.selectedItems()
             toUpdate = destinationItem.acceptDroppedItems(self, self.explorer, items)
-        else:            
+        else:
             data = event.mimeData()
-            elements = []   
+            elements = []
             if data.hasUrls():
                 for u in data.urls():
                     filename = u.toLocalFile()
                     if filename != "":
-                        elements.append(filename) 
+                        elements.append(filename)
             if data.hasFormat(self.QGIS_URI_MIME):
                 for uri in QgsMimeDataUtils.decodeUriList(data):
-                    elements.append(uri)                                               
-            toUpdate = destinationItem.acceptDroppedUris(self, self.explorer, elements)   
-        
+                    elements.append(uri)
+            toUpdate = destinationItem.acceptDroppedUris(self, self.explorer, elements)
+
         self.explorer.resetActivity()
         if len(toUpdate) > 1:
-            self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")                                                                                                                                     
-        for i, item in enumerate(toUpdate):            
+            self.explorer.setProgressMaximum(len(toUpdate), "Refreshing tree")
+        for i, item in enumerate(toUpdate):
             item.refreshContent(self.explorer)
-            self.explorer.setProgress(i)                
+            self.explorer.setProgress(i)
         self.explorer.resetActivity()
-        event.acceptProposedAction()    
+        event.acceptProposedAction()

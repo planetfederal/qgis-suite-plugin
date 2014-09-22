@@ -53,7 +53,7 @@ class OGCatalog(object):
         self.catalog = catalog
         #we also create a Client object pointing to the same url
         if isinstance(catalog, PKICatalog):
-            self.client = PKIClient(catalog.service_url, catalog.key, catalog.cert)
+            self.client = PKIClient(catalog.service_url, catalog.key, catalog.cert, catalog.ca_cert)
         else:
             self.client = Client(str(catalog.service_url), catalog.username, catalog.password)
 

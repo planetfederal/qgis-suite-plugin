@@ -1,4 +1,6 @@
 from PyQt4 import QtGui, QtCore
+from qgis.gui import *
+from qgis.core import *
 
 class DefineCatalogDialog(QtGui.QDialog):
 
@@ -83,32 +85,8 @@ class DefineCatalogDialog(QtGui.QDialog):
 
         self.tabWidget.addTab(tabBasicAuth, "Basic")
 
-        tabCertAuth = QtGui.QWidget()
-        tabCertAuthLayout = QtGui.QVBoxLayout(tabCertAuth)
-
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
-        certifileLabel = QtGui.QLabel('Certificate file')
-        certifileLabel.setMinimumWidth(150)
-        self.certfileBox = QtGui.QLineEdit()
-        self.certfileBox.setMinimumWidth(250)
-        horizontalLayout.addWidget(certifileLabel)
-        horizontalLayout.addWidget(self.certfileBox)
-        tabCertAuthLayout.addLayout(horizontalLayout)
-
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
-        keyfileLabel = QtGui.QLabel('Key file')
-        keyfileLabel.setMinimumWidth(150)
-        self.keyfileBox = QtGui.QLineEdit()
-        self.keyfileBox.setMinimumWidth(250)
-        horizontalLayout.addWidget(keyfileLabel)
-        horizontalLayout.addWidget(self.keyfileBox)
-        tabCertAuthLayout.addLayout(horizontalLayout)
-
-        self.tabWidget.addTab(tabCertAuth, "Certificates")
+        self.certWidget = QgsSslCertificateWidget()
+        self.tabWidget.addTab(self.certWidget, "Certificates")
 
         verticalLayout3 = QtGui.QVBoxLayout()
         verticalLayout3.addWidget(self.tabWidget)
@@ -163,11 +141,16 @@ class DefineCatalogDialog(QtGui.QDialog):
             self.password = unicode(self.passwordBox.text())
             self.certfile = None
             self.keyfile = None
+            self.cafile = None
         else:
             self.username = None
             self.password = None
-            self.certfile = unicode(self.certfileBox.text())
-            self.keyfile = unicode(self.keyfileBox.text())
+            self.certWidget.validateCert()
+            if not self.certWidget.isValid():
+                return
+            self.certfile = qgis.core.QgsSslUtils.qgisCertPath(self.certWidget.certId())
+            self.keyfile = qgis.core.QgsSslUtils.qgisCertPath(self.certWidget.keyId())
+            self.cafile = qgis.core.QgsSslUtils.qgisCertPath(self.certWidget.issuerId())
         self.name = unicode(self.nameBox.text())
         name = self.name
         i = 2
@@ -184,10 +167,11 @@ class DefineCatalogDialog(QtGui.QDialog):
         if saveCatalogs:
             settings.beginGroup("/OpenGeo/GeoServer/" + self.name)
             settings.setValue("url", self.url);
-            settings.setValue("username", self.username);
-            settings.setValue("password", self.password);
-            settings.setValue("certfile", self.certfile);
-            settings.setValue("keyfile", self.keyfile);
+            settings.setValue("username", self.username)
+            settings.setValue("password", self.password)
+            settings.setValue("certfile", self.certfile)
+            settings.setValue("keyfile", self.keyfile)
+            settings.setValue("cafile", self.cafile)
             settings.setValue("geonode", self.geonodeUrl);
             settings.endGroup()
         self.ok = True

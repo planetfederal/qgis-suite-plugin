@@ -158,9 +158,9 @@ If you enable this option, whenever you connect to a catalog, the information th
 
 Retrieving information from each connection might take a long time and cause QGIS to take too long to start up. For this reason, catalog data is fetch on request and not automatically when starting the OpenGeo Explorer. You should refresh the catalog item to populate it. Unpopulated catalogs are shown with a gray icon.
 
-All information needed to connect to the catalog is kept, including password and user name, which are stored in plain text. If you do not want this, you should not enable this option, since there is currently no way of storing connection parameters in a more secure manner.
+All information needed to connect to the catalog is kept, except sensible values such as the password or the private key path if using certificates. They have to be entered when the catalog is refreshed.
 
-Disabling this option does not delete the conenction parameters currently stored. It will just not populate the catalogs list with previous items and will not save the new ones you connect to. To delete an catalogs from the list of previous connections, use the :guilabel:`Remove` option of the catalog item in the Explorer tree.
+To delete a catalog from the list of previous connections, use the :guilabel:`Remove` option of the catalog item in the Explorer tree.
 
 Using the GeoServer importer API
 --------------------------------
@@ -222,9 +222,5 @@ Limitations when using PKI authentication
 ------------------------------------------ 
 
 The following operations are not available when connecting to a GeoServer that uses PKI auth:
-
-* Adding layer to QGIS project: Disabled, since QGIS itself does not support PKI and cannot connect to any service that requires it.
-
-* Dragging a GeoServer layer into the the QGIS canvas: Same as above.
 
 * GeoNode functionality: GeoNode has a different security mechanism and it is not supported. If a GeoNode URL is entered, it will be ignored when creating the catalog connection.

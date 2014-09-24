@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+import os
 
 class DefineCatalogDialog(QtGui.QDialog):
 
@@ -93,6 +94,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         certifileLabel.setMinimumWidth(150)
         self.certfileBox = QtGui.QLineEdit()
         self.certfileBox.setMinimumWidth(250)
+        self.certfileBox.setPlaceholderText("Required")
         horizontalLayout.addWidget(certifileLabel)
         horizontalLayout.addWidget(self.certfileBox)
         tabCertAuthLayout.addLayout(horizontalLayout)
@@ -104,8 +106,21 @@ class DefineCatalogDialog(QtGui.QDialog):
         keyfileLabel.setMinimumWidth(150)
         self.keyfileBox = QtGui.QLineEdit()
         self.keyfileBox.setMinimumWidth(250)
+        self.keyfileBox.setPlaceholderText("Required")
         horizontalLayout.addWidget(keyfileLabel)
         horizontalLayout.addWidget(self.keyfileBox)
+        tabCertAuthLayout.addLayout(horizontalLayout)
+
+        horizontalLayout = QtGui.QHBoxLayout()
+        horizontalLayout.setSpacing(30)
+        horizontalLayout.setMargin(0)
+        cafileLabel = QtGui.QLabel('CA root file')
+        cafileLabel.setMinimumWidth(150)
+        self.cafileBox = QtGui.QLineEdit()
+        self.cafileBox.setMinimumWidth(250)
+        self.cafileBox.setPlaceholderText("Optional")
+        horizontalLayout.addWidget(cafileLabel)
+        horizontalLayout.addWidget(self.cafileBox)
         tabCertAuthLayout.addLayout(horizontalLayout)
 
         self.tabWidget.addTab(tabCertAuth, "Certificates")
@@ -135,7 +150,6 @@ class DefineCatalogDialog(QtGui.QDialog):
         horizontalLayout.addWidget(self.urlGeonodeBox)
         verticalLayout2.addLayout(horizontalLayout)
 
-
         self.geonodeBox = QtGui.QGroupBox()
         self.geonodeBox.setTitle("GeoNode Connection parameters (Optional)")
         self.geonodeBox.setLayout(verticalLayout2)
@@ -163,11 +177,27 @@ class DefineCatalogDialog(QtGui.QDialog):
             self.password = unicode(self.passwordBox.text())
             self.certfile = None
             self.keyfile = None
+            self.cafile = None
         else:
             self.username = None
             self.password = None
+
+            self.certfileBox.setStyleSheet("QLineEdit{background: white}")
+            self.keyfileBox.setStyleSheet("QLineEdit{background: white}")
+            self.cafileBox.setStyleSheet("QLineEdit{background: white}")
             self.certfile = unicode(self.certfileBox.text())
+            if not self.certfile or not os.path.exists(self.certfile):
+                self.certfileBox.setStyleSheet("QLineEdit{background: yellow}")
+                return
             self.keyfile = unicode(self.keyfileBox.text())
+            if not self.keyfile or not os.path.exists(self.keyfile):
+                self.keyfileBox.setStyleSheet("QLineEdit{background: yellow}")
+                return
+            self.cafile = unicode(self.cafileBox.text())
+            if self.cafile and not os.path.exists(self.cafile):
+                self.cafileBox.setStyleSheet("QLineEdit{background: yellow}")
+                return
+
         self.name = unicode(self.nameBox.text())
         name = self.name
         i = 2
@@ -187,6 +217,7 @@ class DefineCatalogDialog(QtGui.QDialog):
             settings.setValue("username", self.username);
             settings.setValue("password", self.password);
             settings.setValue("certfile", self.certfile);
+			settings.setValue("cafile", self.cafile)
             settings.setValue("keyfile", self.keyfile);
             settings.setValue("geonode", self.geonodeUrl);
             settings.endGroup()

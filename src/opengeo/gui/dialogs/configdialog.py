@@ -78,7 +78,6 @@ class ConfigDialog(QDialog):
                     ("DeleteStyle", "Delete style when deleting layer", True),
                     ("Recurse", "Delete resource when deleting layer", True),
                     ("OverwriteGroupLayers", "Overwrite layers when uploading group", True),
-                    ("CACertsFile", "CA root certificates file", "")
                     ]
         try:
             import processing.tools.dataobjects

@@ -221,11 +221,12 @@ class GsCatalogsItem(GsTreeItem):
                 password = unicode(settings.value("password"))
                 username = unicode(settings.value("username"))
                 certfile = unicode(settings.value("certfile"))
+                cafile = unicode(settings.value("cafile"))
                 keyfile = unicode(settings.value("keyfile"))
                 geonodeUrl = unicode(settings.value("geonode"))
                 geonode = Geonode(geonodeUrl)
                 if certfile is not None:
-                    cat = PKICatalog(url, keyfile, certfile)
+                    cat = PKICatalog(url, keyfile, certfile, cafile)
                 else:
                     cat = Catalog(url, username, password)
                 geoserverItem = GsCatalogItem(cat, name, geonode)
@@ -247,7 +248,7 @@ class GsCatalogsItem(GsTreeItem):
             try:
                 QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
                 if dlg.certfile is not None:
-                    cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile)
+                    cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
                 else:
                     cat = Catalog(dlg.url, dlg.username, dlg.password)
                 v = cat.gsversion()
@@ -786,11 +787,11 @@ class GsLayerItem(GsTreeItem):
             deleteLayerAction = QtGui.QAction(icon, "Delete", None)
             deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
             actions.append(deleteLayerAction)
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")
+            addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
+            addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
+            actions.append(addLayerAction)
             if not isinstance(self.catalog, PKICatalog):
-                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")
-                addLayerAction = QtGui.QAction(icon, "Add to current QGIS project", explorer)
-                addLayerAction.triggered.connect(lambda: self.addLayerToProject(explorer))
-                actions.append(addLayerAction)
                 icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")
                 publishToGeonodeAction = QtGui.QAction(icon, "Publish to GeoNode", explorer)
                 publishToGeonodeAction.triggered.connect(lambda: self.publishToGeonode(tree, explorer))

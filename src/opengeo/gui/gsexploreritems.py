@@ -216,20 +216,7 @@ class GsCatalogsItem(GsTreeItem):
         if saveCatalogs:
             settings.beginGroup("/OpenGeo/GeoServer")
             for name in settings.childGroups():
-                settings.beginGroup(name)
-                url = unicode(settings.value("url"))
-                password = unicode(settings.value("password"))
-                username = unicode(settings.value("username"))
-                certfile = unicode(settings.value("certfile"))
-                cafile = unicode(settings.value("cafile"))
-                keyfile = unicode(settings.value("keyfile"))
-                geonodeUrl = unicode(settings.value("geonode"))
-                geonode = Geonode(geonodeUrl)
-                if certfile is not None:
-                    cat = PKICatalog(url, keyfile, certfile, cafile)
-                else:
-                    cat = Catalog(url, username, password)
-                geoserverItem = GsCatalogItem(cat, name, geonode)
+                geoserverItem = GsCatalogItem(None, name, None)
                 self.addChild(geoserverItem)
                 settings.endGroup()
             settings.endGroup()
@@ -507,6 +494,7 @@ class GsCatalogItem(GsTreeItem):
     def __init__(self, catalog, name, geonode):
         self.catalog = catalog
         self.geonode = geonode
+        self.name = name
         self.isConnected = False
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver_gray.png")
         GsTreeItem.__init__(self, catalog, icon, name)
@@ -526,6 +514,33 @@ class GsCatalogItem(GsTreeItem):
                 except Exception, e:
                     self.exception = e
                     self.finished.emit()
+        if self.catalog is None:
+            settings = QSettings()
+            settings.beginGroup("/OpenGeo/GeoServer")
+            settings.beginGroup(self.name)
+            url = unicode(settings.value("url"))
+            username = settings.value("username")
+            certfile = settings.value("certfile")
+            cafile = settings.value("cafile", "")
+            geonodeUrl = settings.value("geonode")
+            self.geonode = Geonode(geonodeUrl)
+            QtGui.QApplication.restoreOverrideCursor()
+            print certfile
+            if certfile:
+                keyfile, ok = QtGui.QInputDialog.getText(None, "Catalog connection",
+                                          "Enter path to private key file")
+                if not ok:
+                    return
+                self.catalog = PKICatalog(url, keyfile, certfile, cafile)
+            else:
+                password, ok = QtGui.QInputDialog.getText(None, "Catalog connection",
+                                          "Enter catalog password (user:%s)" % username ,
+                                          QtGui.QLineEdit.Password)
+                if not ok:
+                    return
+                print username, password
+                self.catalog = Catalog(url, username, password)
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:
             t = MyThread(self._populate)
             loop = QEventLoop()

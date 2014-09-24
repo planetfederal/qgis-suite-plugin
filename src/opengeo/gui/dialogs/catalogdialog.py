@@ -214,12 +214,11 @@ class DefineCatalogDialog(QtGui.QDialog):
         if saveCatalogs:
             settings.beginGroup("/OpenGeo/GeoServer/" + self.name)
             settings.setValue("url", self.url);
-            settings.setValue("username", self.username);
-            settings.setValue("password", self.password);
-            settings.setValue("certfile", self.certfile);
-			settings.setValue("cafile", self.cafile)
-            settings.setValue("keyfile", self.keyfile);
-            settings.setValue("geonode", self.geonodeUrl);
+            settings.setValue("username", self.username)
+            settings.setValue("certfile", self.certfile)
+            if self.cafile:
+                settings.setValue("cafile", self.cafile)
+            settings.setValue("geonode", self.geonodeUrl)
             settings.endGroup()
         self.ok = True
         self.close()

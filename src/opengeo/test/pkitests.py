@@ -1,24 +1,47 @@
 import unittest
 from qgis.core import *
 import sys
+import os
+import urllib
 
+keyfile = os.path.join(os.path.dirname(__file__), "resources", "rod.key.pem")
+certfile = os.path.join(os.path.dirname(__file__), "resources", "rod.crt.pem")
+cafile =  os.path.join(os.path.dirname(__file__), "resources", "ca.pem")
 
 class PKITests(unittest.TestCase):
     '''
-    Tests for the OGCatalog class that provides additional capabilities to a gsconfig catalog
-    Requires a Geoserver catalog with pki auth on localhost:8443 with a catalog named test_catalog
-    and a vector layer called test_layer
+    Tests for PKI support in QGIS
+    Requires a Geoserver catalog with pki auth on localhost:8443 with the default sample data
     '''
 
     def testOpenWFSLayer(self):
-        uri = "http://localhost:8443/geoserver/wfs?srsname=EPSG:4326&typename=\
-              polygons&version=1.0.0&request=GetFeature&service=WFS"
-        vlayer = QgsVectorLayer(uri, "my_wfs_layer", "WFS")
+        params = {
+            'service': 'WFS',
+            'version': '1.0.0',
+            'request': 'GetFeature',
+            'typename': 'poly_landmarks',
+            'srsname': 'EPSG:4326',
+            'certid': certfile,
+            'keyid': keyfile,
+            'issuerid': cafile
+        }
+        uri = 'http://localhost:8443/geoserver/wfs?' +  urllib.unquote(urllib.urlencode(params))
+
+        vlayer = QgsVectorLayer(uri, "poly_landmarks", "WFS")
         self.assertTrue(vlayer.isValid())
 
     def testOpenWMSLayer(self):
-        uri = 'http://localhost:8443/geoserver/wms?layers=polygons&format=image/jpeg&crs=EPSG:4326'
-        rlayer = QgsRasterLayer(uri, 'my_wms_layer', 'wms')
+        params = {
+            'service': 'wms',
+            'typename': 'Arc_Sample',
+            'crs': 'EPSG:4326',
+            'format': 'image/jpeg',
+            'certid': certfile,
+            'keyid': keyfile,
+            'issuerid': cafile
+        }
+        uri = 'http://localhost:8443/geoserver/wms?' +  urllib.unquote(urllib.urlencode(params))
+        rlayer = QgsRasterLayer(uri, 'Arc_Sample', 'wms')
         self.assertTrue(rlayer.isValid())
 
 def suite():

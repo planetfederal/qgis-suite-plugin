@@ -3,8 +3,6 @@ from qgis.core import *
 from opengeo.gui.gsexploreritems import *
 from opengeo.gui.qgsexploreritems import *
 from opengeo.qgis import uri as uri_utils
-from opengeo.geoserver.pki import PKICatalog
-
 
 class ExplorerTreeWidget(QtGui.QTreeWidget):
 
@@ -146,10 +144,9 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
 
         for item in items:
             if isinstance(item, GsLayerItem):
-                if not isinstance(item.catalog, PKICatalog):
-                    layer = item.element
-                    uri = uri_utils.layerMimeUri(layer)
-                    stream.writeQString(uri)
+                layer = item.element
+                uri = uri_utils.layerMimeUri(layer)
+                stream.writeQString(uri)
             elif isinstance(item, PgTableItem):
                 table = item.element
                 uri = uri_utils.tableMimeUri(table)

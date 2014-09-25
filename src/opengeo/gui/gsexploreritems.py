@@ -522,7 +522,7 @@ class GsCatalogItem(GsTreeItem):
             url = unicode(settings.value("url"))
             username = settings.value("username")
             certfile = settings.value("certfile")
-            cafile = settings.value("cafile", "")
+            cafile = settings.value("cafile", None)
             geonodeUrl = settings.value("geonode")
             self.geonode = Geonode(geonodeUrl)
             QtGui.QApplication.restoreOverrideCursor()

@@ -194,9 +194,12 @@ class DefineCatalogDialog(QtGui.QDialog):
                 self.keyfileBox.setStyleSheet("QLineEdit{background: yellow}")
                 return
             self.cafile = unicode(self.cafileBox.text())
-            if self.cafile and not os.path.exists(self.cafile):
+            if self.cafile:
+                if not os.path.exists(self.cafile):
                 self.cafileBox.setStyleSheet("QLineEdit{background: yellow}")
                 return
+            else:
+                self.cafile = None
 
         self.name = unicode(self.nameBox.text())
         name = self.name

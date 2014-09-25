@@ -22,10 +22,10 @@ def layerUri(layer):
         }
         service = 'wcs'
     if isinstance(catalog, PKICatalog):
-            params['certid'] = catalog.cert
-            params['keyid'] = catalog.key
-            if catalog.ca_cert is not None:
-                params['issuerid'] = catalog.ca_cert
+        params['certid'] = catalog.cert
+        params['keyid'] = catalog.key
+        if catalog.ca_cert is not None:
+            params['issuerid'] = catalog.ca_cert
     uri = layer.catalog.gs_base_url + service +'?' + urllib.unquote(urllib.urlencode(params))
     return str(uri.encodedUri())
 

@@ -239,7 +239,8 @@ class GsCatalogsItem(GsTreeItem):
                 else:
                     cat = Catalog(dlg.url, dlg.username, dlg.password)
                 v = cat.gsversion()
-                supported = v.startswith("2.3") or v.startswith("2.4")
+                supported = (v.startswith("2.3") or v.startswith("2.4")
+                            or v.startswith("2.5") or v.startswith("2.6"))
                 if not supported:
                     QtGui.QApplication.restoreOverrideCursor()
                     ret = QtGui.QMessageBox.warning(explorer, "GeoServer catalog definition",
@@ -263,7 +264,6 @@ class GsCatalogsItem(GsTreeItem):
                 explorer.setWarning("Cannot connect using the provided certificate/key values")
             except:
                 explorer.setError("Could not connect to catalog:\n" + traceback.format_exc())
-                return
             finally:
                 QtGui.QApplication.restoreOverrideCursor()
 
@@ -514,7 +514,8 @@ class GsCatalogItem(GsTreeItem):
                 except Exception, e:
                     self.exception = e
                     self.finished.emit()
-        if self.catalog is None:
+        catalogIsNone = self.catalog is None
+        if catalogIsNone:
             settings = QSettings()
             settings.beginGroup("/OpenGeo/GeoServer")
             settings.beginGroup(self.name)
@@ -553,6 +554,8 @@ class GsCatalogItem(GsTreeItem):
             t.start()
             loop.exec_(flags=QEventLoop.ExcludeUserInputEvents)
             if t.exception is not None:
+                if catalogIsNone:
+                    self.catalog = None
                 raise t.exception
         finally:
             dlg.hide()

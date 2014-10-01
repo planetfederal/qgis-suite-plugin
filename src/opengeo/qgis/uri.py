@@ -13,7 +13,9 @@ def layerUri(layer):
             'version': '1.0.0',
             'request': 'GetFeature',
             'typename': resource.workspace.name + ":" + layer.name,
-            'srsname': resource.projection
+            'srsname': resource.projection,
+            'password': catalog.password,
+            'username': catalog.username
         }
         service = 'wfs'
     else:

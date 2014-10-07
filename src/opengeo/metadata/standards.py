@@ -1,7 +1,6 @@
 import os
 from qgis.core import *
 import codecs
-from lxml import etree
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtXml import *
@@ -47,7 +46,10 @@ class Standard(object):
         return qry.evaluateToString()
 
     def validate(self, md):
-
+        try:
+            from lxml import etree
+        except:
+            raise Exception ("Cannot validate. Missing validation library.")
         path, filename = os.path.split(self.xsdFilePath)
         os.chdir(path)
         with open(filename, 'r') as f:

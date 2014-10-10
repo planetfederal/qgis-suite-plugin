@@ -534,13 +534,14 @@ class GsCatalogItem(GsTreeItem):
                                       "Cannot restore catalog. Invalid auth information")
                     return
                 if authtype == QgsAuthType.Basic:
-                    #TODO:get configbasic from authid
+                    configbasic = QgsAuthConfigBasic()
+                    QgsAuthManager.instance().loadAuthenticationConfig(authid, configbasic, True)
                     password = configbasic.password()
                     username = configbasic.username()
                     self.catalog = Catalog(url, username, password)
                 elif authtype == QgsAuthType.PkiPaths:
-                    #TODO:get configpki from authid
-                    #configpki = QgsAuthManager.instance().loadAuthenticationConfig( self.authid, True)
+                    configpki = QgsAuthConfigBasic()
+                    QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configpki, True)
                     certfile = configpki.certId()
                     keyfile = configpki.keyId()
                     cafile = configpki.issuerId()

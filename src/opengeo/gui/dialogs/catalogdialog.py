@@ -153,12 +153,13 @@ class DefineCatalogDialog(QtGui.QDialog):
                                   "Please specify a valid authentication for connecting to the catalog")
                 return
             if authtype == QgsAuthType.Basic:
-                #TODO:get configbasic from authid
+                configbasic = QgsAuthConfigBasic()
+                QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configbasic, True)
                 self.password = configbasic.password()
                 self.username = configbasic.username()
             elif authtype == QgsAuthType.PkiPaths:
-                #TODO:get configpki from authid
-                #configpki = QgsAuthManager.instance().loadAuthenticationConfig( self.authid, True)
+                configpki = QgsAuthConfigPkiPaths()
+                QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configpki, True)
                 self.certfile = configpki.certId()
                 self.keyfile = configpki.keyId()
                 self.cafile = configpki.issuerId()

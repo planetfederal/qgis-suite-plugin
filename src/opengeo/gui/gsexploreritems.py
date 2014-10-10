@@ -1,5 +1,6 @@
 import os
 from qgis.core import *
+from qgis.gui import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
 from opengeo.qgis import layers as qgislayers
@@ -238,6 +239,7 @@ class GsCatalogsItem(GsTreeItem):
                     cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
                 else:
                     cat = Catalog(dlg.url, dlg.username, dlg.password)
+                cat.authid = dlg.authid
                 v = cat.gsversion()
                 supported = (v.startswith("2.3") or v.startswith("2.4")
                             or v.startswith("2.5") or v.startswith("2.6"))
@@ -521,26 +523,41 @@ class GsCatalogItem(GsTreeItem):
             settings.beginGroup(self.name)
             url = unicode(settings.value("url"))
             username = settings.value("username")
-            certfile = settings.value("certfile")
-            cafile = settings.value("cafile", None)
+            authid = settings.value("authid")
             geonodeUrl = settings.value("geonode")
             self.geonode = Geonode(geonodeUrl)
             QtGui.QApplication.restoreOverrideCursor()
-            print certfile
-            if certfile:
-                keyfile, ok = QtGui.QInputDialog.getText(None, "Catalog connection",
-                                          "Enter path to private key file")
-                if not ok:
+            if authid is not None:
+                authtype = QgsAuthManager.instance().configProviderType(authid);
+                if authtype == QgsAuthType.None or authtype == QgsAuthType.Unknown:
+                    QtGui.QMessageBox.warning(self, "Authentication needed",
+                                      "Cannot restore catalog. Invalid auth information")
                     return
-                self.catalog = PKICatalog(url, keyfile, certfile, cafile)
+                if authtype == QgsAuthType.Basic:
+                    #TODO:get configbasic from authid
+                    password = configbasic.password()
+                    username = configbasic.username()
+                    self.catalog = Catalog(url, username, password)
+                elif authtype == QgsAuthType.PkiPaths:
+                    #TODO:get configpki from authid
+                    #configpki = QgsAuthManager.instance().loadAuthenticationConfig( self.authid, True)
+                    certfile = configpki.certId()
+                    keyfile = configpki.keyId()
+                    cafile = configpki.issuerId()
+                    self.catalog = PKICatalog(url, keyfile, certfile, cafile)
+                else:
+                    QtGui.QMessageBox.warning(self, "Unsupported authentication",
+                                      "The selected authentication type is not supported")
+                    return
+
             else:
                 password, ok = QtGui.QInputDialog.getText(None, "Catalog connection",
                                           "Enter catalog password (user:%s)" % username ,
                                           QtGui.QLineEdit.Password)
                 if not ok:
                     return
-                print username, password
                 self.catalog = Catalog(url, username, password)
+            self.authid = authid
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:
             t = MyThread(self._populate)

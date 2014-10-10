@@ -14,8 +14,6 @@ def layerUri(layer):
             'request': 'GetFeature',
             'typename': resource.workspace.name + ":" + layer.name,
             'srsname': resource.projection,
-            'password': catalog.password,
-            'username': catalog.username
         }
         service = 'wfs'
     else:
@@ -23,11 +21,12 @@ def layerUri(layer):
             'identifier': layer.resource.workspace.name + ":" + layer.resource.name
         }
         service = 'wcs'
-    if isinstance(catalog, PKICatalog):
-        params['certid'] = catalog.cert
-        params['keyid'] = catalog.key
-        if catalog.ca_cert is not None:
-            params['issuerid'] = catalog.ca_cert
+    authid = catalog.authid
+    if authid is not None:
+        params['authid'] = catalog.authid
+    else:
+        params['password'] = catalog.password
+        params['username'] = catalog.username
     uri = layer.catalog.gs_base_url + service +'?' + urllib.unquote(urllib.urlencode(params))
     return str(uri.encodedUri())
 

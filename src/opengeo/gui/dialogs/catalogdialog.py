@@ -1,5 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import os
+from qgis.gui import *
+from gqis.core import *
 
 class DefineCatalogDialog(QtGui.QDialog):
 
@@ -84,46 +86,8 @@ class DefineCatalogDialog(QtGui.QDialog):
 
         self.tabWidget.addTab(tabBasicAuth, "Basic")
 
-        tabCertAuth = QtGui.QWidget()
-        tabCertAuthLayout = QtGui.QVBoxLayout(tabCertAuth)
-
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
-        certifileLabel = QtGui.QLabel('Certificate file')
-        certifileLabel.setMinimumWidth(150)
-        self.certfileBox = QtGui.QLineEdit()
-        self.certfileBox.setMinimumWidth(250)
-        self.certfileBox.setPlaceholderText("Required")
-        horizontalLayout.addWidget(certifileLabel)
-        horizontalLayout.addWidget(self.certfileBox)
-        tabCertAuthLayout.addLayout(horizontalLayout)
-
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
-        keyfileLabel = QtGui.QLabel('Key file')
-        keyfileLabel.setMinimumWidth(150)
-        self.keyfileBox = QtGui.QLineEdit()
-        self.keyfileBox.setMinimumWidth(250)
-        self.keyfileBox.setPlaceholderText("Required")
-        horizontalLayout.addWidget(keyfileLabel)
-        horizontalLayout.addWidget(self.keyfileBox)
-        tabCertAuthLayout.addLayout(horizontalLayout)
-
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
-        cafileLabel = QtGui.QLabel('CA root file')
-        cafileLabel.setMinimumWidth(150)
-        self.cafileBox = QtGui.QLineEdit()
-        self.cafileBox.setMinimumWidth(250)
-        self.cafileBox.setPlaceholderText("Optional")
-        horizontalLayout.addWidget(cafileLabel)
-        horizontalLayout.addWidget(self.cafileBox)
-        tabCertAuthLayout.addLayout(horizontalLayout)
-
-        self.tabWidget.addTab(tabCertAuth, "Certificates")
+        self.certWidget = QgsAuthConfigSelect()
+        self.tabWidget.addTab(self.certWidget, "Certificates")
 
         verticalLayout3 = QtGui.QVBoxLayout()
         verticalLayout3.addWidget(self.tabWidget)
@@ -178,28 +142,30 @@ class DefineCatalogDialog(QtGui.QDialog):
             self.certfile = None
             self.keyfile = None
             self.cafile = None
+            self.authid = None
         else:
             self.username = None
             self.password = None
-
-            self.certfileBox.setStyleSheet("QLineEdit{background: white}")
-            self.keyfileBox.setStyleSheet("QLineEdit{background: white}")
-            self.cafileBox.setStyleSheet("QLineEdit{background: white}")
-            self.certfile = unicode(self.certfileBox.text())
-            if not self.certfile or not os.path.exists(self.certfile):
-                self.certfileBox.setStyleSheet("QLineEdit{background: yellow}")
+            self.authid = self.certWidget.configId()
+            authtype = QgsAuthManager.instance().configProviderType(self.authid);
+            if authtype == QgsAuthType.None or authtype == QgsAuthType.Unknown:
+                QtGui.QMessageBox.warning(self, "Authentication needed",
+                                  "Please specify a valid authentication for connecting to the catalog")
                 return
-            self.keyfile = unicode(self.keyfileBox.text())
-            if not self.keyfile or not os.path.exists(self.keyfile):
-                self.keyfileBox.setStyleSheet("QLineEdit{background: yellow}")
-                return
-            self.cafile = unicode(self.cafileBox.text())
-            if self.cafile:
-                if not os.path.exists(self.cafile):
-                    self.cafileBox.setStyleSheet("QLineEdit{background: yellow}")
-                    return
+            if authtype == QgsAuthType.Basic:
+                #TODO:get configbasic from authid
+                self.password = configbasic.password()
+                self.username = configbasic.username()
+            elif authtype == QgsAuthType.PkiPaths:
+                #TODO:get configpki from authid
+                #configpki = QgsAuthManager.instance().loadAuthenticationConfig( self.authid, True)
+                self.certfile = configpki.certId()
+                self.keyfile = configpki.keyId()
+                self.cafile = configpki.issuerId()
             else:
-                self.cafile = None
+                QtGui.QMessageBox.warning(self, "Unsupported authentication",
+                                  "The selected authentication type is not supported")
+                return
 
         self.name = unicode(self.nameBox.text())
         name = self.name
@@ -217,10 +183,10 @@ class DefineCatalogDialog(QtGui.QDialog):
         if saveCatalogs:
             settings.beginGroup("/OpenGeo/GeoServer/" + self.name)
             settings.setValue("url", self.url);
-            settings.setValue("username", self.username)
-            settings.setValue("certfile", self.certfile)
-            if self.cafile:
-                settings.setValue("cafile", self.cafile)
+            if self.authid is not None:
+                settings.setValue("authid")
+            else:
+                settings.setValue("username", self.username)
             settings.setValue("geonode", self.geonodeUrl)
             settings.endGroup()
         self.ok = True

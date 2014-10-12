@@ -540,8 +540,8 @@ class GsCatalogItem(GsTreeItem):
                     username = configbasic.username()
                     self.catalog = Catalog(url, username, password)
                 elif authtype == QgsAuthType.PkiPaths:
-                    configpki = QgsAuthConfigBasic()
-                    QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configpki, True)
+                    configpki = QgsAuthConfigPkiPaths()
+                    QgsAuthManager.instance().loadAuthenticationConfig(authid, configpki, True)
                     certfile = configpki.certId()
                     keyfile = configpki.keyId()
                     cafile = configpki.issuerId()
@@ -558,7 +558,7 @@ class GsCatalogItem(GsTreeItem):
                 if not ok:
                     return
                 self.catalog = Catalog(url, username, password)
-            self.authid = authid
+            self.catalog.authid = authid
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:
             t = MyThread(self._populate)

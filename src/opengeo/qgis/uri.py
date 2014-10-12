@@ -18,7 +18,8 @@ def layerUri(layer):
         service = 'wfs'
     else:
         params = {
-            'identifier': layer.resource.workspace.name + ":" + layer.resource.name
+            'identifier': layer.resource.workspace.name + ":" + layer.resource.name,
+            'format': 'GeoTIFF'
         }
         service = 'wcs'
     authid = catalog.authid
@@ -28,7 +29,7 @@ def layerUri(layer):
         params['password'] = catalog.password
         params['username'] = catalog.username
     uri = layer.catalog.gs_base_url + service +'?' + urllib.unquote(urllib.urlencode(params))
-    return str(uri.encodedUri())
+    return uri
 
 def layerMimeUri(element):
     if isinstance(element, Layer):

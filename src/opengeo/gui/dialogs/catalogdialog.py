@@ -1,7 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import os
 from qgis.gui import *
-from gqis.core import *
+from qgis.core import *
 
 class DefineCatalogDialog(QtGui.QDialog):
 
@@ -185,7 +185,7 @@ class DefineCatalogDialog(QtGui.QDialog):
             settings.beginGroup("/OpenGeo/GeoServer/" + self.name)
             settings.setValue("url", self.url);
             if self.authid is not None:
-                settings.setValue("authid")
+                settings.setValue("authid", self.authid)
             else:
                 settings.setValue("username", self.username)
             settings.setValue("geonode", self.geonodeUrl)

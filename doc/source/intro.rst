@@ -158,7 +158,9 @@ If you enable this option, whenever you connect to a catalog, the information th
 
 Retrieving information from each connection might take a long time and cause QGIS to take too long to start up. For this reason, catalog data is fetch on request and not automatically when starting the OpenGeo Explorer. You should refresh the catalog item to populate it. Unpopulated catalogs are shown with a gray icon.
 
-All information needed to connect to the catalog is kept, except sensible values such as the password or the private key path if using certificates. They have to be entered when the catalog is refreshed.
+If the catalog uses basic authentication and username and password are introduced using the basic authentication tab, the password is not stored. You will be prompted to enter it when you reconnect to the catalog. IF the *Configurations" tab is used, connection data (wheter password or certificate-based) will be stored in the encrypted QGIS auth database. You will be prompted to enter the master password in case you haven't used the auth database in the current QGIS session.
+
+To know more about how to use authentication configurations in QGIS, see the `Authentication configurations <./auth.html>`_ section
 
 To delete a catalog from the list of previous connections, use the :guilabel:`Remove` option of the catalog item in the Explorer tree.
 

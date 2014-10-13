@@ -37,9 +37,6 @@ Once you have finished editing value elements, select the *File/Save* menu to sa
 
 To find a given element, you can use the filter text box. Enter the name of the element in the text box and the tree will be filtered, so only those elements that include the specified string in their name will be shown.
 
-.. image:: img/metadata/metadata_filter.png
-	:align: center
-
 To make it easier to locate the elements that do not have any value yet, you can enable the *Highlight empty fields* entry in the *View* menu.
 
 .. image:: img/metadata/metadata_highlight.png

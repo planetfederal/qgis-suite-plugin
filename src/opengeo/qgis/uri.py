@@ -7,6 +7,13 @@ from opengeo.geoserver.pki import PKICatalog
 def layerUri(layer):
     resource = layer.resource
     catalog = layer.catalog
+    def addAuth(_params):
+        authid = catalog.authid
+        if authid is not None:
+            _params['authid'] = catalog.authid
+        else:
+            _params['password'] = catalog.password
+            _params['username'] = catalog.username
     if resource.resource_type == 'featureType':
         params = {
             'service': 'WFS',
@@ -15,20 +22,19 @@ def layerUri(layer):
             'typename': resource.workspace.name + ":" + layer.name,
             'srsname': resource.projection,
         }
-        service = 'wfs'
+        addAuth(params)
+        uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))
     else:
         params = {
             'identifier': layer.resource.workspace.name + ":" + layer.resource.name,
-            'format': 'GeoTIFF'
+            'format': 'GeoTIFF',
+            'url': layer.catalog.gs_base_url + 'wcs',
+            'cache': 'AlwaysCache'
         }
-        service = 'wcs'
-    authid = catalog.authid
-    if authid is not None:
-        params['authid'] = catalog.authid
-    else:
-        params['password'] = catalog.password
-        params['username'] = catalog.username
-    uri = layer.catalog.gs_base_url + service +'?' + urllib.unquote(urllib.urlencode(params))
+        addAuth(params)
+        uri = urllib.unquote(urllib.urlencode(params))
+
+
     return uri
 
 def layerMimeUri(element):

@@ -39,6 +39,7 @@ from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
 from opengeo.gui.confirm import confirmDelete
 from opengeo.geoserver.pki import PKICatalog
 from _ssl import SSLError
+from httplib import BadStatusLine
 
 class GsTreeItem(TreeItem):
 
@@ -728,26 +729,31 @@ class GsLayerItem(GsTreeItem):
     def _getDescriptionHtml(self, tree, explorer):
         wsname = self.element.resource.workspace.name
         html = ""
-        if self.isDuplicated:
-            iconPath = os.path.dirname(__file__) + "/../images/warning.png"
-            html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '
-                + 'This results in an ambiguous situation and unfortunately we cannot differentiate between them. Only one layer is displayed.'
-                + 'This element represents the layer based on a datastore from the ' + wsname + ' workspace </p>')
-        html += '<p><h3><b>Properties</b></h3></p><ul>'
-        html += '<li><b>Name: </b>' + unicode(self.element.name) + '</li>\n'
-        html += '<li><b>Title: </b>' + unicode(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'
-        html += '<li><b>Abstract: </b>' + unicode(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
-        html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')
-        html += ('<li><b>Datastore workspace: </b>' + wsname + ' </li>\n')
-        bbox = self.element.resource.latlon_bbox
-        if bbox is not None:
-            html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'
-            html += '<li> N:' + str(bbox[3]) + '</li>'
-            html += '<li> S:' + str(bbox[2]) + '</li>'
-            html += '<li> E:' + str(bbox[0]) + '</li>'
-            html += '<li> W:' + str(bbox[1]) + '</li>'
+        try:
+            if self.isDuplicated:
+                iconPath = os.path.dirname(__file__) + "/../images/warning.png"
+                html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '
+                    + 'This results in an ambiguous situation and unfortunately we cannot differentiate between them. Only one layer is displayed.'
+                    + 'This element represents the layer based on a datastore from the ' + wsname + ' workspace </p>')
+            html += '<p><h3><b>Properties</b></h3></p><ul>'
+            html += '<li><b>Name: </b>' + unicode(self.element.name) + '</li>\n'
+            html += '<li><b>Title: </b>' + unicode(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'
+            html += '<li><b>Abstract: </b>' + unicode(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
+            html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')
+            html += ('<li><b>Datastore workspace: </b>' + wsname + ' </li>\n')
+            bbox = self.element.resource.latlon_bbox
+            if bbox is not None:
+                html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'
+                html += '<li> N:' + str(bbox[3]) + '</li>'
+                html += '<li> S:' + str(bbox[2]) + '</li>'
+                html += '<li> E:' + str(bbox[0]) + '</li>'
+                html += '<li> W:' + str(bbox[1]) + '</li>'
+                html += '</ul>'
             html += '</ul>'
-        html += '</ul>'
+        except:
+            html = "<p><b>Could not get layer information from server. Try refreshing the layer to update this description panel</b></p>"
+
+
         actions = self.contextMenuActions(tree, explorer)
         html += "<p><h3><b>Available actions</b></h3></p><ul>"
         for action in actions:

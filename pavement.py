@@ -18,7 +18,6 @@ options(
         source_dir = path('src/opengeo'),
         package_dir = path('.'),
         excludes = [
-            'metadata.txt',
             'test-output',
             'test',
             'coverage*.*',
@@ -113,16 +112,6 @@ def package(options):
 
 
 def make_zip(zip, options):
-    metadata_file = options.plugin.source_dir / "metadata.txt"
-    cfg = ConfigParser.SafeConfigParser()
-    cfg.optionxform = str
-    cfg.read(metadata_file)
-    base_version = cfg.get('general', 'version')
-    cfg.set("general", "version", "%s-%s" % (base_version, datetime.now().strftime("%Y%m%d")))
-
-    buf = StringIO()
-    cfg.write(buf)
-    zip.writestr("opengeo/metadata.txt", buf.getvalue())
 
     excludes = set(options.plugin.excludes)
 

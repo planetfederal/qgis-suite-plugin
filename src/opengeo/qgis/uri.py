@@ -29,7 +29,7 @@ def layerUri(layer):
             'identifier': layer.resource.workspace.name + ":" + layer.resource.name,
             'format': 'GeoTIFF',
             'url': layer.catalog.gs_base_url + 'wcs',
-            'cache': 'AlwaysCache'
+            'cache': 'PreferNetwork'
         }
         addAuth(params)
         uri = urllib.unquote(urllib.urlencode(params))

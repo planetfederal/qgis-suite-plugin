@@ -727,9 +727,9 @@ class GsLayerItem(GsTreeItem):
             return []
 
     def _getDescriptionHtml(self, tree, explorer):
-        wsname = self.element.resource.workspace.name
         html = ""
         try:
+            wsname = self.element.resource.workspace.name
             if self.isDuplicated:
                 iconPath = os.path.dirname(__file__) + "/../images/warning.png"
                 html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '

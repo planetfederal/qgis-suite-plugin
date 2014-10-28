@@ -45,6 +45,7 @@ from opengeo.metadata.metadata_provider import MetadataProvider
 from opengeo.metadata.standards import *
 from ui_editor import Ui_MetatoolsEditor
 from opengeo.gui.dialogs.validationerrordialog import ValidationErrorDialog
+import traceback
 
 
 class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
@@ -259,11 +260,14 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                     self.labelWarning.setVisible(True)
                 self.comboValue.setVisible(True)
             elif item.scheme.endswith("Date"):
+                print item
+                print item.value
                 self.dateValue.setVisible(True)
                 try:
                     date = dateutil.parser.parse(item.value)
                     self.dateValue.setSelectedDate(date)
-                except:
+                except Exception, e:
+                    traceback.print_exc()
                     if item.value is not None:
                         self.labelWarning.setText("The existing value is not a correct date: " + item.value)
                         self.labelWarning.setVisible(True)
@@ -312,7 +316,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
             elif self.comboValue.isVisible():
                 value = self.comboValue.currentText()
             elif self.dateValue.isVisible():
-                value = str(self.dateValue.selectedDate())
+                value = self.dateValue.selectedDate().toString()
             elif self.numberValue.isVisible():
                 value = str(self.numberValue.text())
             if value:

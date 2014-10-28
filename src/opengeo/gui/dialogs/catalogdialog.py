@@ -87,7 +87,7 @@ class DefineCatalogDialog(QtGui.QDialog):
         self.tabWidget.addTab(tabBasicAuth, "Basic")
 
         self.certWidget = QgsAuthConfigSelect()
-        self.tabWidget.addTab(self.certWidget, "Certificates")
+        self.tabWidget.addTab(self.certWidget, "Configurations")
 
         verticalLayout3 = QtGui.QVBoxLayout()
         verticalLayout3.addWidget(self.tabWidget)

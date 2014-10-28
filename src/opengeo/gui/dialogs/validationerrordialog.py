@@ -36,7 +36,7 @@ class ValidationErrorDialog(QtGui.QDialog):
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.text = QtGui.QPlainTextEdit()
         self.text.setVisible(False)
-        self.text.setPlainText(self.message)
+        self.text.setPlainText(unicode(self.message))
         self.verticalLayout.addWidget(self.text)
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
         self.showErrors = QtGui.QPushButton()

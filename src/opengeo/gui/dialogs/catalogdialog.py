@@ -2,6 +2,8 @@ from PyQt4 import QtGui, QtCore
 import os
 from qgis.gui import *
 from qgis.core import *
+import tempfile
+from opengeo.geoserver import pem
 
 class DefineCatalogDialog(QtGui.QDialog):
 
@@ -86,7 +88,7 @@ class DefineCatalogDialog(QtGui.QDialog):
 
         self.tabWidget.addTab(tabBasicAuth, "Basic")
 
-        self.certWidget = QgsAuthConfigSelect()
+        self.certWidget = QgsAuthConfigSelect( keypasssupported = False)
         self.tabWidget.addTab(self.certWidget, "Configurations")
 
         verticalLayout3 = QtGui.QVBoxLayout()
@@ -154,15 +156,11 @@ class DefineCatalogDialog(QtGui.QDialog):
                 return
             if authtype == QgsAuthType.Basic:
                 configbasic = QgsAuthConfigBasic()
-                QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configbasic, True)
+                QgsAuthManager.instance().loadAuthenticationConfig(self.authid, configbasic, True)
                 self.password = configbasic.password()
                 self.username = configbasic.username()
             elif authtype == QgsAuthType.PkiPaths:
-                configpki = QgsAuthConfigPkiPaths()
-                QgsAuthManager.instance().loadAuthenticationConfig( self.authid, configpki, True)
-                self.certfile = configpki.certId()
-                self.keyfile = configpki.keyId()
-                self.cafile = configpki.issuerId()
+                self.certfile, self.keyfile, self.cafile = pem.getPemPkiPaths(self.authid)
             else:
                 QtGui.QMessageBox.warning(self, "Unsupported authentication",
                                   "The selected authentication type is not supported")

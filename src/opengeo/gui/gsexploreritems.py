@@ -40,6 +40,7 @@ from opengeo.gui.confirm import confirmDelete
 from opengeo.geoserver.pki import PKICatalog
 from _ssl import SSLError
 from httplib import BadStatusLine
+from opengeo.geoserver import pem
 
 class GsTreeItem(TreeItem):
 
@@ -541,11 +542,7 @@ class GsCatalogItem(GsTreeItem):
                     username = configbasic.username()
                     self.catalog = Catalog(url, username, password)
                 elif authtype == QgsAuthType.PkiPaths:
-                    configpki = QgsAuthConfigPkiPaths()
-                    QgsAuthManager.instance().loadAuthenticationConfig(authid, configpki, True)
-                    certfile = configpki.certId()
-                    keyfile = configpki.keyId()
-                    cafile = configpki.issuerId()
+                    certfile, keyfile, cafile = pem.getPemPkiPaths(authid)
                     self.catalog = PKICatalog(url, keyfile, certfile, cafile)
                 else:
                     QtGui.QMessageBox.warning(self, "Unsupported authentication",
@@ -664,7 +661,10 @@ class GsCatalogItem(GsTreeItem):
 
     def _getDescriptionHtml(self, tree, explorer):
         if self.isConnected:
-            return self.catalog.about()
+            try:
+                return self.catalog.about()
+            except:
+                return "<p><b>Could not get information from server. Try refreshing the item to update this description panel</b></p>"
         else:
             html = ('<p>You are not connected to this catalog.'
                     '<a href="refresh">Refresh</a> to connect to it and populate the catalog item</p>')

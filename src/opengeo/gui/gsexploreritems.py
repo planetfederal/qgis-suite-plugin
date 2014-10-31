@@ -532,9 +532,7 @@ class GsCatalogItem(GsTreeItem):
             if authid is not None:
                 authtype = QgsAuthManager.instance().configProviderType(authid);
                 if authtype == QgsAuthType.None or authtype == QgsAuthType.Unknown:
-                    QtGui.QMessageBox.warning(self, "Authentication needed",
-                                      "Cannot restore catalog. Invalid auth information")
-                    return
+                    raise Exception("Cannot restore catalog. Invalid or missing auth information")
                 if authtype == QgsAuthType.Basic:
                     configbasic = QgsAuthConfigBasic()
                     QgsAuthManager.instance().loadAuthenticationConfig(authid, configbasic, True)
@@ -545,10 +543,7 @@ class GsCatalogItem(GsTreeItem):
                     certfile, keyfile, cafile = pem.getPemPkiPaths(authid)
                     self.catalog = PKICatalog(url, keyfile, certfile, cafile)
                 else:
-                    QtGui.QMessageBox.warning(self, "Unsupported authentication",
-                                      "The selected authentication type is not supported")
-                    return
-
+                    raise Exception("The selected authentication type is not supported")
             else:
                 password, ok = QtGui.QInputDialog.getText(None, "Catalog connection",
                                           "Enter catalog password (user:%s)" % username ,

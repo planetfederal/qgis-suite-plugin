@@ -539,8 +539,8 @@ class GsCatalogItem(GsTreeItem):
                     password = configbasic.password()
                     username = configbasic.username()
                     self.catalog = Catalog(url, username, password)
-                elif authtype == QgsAuthType.PkiPaths:
-                    certfile, keyfile, cafile = pem.getPemPkiPaths(authid)
+                elif authtype in [QgsAuthType.PkiPaths, QgsAuthType.PkiPkcs12]:
+                    certfile, keyfile, cafile = pem.getPemPkiPaths(authid, authtype)
                     self.catalog = PKICatalog(url, keyfile, certfile, cafile)
                 else:
                     raise Exception("The selected authentication type is not supported")

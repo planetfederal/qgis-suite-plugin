@@ -159,8 +159,8 @@ class DefineCatalogDialog(QtGui.QDialog):
                 QgsAuthManager.instance().loadAuthenticationConfig(self.authid, configbasic, True)
                 self.password = configbasic.password()
                 self.username = configbasic.username()
-            elif authtype == QgsAuthType.PkiPaths:
-                self.certfile, self.keyfile, self.cafile = pem.getPemPkiPaths(self.authid)
+            elif authtype in [QgsAuthType.PkiPaths, QgsAuthType.PkiPkcs12]:
+                self.certfile, self.keyfile, self.cafile = pem.getPemPkiPaths(self.authid, authtype)
             else:
                 QtGui.QMessageBox.warning(self, "Unsupported authentication",
                                   "The selected authentication type is not supported")

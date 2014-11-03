@@ -13,9 +13,7 @@ class Standard(object):
         print node
         if node is None:
             node = dom.elementsByTagName(nodeName.split(":")[1]).at(0)
-            print node
             if node is None:
-                print "return"
                 return
         if not node.hasChildNodes():
             textNode = node.ownerDocument().createTextNode(value)

@@ -5,9 +5,6 @@ import uuid
 from opengeo.geoserver.pki import PKICatalog
 
 TEMP_CERT_FILE_PREFIX = "tmppki_"
-import sys
-sys.path.append('C:\Program Files\Brainwy\LiClipse 1.0.0\plugins\org.python.pydev_3.6.0.201406221719\pysrc')
-from pydevd import *
 
 _certFolder = None
 
@@ -18,10 +15,6 @@ def certFolder():
     return _certFolder
 
 def getPemPkiPaths(authid, authtype):
-    import sys
-    sys.path.append('C:\Program Files\Brainwy\LiClipse 1.0.0\plugins\org.python.pydev_3.6.0.201406221719\pysrc')
-    from pydevd import *
-    settrace()
     if authtype == QgsAuthType.PkiPaths:
         configpki = QgsAuthConfigPkiPaths()
         QgsAuthManager.instance().loadAuthenticationConfig(authid, configpki, True)

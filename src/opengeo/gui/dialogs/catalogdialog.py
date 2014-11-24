@@ -88,8 +88,12 @@ class DefineCatalogDialog(QtGui.QDialog):
 
         self.tabWidget.addTab(tabBasicAuth, "Basic")
 
-        self.certWidget = QgsAuthConfigSelect( keypasssupported = False)
-        self.tabWidget.addTab(self.certWidget, "Configurations")
+        try:
+            self.certWidget = QgsAuthConfigSelect( keypasssupported = False)
+            self.tabWidget.addTab(self.certWidget, "Configurations")
+        except NameError:
+            #for QGIS without PKI support
+            pass
 
         verticalLayout3 = QtGui.QVBoxLayout()
         verticalLayout3.addWidget(self.tabWidget)

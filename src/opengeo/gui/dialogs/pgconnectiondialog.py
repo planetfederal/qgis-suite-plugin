@@ -98,10 +98,15 @@ class NewPgConnectionDialog(QDialog):
         horizontalLayout.addWidget(passwordLabel)
         horizontalLayout.addWidget(self.passwordBox)
         self.verticalLayout.addLayout(horizontalLayout)
+
+        horizontalLayout = QHBoxLayout()
+        self.statusLabel = QLabel('')
+        horizontalLayout.addWidget(self.statusLabel)
+        self.verticalLayout.addLayout(horizontalLayout)
         
         self.groupBox.setLayout(self.verticalLayout)
         self.layout.addWidget(self.groupBox)   
-        self.spacer = QSpacerItem(20,20, QSizePolicy.Minimum,QSizePolicy.Expanding)
+        self.spacer = QSpacerItem(20,10, QSizePolicy.Minimum,QSizePolicy.Expanding)
         self.layout.addItem(self.spacer)
 
         self.buttonBox = QDialogButtonBox(self)
@@ -146,6 +151,8 @@ class NewPgConnectionDialog(QDialog):
         settings.setValue("database", self.databaseBox.text() );
         settings.setValue("username", self.usernameBox.text());
         settings.setValue("password", self.passwordBox.text());
+        self.statusLabel.setText('Connecting ...')
+        QApplication.processEvents()
         self.conn = PgConnection(self.nameBox.text(), settings.value('host'), int(settings.value('port')), 
                             settings.value('database'), settings.value('username'), 
                             settings.value('password'))

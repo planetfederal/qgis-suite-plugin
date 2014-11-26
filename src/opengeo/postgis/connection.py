@@ -1,4 +1,4 @@
-from postgis_utils import GeoDB
+from postgis_utils import GeoDB, DbError
 from schema import Schema
 from qgis.core import *
 from PyQt4 import QtCore
@@ -9,17 +9,26 @@ import os
 class PgConnection(object):       
     
     def __init__(self, name, host, port, database, username, password):
-        self.name = name  
+        self.name = name
         self.host = host
         self.port = port
-        self.database = database      
+        self.database = database
+        self.connectionFailureMessage = None
+        self.isValid = False
         try:
             self.geodb = GeoDB(host, port, database, username, password)
-            self.isValid = True
-            self.username = username
-            self.password = password
-        except:
-            self.isValid = False
+        except DbError, ex:
+            self.connectionFailureMessage = str(ex)
+        else:
+            try:
+                self.geodb._exec_sql_and_commit('select * from postgis_version()')
+                self.isValid = True
+                self.username = username
+                self.password = password
+            except DbError, ex:
+                self.connectionFailureMessage = 'It appears that the PostGIS '\
+                    'extensions are not loaded in the database.<hr>\n'\
+                    'The error message was:\n%s' % ex
         
         
     def schemas(self):

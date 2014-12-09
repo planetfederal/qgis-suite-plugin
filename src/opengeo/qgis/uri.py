@@ -24,16 +24,25 @@ def layerUri(layer):
         }
         addAuth(params)
         uri = layer.catalog.gs_base_url + 'wfs?' + urllib.unquote(urllib.urlencode(params))
-    else:
+    elif resource.resource_type == 'coverage':
         params = {
-            'identifier': layer.resource.workspace.name + ":" + layer.resource.name,
+            'identifier': resource.workspace.name + ":" + resource.name,
             'format': 'GeoTIFF',
             'url': layer.catalog.gs_base_url + 'wcs',
             'cache': 'PreferNetwork'
         }
         addAuth(params)
         uri = urllib.unquote(urllib.urlencode(params))
-
+    else:
+        params = {
+            'layers': resource.workspace.name + ":" + resource.name,
+            'format': 'image/png',
+            'url': layer.catalog.gs_base_url + 'wms',
+            'styles': '',
+            'crs': resource.projection
+        }
+        addAuth(params)
+        uri = urllib.unquote(urllib.urlencode(params))
 
     return uri
 
@@ -45,9 +54,12 @@ def layerMimeUri(element):
         if resource.resource_type == 'featureType':
             layertype = 'vector'
             provider = 'WFS'
-        else:
+        elif resource.resource_type == 'coverage':
             layertype = 'raster'
             provider = 'wcs'
+        else:
+            layertype = 'raster'
+            provider = 'wms'
         escapedName = resource.title.replace( ":", "\\:" );
         escapedUri = uri.replace( ":", "\\:" );
         mimeUri = ':'.join([layertype, provider, escapedName, escapedUri])

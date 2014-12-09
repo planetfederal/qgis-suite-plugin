@@ -450,7 +450,7 @@ class OGCatalog(object):
         uri = uri_utils.layerUri(layer)
 
         if resource.resource_type == "featureType":
-            qgslayer = QgsVectorLayer(uri, destName or layer.resource.title, "WFS")
+            qgslayer = QgsVectorLayer(uri, destName or resource.title, "WFS")
             if not qgslayer.isValid():
                 raise Exception ("Layer at %s is not a valid layer" % uri)
             ok = True
@@ -465,12 +465,20 @@ class OGCatalog(object):
                 ok = False
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
             if not ok:
-               raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")
+                raise Exception ("Layer was added, but style could not be set (maybe GeoServer layer is missing default style)")
         elif resource.resource_type == "coverage":
-            qgslayer = QgsRasterLayer(uri, destName or layer.resource.title, "wcs" )
+            qgslayer = QgsRasterLayer(uri, destName or resource.title, "wcs" )
             if not qgslayer.isValid():
                 raise Exception ("Layer at %s is not a valid layer" % uri)
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+        elif resource.resource_type == "wmsLayer":
+            print resource.href
+            qgslayer = QgsRasterLayer(uri, destName or resource.title, "wms")
+            if not qgslayer.isValid():
+                raise Exception ("Layer at %s is not a valid layer" % uri)
+            QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
+        else:
+            raise Exception("Cannot add layer. Unsupported layer type.")
 
 def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
     host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):

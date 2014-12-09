@@ -208,7 +208,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
         if not self.metaProvider.checkExists():
             return
 
-        #self.metaProvider.validate()
+        self.metaProvider.validateStandard()
 
         self.actionFillFromLayer.setEnabled(True)
         self.actionSave.setEnabled(True)

@@ -50,6 +50,12 @@ class MetadataProvider:
                 except:
                     pass
 
+    def validateStandard(self):
+        md = self.getMetadata().encode("utf-8")
+        standard = tryDetermineStandard(md)
+        if isinstance(standard, UnknownStandard):
+            raise Exception("Unsupported metadata standard")
+
     def validate(self):
         md = self.getMetadata().encode("utf-8")
         standard = tryDetermineStandard(md)

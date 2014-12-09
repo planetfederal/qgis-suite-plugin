@@ -15,7 +15,7 @@ from geoserver.catalog import ConflictingDataError
 from opengeo.gui.confirm import publishLayer
 from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
 from opengeo.metadata.metadata_provider import MetadataProvider
-
+from qgis.core import *
 
 class QgsTreeItem(TreeItem):
 
@@ -117,17 +117,19 @@ class QgsLayerItem(QgsTreeItem):
         createStoreFromLayerAction= QtGui.QAction(icon, "Create store from layer...", explorer)
         createStoreFromLayerAction.triggered.connect(lambda: self.createStoreFromLayer(tree, explorer))
         createStoreFromLayerAction.setEnabled(len(explorer.catalogs())>0)
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis_import.png")
-        importToPostGisAction = QtGui.QAction(icon, "Import into PostGIS...", explorer)
-        importToPostGisAction.triggered.connect(lambda: self.importLayerToPostGis(tree, explorer))
-        importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/metadata.png")
         editMetadataAction = QtGui.QAction(icon, "Edit/view layer metadata...", explorer)
         editMetadataAction.triggered.connect(lambda: self.editMetadata(tree, explorer))
         editMetadataAction.setEnabled(True)
+        actions =  [publishLayerAction, createStoreFromLayerAction, editMetadataAction]
+        if isinstance(self.element, QgsVectorLayer):
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis_import.png")
+            importToPostGisAction = QtGui.QAction(icon, "Import into PostGIS...", explorer)
+            importToPostGisAction.triggered.connect(lambda: self.importLayerToPostGis(tree, explorer))
+            importToPostGisAction.setEnabled(len(explorer.pgDatabases())>0)
+            actions.append(importToPostGisAction)
 
-        return [publishLayerAction, createStoreFromLayerAction, importToPostGisAction,
-                editMetadataAction]
+        return actions
 
     def editMetadata(self, tree, explorer):
         try:

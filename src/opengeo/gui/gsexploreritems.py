@@ -39,7 +39,6 @@ from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
 from opengeo.gui.confirm import confirmDelete
 from opengeo.geoserver.pki import PKICatalog
 from _ssl import SSLError
-from httplib import BadStatusLine
 from opengeo.geoserver import pem
 
 class GsTreeItem(TreeItem):
@@ -505,19 +504,6 @@ class GsCatalogItem(GsTreeItem):
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
 
     def populate(self):
-        class MyThread(QThread):
-            finished = pyqtSignal()
-            def __init__(self, func):
-                QThread.__init__(self)
-                self.func = func
-                self.exception = None
-            def run (self):
-                try:
-                    self.func()
-                    self.finished.emit()
-                except Exception, e:
-                    self.exception = e
-                    self.finished.emit()
         catalogIsNone = self.catalog is None
         if catalogIsNone:
             settings = QSettings()
@@ -554,20 +540,16 @@ class GsCatalogItem(GsTreeItem):
             self.catalog.authid = authid
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:
-            t = MyThread(self._populate)
-            loop = QEventLoop()
-            t.finished.connect(loop.exit)
             dlg = QtGui.QProgressDialog("Retrieving catalog information", None, 0, 0  , config.iface.mainWindow())
             dlg.setWindowModality(Qt.WindowModal);
             dlg.setMinimumDuration(1)
             dlg.showNormal()
             QtGui.QApplication.processEvents()
-            t.start()
-            loop.exec_(flags=QEventLoop.ExcludeUserInputEvents)
-            if t.exception is not None:
-                if catalogIsNone:
-                    self.catalog = None
-                raise t.exception
+            self._populate()
+        except Exception, e:
+            if catalogIsNone:
+                self.catalog = None
+            raise e
         finally:
             dlg.hide()
 

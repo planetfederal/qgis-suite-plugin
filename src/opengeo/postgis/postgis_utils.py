@@ -109,10 +109,8 @@ class TableField:
         return txt
 
     def _quote(self, ident):
-        if re.match(r"^\w+$", ident) is not None:
-            return ident
-        else:
-            return '"%s"' % ident.replace('"', '""')
+        ident = unicode(ident)
+        return u'"%s"' % ident.replace('"', '""')
 
 
 class GeoDB:
@@ -385,7 +383,7 @@ class GeoDB:
 
     def delete_table(self, table, schema=None):
         """ delete table from the database """
-        if schema is None:            
+        if schema is None:
             sql = "SELECT DropGeometryTable('%s')" % table
         else:
             sql = "SELECT DropGeometryTable('%s', '%s')" % (schema,table)
@@ -608,14 +606,14 @@ class GeoDB:
         else:
             self._exec_sql_and_commit(sql)
 
-    def _exec_sql(self, cursor, sql):             
+    def _exec_sql(self, cursor, sql):
         try:
             cursor.execute(sql)
         except psycopg2.Error, e:
             raise DbError(e.message, e.cursor.query)
 
-    def _exec_sql_and_commit(self, sql):          
-        """ tries to execute and commit some action, on error it rolls back the change """                
+    def _exec_sql_and_commit(self, sql):
+        """ tries to execute and commit some action, on error it rolls back the change """
         try:
             c = self.con.cursor()
             self._exec_sql(c, sql)

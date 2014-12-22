@@ -65,9 +65,6 @@ class ConfigDialog(QDialog):
 
         generalParams = [("SingleTabUI", "Use single tab UI (requires restart)", True),
                          ("ShowDescription", "Show description panel", True),
-                         ("SentryUrl", "Alternative URL for error reporting (requires restart)",""),
-                         ("SentryEmail", "Email for error reporting", ""),
-                         ("SentryUserName", "User name for error reporting", ""),
                          ("ConfirmDelete", "Ask confirmation before deleting",True)]
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../../images/opengeo.png")
         generalItem = self._getItem("General", icon, generalParams)

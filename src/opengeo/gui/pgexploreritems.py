@@ -38,8 +38,8 @@ class PgConnectionsItem(PgTreeItem):
             settings.beginGroup(name)
             try:                                            
                 conn = PgConnection(name, settings.value('host'), int(settings.value('port')), 
-                                settings.value('database'), settings.value('username'), 
-                                settings.value('password'))                 
+                                settings.value('database'), settings.value('username', '', str),
+                                settings.value('password', '', str))
                 item = PgConnectionItem(conn)
                 if conn.isValid:                              
                     item.populate()

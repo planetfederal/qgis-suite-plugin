@@ -20,6 +20,7 @@ class OpenGeoPlugin:
         self.iface.legendInterface().itemAdded.disconnect(self.explorer.updateQgisContent)
         self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateQgisContent)
         pem.removePkiTempFiles(self.explorer.catalogs())
+        self.explorer.deleteLater()
 
     def initGui(self):
         actions = self.iface.mainWindow().menuBar().actions()

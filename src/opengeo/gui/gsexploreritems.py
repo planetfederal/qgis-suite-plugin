@@ -1211,7 +1211,7 @@ class GsWorkspaceItem(GsTreeItem):
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/default-workspace.png")
         setAsDefaultAction = QtGui.QAction(icon, "Set as default workspace", explorer)
-        setAsDefaultAction.triggered.connect(lambda: self.setAsDefaultWorkspace(explorer))
+        setAsDefaultAction.triggered.connect(lambda: self.setAsDefaultWorkspace(tree, explorer))
         setAsDefaultAction.setEnabled(not self.isDefault)
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
         deleteWorkspaceAction = QtGui.QAction(icon, "Delete", explorer)
@@ -1234,11 +1234,27 @@ class GsWorkspaceItem(GsTreeItem):
     def deleteWorkspace(self, tree, explorer):
         self.deleteElements([self], tree, explorer)
 
-    def setAsDefaultWorkspace(self, explorer):
-        explorer.run(self.parentCatalog().set_default_workspace,
-                 "Set workspace '" + self.element.name + "' as default workspace",
-                 [self.parent()],
-                 self.element.name)
+    def setAsDefaultWorkspace(self, tree, explorer):
+        parent = self.parent()
+        expanded = self.isExpanded()
+        if explorer.run(self.parentCatalog().set_default_workspace,
+                        "Set workspace '" + self.element.name + "' as default workspace",
+                        [self.parent()],
+                        self.element.name):
+
+            wsitem = parent  # fallback clicked item, to refresh toolbar
+            items = [parent.child(i) for i in range(0, parent.childCount())]
+            for item in items:
+                if (isinstance(item, GsWorkspaceItem)
+                        and hasattr(item, 'isDefault')):
+                    if item.isDefault:
+                        wsitem = item
+                        break
+
+            tree.setItemSelected(wsitem, True)
+            tree.treeItemClicked(wsitem, 0)
+            # all stores and other workspaces collapse
+            wsitem.setExpanded(expanded)
 
     def acceptDroppedUris(self, tree, explorer, uris):
         return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.element, explorer, tree)

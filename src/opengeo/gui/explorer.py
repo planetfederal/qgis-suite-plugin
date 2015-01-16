@@ -148,14 +148,15 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         config.iface.messageBar().pushWidget(self.progressMessageBar, QgsMessageBar.INFO)
 
     def setInfo(self, msg):
+        config.iface.messageBar().popWidget()
         config.iface.messageBar().pushMessage("Info", msg,
                                               level = QgsMessageBar.INFO,
-                                              duration = 3)
+                                              duration = 10)
 
     def setWarning(self, msg):
         config.iface.messageBar().pushMessage("Warning", msg,
                                               level = QgsMessageBar.WARNING,
-                                              duration = 15)
+                                              duration = 10)
 
     def setError(self, msg):
         firstLine = msg.split("\n")[0]
@@ -173,7 +174,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
         showButton.pressed.connect(showMore)
         widget.layout().addWidget(showButton)
         config.iface.messageBar().pushWidget(widget, QgsMessageBar.CRITICAL,
-                                             duration = 15)
+                                             duration = 10)
 
     def setDescriptionWidget(self, widget = None):
         item = self.descriptionLayout.itemAt(0)

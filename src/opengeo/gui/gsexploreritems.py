@@ -844,7 +844,7 @@ class GsLayerItem(GsTreeItem):
             return
         catalog = self.element.catalog
         catalogItem = tree.findAllItems(catalog)[0]
-        if catalogItem is not None:
+        if catalogItem:
             groupsItem = catalogItem.groupsItem
         else:
             groupsItem = None

@@ -124,8 +124,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
                     allItems.append(value)
             iterator += 1
             value = iterator.value()
-        if not allItems:
-            allItems = [None] #Signal that the whole tree has to be updated
+        #=======================================================================
+        # if not allItems:
+        #     allItems = [None] #Signal that the whole tree has to be updated
+        #=======================================================================
         return allItems
 
 

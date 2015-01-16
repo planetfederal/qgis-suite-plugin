@@ -3,6 +3,7 @@ from qgis.core import *
 from geoserver.layer import Layer
 from opengeo.postgis.table import Table
 from opengeo.geoserver.pki import PKICatalog
+from PyQt4 import QtCore
 
 def layerUri(layer):
     resource = layer.resource
@@ -68,7 +69,8 @@ def layerMimeUri(element):
 def tableUri(table):
         geodb = table.conn.geodb
         uri = QgsDataSourceURI()
-        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, geodb.passwd)
+        passwd = geodb.passwd if not isinstance(geodb.passwd, QtCore.QPyNullVariant) else ""
+        uri.setConnection(geodb.host, str(geodb.port), geodb.dbname, geodb.user, passwd)
         uri.setDataSource(table.schema, table.name, table.geomfield)
         return uri.uri()
 

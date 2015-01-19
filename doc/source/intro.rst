@@ -6,7 +6,7 @@ This section will give a basic introduction to the functionality of the OpenGeo 
 Installing the current development version
 ------------------------------------------
 
-The plugin repository is updated frequently. However, it is not guaranteed that it will contain the same code that can be found in the GitHub repository. If you want to be sure that you are using the latest development version, follow the steps described in the :ref:`developers` section.
+The plugin repository is updated frequently. However, it is not guaranteed that it will contain the same code that can be found in the GitHub repository. If you want to be sure that you are using the latest development version, follow the steps described in the :ref:`developers <developers>` section.
 
 Installing from a zip file
 --------------------------

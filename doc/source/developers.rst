@@ -18,6 +18,7 @@ These are the libraries that the OpenGeo Explorer requires.
 - httplib2 (http://code.google.com/p/httplib2/)
 - raven (http://github.com/getsentry/raven-python)
 - requests (http://www.python-requests.org/en/latest/)
+- psycopg2 (http://initd.org/psycopg/docs/install.html)
 
 If you want to run the tests, you will also need:
 

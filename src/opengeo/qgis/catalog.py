@@ -67,10 +67,13 @@ class OGCatalog(object):
         usedStyles = set()
         styles = self.catalog.get_styles()
         layers = self.catalog.get_layers()
+        groups = self.catalog.get_layergroups()
         for layer in layers:
             usedStyles.add(layer.default_style.name)
             usedStyles.update([s.name for s in layer.styles if s is not None])
-
+        for group in groups:
+            usedStyles.update([s for s in group.styles if s is not None])
+        print group.styles
         toDelete = [s for s in styles if s.name not in usedStyles]
         for style in toDelete:
             style.catalog.delete(style, purge = True)

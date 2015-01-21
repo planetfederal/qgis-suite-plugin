@@ -73,7 +73,6 @@ class OGCatalog(object):
             usedStyles.update([s.name for s in layer.styles if s is not None])
         for group in groups:
             usedStyles.update([s for s in group.styles if s is not None])
-        print group.styles
         toDelete = [s for s in styles if s.name not in usedStyles]
         for style in toDelete:
             style.catalog.delete(style, purge = True)
@@ -475,7 +474,6 @@ class OGCatalog(object):
                 raise Exception ("Layer at %s is not a valid layer" % uri)
             QgsMapLayerRegistry.instance().addMapLayers([qgslayer])
         elif resource.resource_type == "wmsLayer":
-            print resource.href
             qgslayer = QgsRasterLayer(uri, destName or resource.title, "wms")
             if not qgslayer.isValid():
                 raise Exception ("Layer at %s is not a valid layer" % uri)

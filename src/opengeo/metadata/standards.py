@@ -10,7 +10,6 @@ class Standard(object):
 
     def _setNodeValue(self, dom, nodeName, value):
         node = dom.elementsByTagName(nodeName).at(0)
-        print node
         if node is None:
             node = dom.elementsByTagName(nodeName.split(":")[1]).at(0)
             if node is None:

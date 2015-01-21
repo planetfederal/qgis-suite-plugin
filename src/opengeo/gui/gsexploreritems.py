@@ -609,7 +609,7 @@ class GsCatalogItem(GsTreeItem):
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
         removeCatalogAction = QtGui.QAction(icon, "Remove", explorer)
-        removeCatalogAction.triggered.connect(lambda: self.removeCatalog(explorer))
+        removeCatalogAction.triggered.connect(lambda: self.removeCatalog(tree, explorer))
         actions = [removeCatalogAction]
         if self.isConnected:
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/clean.png")
@@ -623,7 +623,7 @@ class GsCatalogItem(GsTreeItem):
         ogcat = OGCatalog(self.catalog)
         explorer.run(ogcat.clean, "Clean (remove unused element)", [self.workspacesItem, self.stylesItem])
 
-    def removeCatalog(self, explorer):
+    def removeCatalog(self, tree, explorer):
         name = self.text(0)
         if name in explorer.catalogs():
             del explorer.catalogs()[name]
@@ -631,9 +631,10 @@ class GsCatalogItem(GsTreeItem):
         settings.beginGroup("/OpenGeo/GeoServer/" + name)
         settings.remove("");
         settings.endGroup();
-        self.parent().takeChild(self.parent().indexOfChild(self))
-        explorer.setDescriptionWidget(QtGui.QWidget())
-        explorer.setToolbarActions([])
+        parent = self.parent()
+        parent.takeChild(self.parent().indexOfChild(self))
+        tree.setItemSelected(parent, True)
+        tree.treeItemClicked(parent, 0)
 
 
     def _getDescriptionHtml(self, tree, explorer):

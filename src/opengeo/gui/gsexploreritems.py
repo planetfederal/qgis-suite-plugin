@@ -551,6 +551,7 @@ class GsCatalogItem(GsTreeItem):
                 self.catalog = None
             raise e
         finally:
+            self.element = self.catalog
             dlg.hide()
 
     def _populate(self):

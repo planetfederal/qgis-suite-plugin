@@ -56,6 +56,13 @@ class PgConnection(object):
             extent = '{},{},{},{}'.format(
                     layer.extent().xMinimum(), layer.extent().xMaximum(),
                     layer.extent().yMinimum(), layer.extent().yMaximum())
+            geomtypes = {QGis.WKBPoint: 3,
+                         QGis.WKBLineString: 4,
+                         QGis.WKBPolygon: 5,
+                         QGis.WKBMultiPoint: 7,
+                         QGis.WKBMultiLineString: 9,
+                         QGis.WKBMultiPolygon: 8}
+            geomtype = geomtypes.get(layer.wkbType(), 0)
             import processing
             from processing.algs.gdal.ogr2ogrtopostgis import Ogr2OgrToPostGis as ogr2ogr
             params = {ogr2ogr.INPUT_LAYER: layer,
@@ -65,7 +72,7 @@ class PgConnection(object):
                         ogr2ogr.USER : self.geodb.user,
                         ogr2ogr.PASSWORD: self.geodb.passwd,
                         ogr2ogr.SCHEMA: schema,
-                        ogr2ogr.GTYPE: 0,
+                        ogr2ogr.GTYPE: geomtype,
                         ogr2ogr.TABLE: tablename,
                         ogr2ogr.S_SRS: layer.crs().authid(),
                         ogr2ogr.T_SRS: layer.crs().authid(),

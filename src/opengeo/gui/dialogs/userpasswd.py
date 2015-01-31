@@ -2,10 +2,10 @@ from PyQt4 import QtGui, QtCore
 
 class UserPasswdDialog(QtGui.QDialog):
     
-    def __init__(self, parent = None):
+    def __init__(self, user=None, passwd=None, parent=None):
         super(UserPasswdDialog, self).__init__(parent)
-        self.user = None
-        self.passwd = None
+        self.user = user
+        self.passwd = passwd
         self.initGui()        
         
     def initGui(self):                         
@@ -18,7 +18,8 @@ class UserPasswdDialog(QtGui.QDialog):
         usernameLabel = QtGui.QLabel('User name')
         usernameLabel.setMaximumWidth(100)
         usernameLabel.setMinimumWidth(100)
-        self.usernameBox = QtGui.QLineEdit()        
+        self.usernameBox = QtGui.QLineEdit()
+        self.usernameBox.setText(self.user if self.user is not None else '')
         horizontalLayout.addWidget(usernameLabel)
         horizontalLayout.addWidget(self.usernameBox)
         verticalLayout.addLayout(horizontalLayout)
@@ -29,8 +30,9 @@ class UserPasswdDialog(QtGui.QDialog):
         passwordLabel = QtGui.QLabel('Password')
         passwordLabel.setMaximumWidth(100)
         passwordLabel.setMinimumWidth(100)
-        self.passwordBox = QtGui.QLineEdit()   
-        self.passwordBox.setEchoMode(QtGui.QLineEdit.Password)       
+        self.passwordBox = QtGui.QLineEdit()
+        self.passwordBox.setEchoMode(QtGui.QLineEdit.Password)
+        self.passwordBox.setText(self.passwd if self.passwd is not None else '')
         horizontalLayout.addWidget(passwordLabel)
         horizontalLayout.addWidget(self.passwordBox)
         verticalLayout.addLayout(horizontalLayout)

@@ -1,6 +1,7 @@
 import os
 from PyQt4.QtCore import *
 from PyQt4 import QtGui
+import sip
 from qgis.core import *
 from qgis.gui import *
 from opengeo.gui.exploreritems import *
@@ -134,7 +135,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             self.progressMaximum = 0
 
     def setProgress(self, value):
-        if self.progress is not None:
+        if self.progress is not None and not sip.isdeleted(self.progress):
             self.progress.setValue(value)
 
     def setProgressMaximum(self, value, msg = ""):

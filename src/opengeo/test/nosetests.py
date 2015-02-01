@@ -6,7 +6,7 @@ and a database named "opengeo"
 
 To run, open the python console in qgis and run the following:
 
-  from opengeo.test import run_nose
+  from opengeo.test.nosetests import run_nose
   run_nose()
 
 A test project will be added after the first step.
@@ -29,7 +29,9 @@ from os.path import (
     abspath, dirname, join
 )
 import sys
+import subprocess
 import tempfile
+import urlparse, urllib
 import webbrowser
 
 
@@ -58,6 +60,20 @@ base_nose_args = ['nose',
 # add a pattern to discover our tests
 base_nose_args.append('-i.*tests')
 
+def path_to_url(path):
+    return urlparse.urljoin(
+        'file:', urllib.pathname2url(os.path.abspath(path)))
+
+def open_browser_tab(url):
+    if sys.platform[:3] in ('win', 'dar'):
+        webbrowser.open_new_tab(url)
+    else:
+        # some Linux OS pause execution on webbrowser open, so background it
+        cmd = 'import webbrowser;' \
+              'webbrowser.open_new_tab("{0}")'.format(url)
+        subprocess.Popen([sys.executable, "-c", cmd],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
 
 def run_nose(module='opengeo.test', open=False):
     '''run tests via nose
@@ -90,5 +106,5 @@ def run_nose(module='opengeo.test', open=False):
         os.chdir(cwd)
 
     if open:
-        webbrowser.open(join(coverage_dir, 'index.html'))
-        webbrowser.open(html_file)
+        open_browser_tab(path_to_url(join(coverage_dir, 'index.html')))
+        open_browser_tab(path_to_url(html_file))

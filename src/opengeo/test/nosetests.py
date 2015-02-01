@@ -19,6 +19,12 @@ when calling the test runner
     run_nose(open=True)
     
 After running, two browser windows should open with the test + coverage results.
+
+If you want to include/exclude specific modules/tests within opengeo.test:
+
+    run_nose(include='guitests', exclude='.*ImportVectorDialog.*')
+
+This equates to the REGEX value of `nosetests` options -i REGEX and -e REGEX.
 '''
 
 import nose
@@ -57,8 +63,6 @@ base_nose_args = ['nose',
         '--html-file=%s' % html_file,
 ]
 
-# add a pattern to discover our tests
-base_nose_args.append('-i.*tests')
 
 def path_to_url(path):
     return urlparse.urljoin(
@@ -75,18 +79,27 @@ def open_browser_tab(url):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
-def run_nose(module='opengeo.test', open=False):
+def run_nose(module='opengeo.test', open=False, include=None, exclude=None):
     '''run tests via nose
     module - defaults to 'opengeo.test' but provide a specific module or test
              like 'package.module' or 'package.module:class' or
              'package.module:class.test'
     open - open results in browser
+    include - module name pattern for including tests, i.e. -i<include>
+    exclude - module name pattern for excluding tests, i.e. -e<exclude>
     '''
 
     print 'writing test output to %s' % output_dir
 
+    # add a pattern to discover or exclude our tests
+    args = list(base_nose_args)
+    args.append('-i{0}'.format(
+        include if include is not None else '.*tests'))
+    if exclude is not None:
+        args.append('-e{0}'.format(exclude))
+
     # and only those in this package
-    nose_args = base_nose_args + [module]
+    nose_args = args + [module]
 
     # if anything goes bad, nose tries to call usage so hack this in place
     sys.argv = ['nose']

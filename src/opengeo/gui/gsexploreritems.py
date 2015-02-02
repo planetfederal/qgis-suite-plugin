@@ -260,9 +260,8 @@ class GsCatalogsItem(GsTreeItem):
                 self.addChild(geoserverItem)
                 geoserverItem.populate()
                 self.setExpanded(True)
-            except FailedRequestError:
-                # a FailedRequestError implies an invalid URL, not an error
-                explorer.setWarning("Could not connect to the catalog at that URL")
+            except FailedRequestError, e:
+                explorer.setWarning(e.args[0])
             except SSLError:
                 explorer.setWarning("Cannot connect using the provided certificate/key values")
             except:

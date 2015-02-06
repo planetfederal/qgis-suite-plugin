@@ -308,6 +308,16 @@ class QgsGroupItem(QgsTreeItem):
         cat = selectCatalog(explorer.catalogs())
         if cat is None:
             return
+        catgroup = cat.get_layergroup(groupname)
+        if catgroup is not None:
+            reply = QtGui.QMessageBox.question(None, "Upload group",
+                                               "A group with the same name already exists in the catalog.\n"
+                                               "Do you want to overwrite it?",
+                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                               QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.No:
+                return
+            cat.delete(catgroup)
         gslayers= [layer.name for layer in cat.get_layers()]
         missing = []
         overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))

@@ -348,7 +348,7 @@ class QgsGroupItem(QgsTreeItem):
                 progress += 1
                 explorer.setProgress(progress)
             explorer.resetActivity()
-        names = [layer.name() for layer in group]
+        names = [layer.name() for layer in reversed(group)]
         def _createGroup():
             layergroup = cat.create_layergroup(groupname, names, names)
             cat.save(layergroup)

@@ -426,7 +426,8 @@ class GsWorkspacesItem(GsTreeItem):
         return [createWorkspaceAction]
 
     def createWorkspace(self, explorer):
-        dlg = DefineWorkspaceDialog()
+        workspaces = [ws.name for ws in self.parentCatalog().get_workspaces()]
+        dlg = DefineWorkspaceDialog(workspaces=workspaces)
         dlg.exec_()
         if dlg.name is not None:
             explorer.run(self.parentCatalog().create_workspace,

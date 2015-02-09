@@ -1,6 +1,7 @@
 import unittest
 from qgis.core import *
 from PyQt4.QtCore import *
+from PyQt4.QtGui import QApplication, QWidget, QHBoxLayout, QToolTip
 from PyQt4.QtTest import QTest
 from opengeo.gui.dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.explorer import OpenGeoExplorer
@@ -14,6 +15,10 @@ from geoserver.catalog import Catalog
 from opengeo.qgis import layers
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo.postgis.schema import Schema
+from opengeo.gui.gsnameutils import GSNameWidget, xmlNameRegex, \
+    xmlNameRegexMsg, xmlNameFixUp
+from opengeo.gui.dialogs.gsnamedialog import GSNameDialog
+from opengeo.gui.contextualhelp import InfoIcon
 
 class CreateCatalogDialogTests(unittest.TestCase):
     
@@ -36,11 +41,11 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("name", dialog.name)
         self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
         settings = QSettings()
-        settings.endGroup(); 
+        settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/name") 
-        settings.remove(""); 
-        settings.endGroup(); 
-        
+        settings.remove("")
+        settings.endGroup()
+
     def testCreateCatalogDialogWithUrlWithoutProtocol(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("name")
@@ -55,10 +60,10 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("name", dialog.name)
         self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
         settings = QSettings()
-        settings.endGroup(); 
+        settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/name") 
-        settings.remove(""); 
-        settings.endGroup();             
+        settings.remove("")
+        settings.endGroup()
         
     def testCreateCatalogDialogUsingExistingName(self):
         self.explorer.catalogs()["name"] = self.cat
@@ -69,11 +74,11 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("name_2", dialog.name)
         settings = QSettings()
         settings.beginGroup("/OpenGeo/GeoServer/name") 
-        settings.remove(""); 
-        settings.endGroup(); 
+        settings.remove("")
+        settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/name_2") 
-        settings.remove(""); 
-        settings.endGroup();        
+        settings.remove("")
+        settings.endGroup()
         del self.explorer.catalogs()["name"]
         
     def testLastCatalogNameIsShownByDefault(self):        
@@ -91,10 +96,10 @@ class CreateCatalogDialogTests(unittest.TestCase):
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         settings = QSettings()
-        settings.endGroup(); 
+        settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/catalogname") 
-        settings.remove(""); 
-        settings.endGroup();
+        settings.remove("")
+        settings.endGroup()
      
 class GroupDialogTests(ExplorerIntegrationTest):
     
@@ -261,9 +266,199 @@ class ImportVectorDialogTest(unittest.TestCase):
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertTrue(dlg.ok)
         self.assertEquals(1, len(dlg.toImport))
-        self.assertIsNone(dlg.tablename)                 
-                
-        
+        self.assertIsNone(dlg.tablename)
+
+
+class GsNameUtilsTest(unittest.TestCase):
+
+    def testGSNameStaticUtils(self):
+        n = xmlNameFixUp('My PG connection')
+        self.assertTrue(n == 'my_pg_connection')
+        nr = xmlNameRegex()
+        self.assertTrue(QRegExp(nr, 0).isValid())
+        nrm = xmlNameRegexMsg()
+        self.assertTrue('XML name' in nrm)
+
+    def testGSNameWidgetInit(self):
+        nw = GSNameWidget(
+            namemsg='Sample is generated from PostgreSQL connection name',
+            name=xmlNameFixUp('My PG connection'),
+            nameregex=xmlNameRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=['name_one', 'name_two', 'name_three'],
+            unique=False,
+            maxlength=10)
+        self.assertEqual(nw.nameBox.count(), 3)
+
+    def testGSNameWidgetValidName(self):
+        nw = GSNameWidget(name='my_pg_connection')
+        self.assertTrue(nw.isValid())
+        self.assertIsNotNone(nw.definedName())
+        self.assertEqual(nw.definedName(), 'my_pg_connection')
+
+        nw.validateName('my_pg_connection')
+        self.assertTrue(nw.isValid())
+        nw.highlightName()
+        self.assertEqual(nw.nameBox.lineEdit().styleSheet(), '')
+
+        # XML valid name
+        nw.setNameRegex(xmlNameRegex(), xmlNameRegexMsg())
+        self.assertTrue(nw.isValid())
+        nw.setName('name_8291')
+        self.assertTrue(nw.isValid())
+        nw.setName('name.with.dots')
+        self.assertTrue(nw.isValid())
+        nw.setName('name:with::colons')
+        self.assertTrue(nw.isValid())
+
+    def testGSNameWidgetInvalidName(self):
+        # base invalid name is empty
+        nw = GSNameWidget(name='')
+        self.assertFalse(nw.isValid())
+
+        nw.validateName('')
+        self.assertFalse(nw.isValid())
+        nw.highlightName()
+        self.assertNotEqual(nw.nameBox.lineEdit().styleSheet(), '')
+
+        # XML invalid name
+        nw.setNameRegex(xmlNameRegex(), xmlNameRegexMsg())
+        nw.setName('xMl_name')
+        self.assertFalse(nw.isValid())
+        self.assertIsNone(nw.definedName())
+        nw.setName('name with spaces')
+        self.assertFalse(nw.isValid())
+        nw.setName('9starts_with_number')
+        self.assertFalse(nw.isValid())
+        nw.setName(':starts_with_punctuation')
+        self.assertFalse(nw.isValid())
+
+        # custom regex invalid name
+        nw.setNameRegex(r'^(?!XML|\d|\W)[a-z](\S(?!::))*', 'regex message')
+        nw.setName('my::name')
+        self.assertFalse(nw.isValid())
+
+    def testGSNameWidgetUniqueName(self):
+        nw = GSNameWidget(
+            name='my_pg_connection',
+            names=['name_one', 'name_two', 'name_three'],
+            unique=False)
+        self.assertTrue(nw.isValid())
+        nw.setName('name_one')
+        self.assertTrue(nw.isValid())
+        self.assertTrue(nw.overwritingName())
+        nw.setUnique(True)
+        self.assertFalse(nw.isValid())
+        self.assertFalse(nw.overwritingName())
+        nw.setUnique(False)
+        self.assertTrue(nw.isValid())
+        self.assertTrue(nw.overwritingName())
+
+    def testGSNameWidgetNames(self):
+        nw = GSNameWidget(
+            name='name_one',
+            names=['name_one', 'name_two', 'name_three'],
+            unique=True)
+        self.assertFalse(nw.isValid())
+
+        nw.setNames(['name_four', 'name_five'])
+        self.assertTrue(nw.isValid())
+        self.assertEqual(nw.nameBox.count(), 2)
+        self.assertEqual(nw.definedName(), 'name_one')
+        nw.setName('name_four')
+        self.assertFalse(nw.isValid())
+        self.assertIsNone(nw.definedName())
+
+        nw.setName('name_one')
+        nw.setNames(['name_one', 'name_two', 'name_three'])
+        self.assertFalse(nw.isValid())
+        self.assertEqual(nw.nameBox.count(), 3)
+        self.assertIsNone(nw.definedName())
+
+        nw.setNames([])
+        self.assertTrue(nw.isValid())
+        self.assertEqual(nw.nameBox.count(), 0)
+        self.assertEqual(nw.definedName(), 'name_one')
+
+    def testGSNameWidgetMaxLenName(self):
+        nw = GSNameWidget(
+            name='my_pg_connection',
+            maxlength=10)
+        self.assertFalse(nw.isValid())
+        nw.setName('my_pg_conn')
+        self.assertTrue(nw.isValid())
+        nw.setMaxLength(5)
+        self.assertFalse(nw.isValid())
+        nw.setMaxLength(10)
+        self.assertTrue(nw.isValid())
+
+
+class GSNameDialogTest(unittest.TestCase):
+
+    def testGSNameDialog(self):
+        ndlg = GSNameDialog(
+            boxtitle='GeoServer data store name',
+            boxmsg='My groupbox message',
+            namemsg='Sample is generated from PostgreSQL connection name.',
+            name=xmlNameFixUp('My PG connection'),
+            nameregex=xmlNameRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=['name_one', 'name_two', 'name_three'],
+            unique=True,
+            maxlength=10)
+
+        # maxlength > 10
+        self.assertFalse(ndlg.okButton.isEnabled())
+        self.assertIsNone(ndlg.definedName())
+        self.assertFalse(ndlg.overwritingName())
+
+        # maxlength = 10
+        ndlg.nameBox.setName('my_pg_conn')
+        self.assertTrue(ndlg.okButton.isEnabled())
+        self.assertEqual(ndlg.definedName(), 'my_pg_conn')
+        self.assertFalse(ndlg.overwritingName())
+
+        # unique = True
+        ndlg.nameBox.setName('name_one')
+        self.assertIsNone(ndlg.definedName())
+        self.assertFalse(ndlg.okButton.isEnabled())
+        self.assertFalse(ndlg.overwritingName())
+
+        del ndlg
+        # unique=False
+        ndlg = GSNameDialog(
+            boxtitle='GeoServer data store name',
+            boxmsg='My groupbox message',
+            name='name',
+            names=['name_one', 'name_two', 'name_three'],
+            unique=False)
+
+        # not overwriting
+        self.assertEqual(ndlg.definedName(), 'name')
+        self.assertTrue(ndlg.okButton.isEnabled())
+        self.assertFalse(ndlg.overwritingName())
+        # overwriting
+        ndlg.nameBox.setName('name_one')
+        self.assertEqual(ndlg.definedName(), 'name_one')
+        self.assertTrue(ndlg.okButton.isEnabled())
+        self.assertTrue(ndlg.overwritingName())
+
+
+class InfoIconTets(unittest.TestCase):
+
+    def testInfoIcon(self):
+        iw = QWidget()
+        layout = QHBoxLayout()
+        layout.setMargin(0)
+        ii = InfoIcon('hover popup text', iw)
+        layout.addWidget(ii)
+        iw.setLayout(layout)
+        iw.show()
+        self.assertEqual(QToolTip.text(), '')
+        QTest.mouseMove(ii)
+        QTest.qWait(2000)
+        self.assertEqual(QToolTip.text(), 'hover popup text')
+
 
 def suite():
     suite = unittest.TestSuite()

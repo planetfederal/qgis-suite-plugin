@@ -952,10 +952,10 @@ class GsLayerItem(GsTreeItem):
 
     def addStyleToLayer(self, explorer):
         cat = self.parentCatalog()
-        dlg = AddStyleToLayerDialog(cat)
+        layer = self.element
+        dlg = AddStyleToLayerDialog(cat, layer)
         dlg.exec_()
         if dlg.style is not None:
-            layer = self.element
             styles = layer.styles
             if dlg.default:
                 default = layer.default_style

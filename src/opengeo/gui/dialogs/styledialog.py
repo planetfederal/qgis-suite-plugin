@@ -96,10 +96,14 @@ class StyleFromLayerDialog(QtGui.QDialog):
         
 class AddStyleToLayerDialog(QtGui.QDialog):
     
-    def __init__(self, catalog, parent = None):
+    def __init__(self, catalog, layer, parent = None):
         super(AddStyleToLayerDialog, self).__init__(parent)
         self.catalog = catalog
-        self.style = None            
+        self.layer = layer
+        styles = layer.styles
+        self.layerstyles = [style.name for style in styles]
+        self.layerdefaultstyle = layer.default_style.name
+        self.style = None
         self.default = None
         self.initGui()        
         
@@ -109,19 +113,31 @@ class AddStyleToLayerDialog(QtGui.QDialog):
         self.setWindowTitle('Add style to layer')
         
         horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)        
+        horizontalLayout.setMargin(0)
         styleLabel = QtGui.QLabel('Style')
+        styleLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                              QtGui.QSizePolicy.Fixed))
         self.styleBox = QtGui.QComboBox()
         styles = [style.name for style in self.catalog.get_styles()]
-        self.styleBox.addItems(styles)
+        sm = QtGui.QStandardItemModel()
+        defaultset = False
+        for style in styles:
+            isdefault = style == self.layerdefaultstyle
+            si = QtGui.QStandardItem(style)
+            si.setEnabled(style not in self.layerstyles and not isdefault)
+            if not defaultset and isdefault:
+                si.setText("{0} [default style]".format(style))
+                defaultset = True
+            sm.appendRow(si)
+        sm.sort(0)
+        self.styleBox.setModel(sm)
         horizontalLayout.addWidget(styleLabel)
         horizontalLayout.addWidget(self.styleBox)
         layout.addLayout(horizontalLayout)
         
         horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)                
+        horizontalLayout.setMargin(0)
         self.checkBox = QtGui.QCheckBox("Add as default style")        
         horizontalLayout.addWidget(self.checkBox)        
         layout.addLayout(horizontalLayout)

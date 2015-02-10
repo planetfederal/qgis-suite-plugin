@@ -2,12 +2,15 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from geoserver.layergroup import UnsavedLayerGroup
+from opengeo.gui.gsnameutils import GSNameWidget, xmlNameRegexMsg, xmlNameRegex
 
 class LayerGroupDialog(QtGui.QDialog):
     def __init__(self, catalog, previousgroup = None):
         self.previousgroup = previousgroup
         self.catalog = catalog        
         QtGui.QDialog.__init__(self)
+        self.groups = catalog.get_layergroups()
+        self.groupnames = [group.name for group in self.groups]
         self.layers = catalog.get_layers()
         self.layernames = [layer.name for layer in self.layers]
         self.styles = [style.name for style in catalog.get_styles()]
@@ -20,26 +23,39 @@ class LayerGroupDialog(QtGui.QDialog):
         self.setWindowTitle("Group definition")
         self.verticalLayout = QtGui.QVBoxLayout(self)
         self.verticalLayout.setSpacing(2)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(6)
         self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setSpacing(30)
-        self.horizontalLayout.setMargin(0)        
-        self.nameLabel = QtGui.QLabel("Group name")        
-        self.nameBox = QtGui.QLineEdit()
+        # self.horizontalLayout.setSpacing(30)
+        self.horizontalLayout.setMargin(0)
+        self.nameLabel = QtGui.QLabel("Group name")
+        self.nameLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Preferred))
+        defaultname = "Group"
         if self.previousgroup:
-            self.nameBox.setText(self.previousgroup.name)
+            defaultname = self.previousgroup.name
+        self.nameBox = GSNameWidget(
+            namemsg='',
+            name=defaultname,
+            nameregex=xmlNameRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=self.groupnames,
+            unique=False if self.previousgroup else True)
+        if self.previousgroup:
             self.nameBox.setEnabled(False)
-        else:
-            self.nameBox.setText("Group")
+        self.nameBox.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred))
+
         self.horizontalLayout.addWidget(self.nameLabel)
         self.horizontalLayout.addWidget(self.nameBox)
         self.verticalLayout.addLayout(self.horizontalLayout)        
         self.horizontalLayout = QtGui.QHBoxLayout(self)
-        self.horizontalLayout.setSpacing(2)
+        self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setMargin(0)
         self.buttonBox = QtGui.QDialogButtonBox()
         self.buttonBox.setOrientation(QtCore.Qt.Vertical)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
+        self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
         self.table = QtGui.QTableWidget()
         self.table.setColumnCount(2)
         self.table.setColumnWidth(0,300)
@@ -59,6 +75,11 @@ class LayerGroupDialog(QtGui.QDialog):
         self.buttonBox.rejected.connect(self.cancelPressed)
         self.selectAllButton.clicked.connect(self.selectAll)
         QtCore.QMetaObject.connectSlotsByName(self)
+
+        self.nameBox.nameValidityChanged.connect(self.okButton.setEnabled)
+        self.nameBox.overwritingChanged.connect(self.updateButtons)
+        self.okButton.setEnabled(self.nameBox.isValid())
+        self.updateButtons(self.nameBox.overwritingName())
 
     def setTableContent(self):
         self.table.setRowCount(len(self.layernames))
@@ -94,11 +115,15 @@ class LayerGroupDialog(QtGui.QDialog):
                 self.table.setCellWidget(i,1, item)
                 i += 1
 
+    @QtCore.pyqtSlot(bool)
+    def updateButtons(self, overwriting):
+        txt = "Overwrite" if overwriting else "OK"
+        self.okButton.setText(txt)
+        self.okButton.setDefault(not overwriting)
+        self.cancelButton.setDefault(overwriting)
+
     def okPressed(self):
-        self.name = self.nameBox.text().replace(" ", "_")
-        if self.name.strip() == "":
-            self.nameBox.setStyleSheet("QLineEdit{background: yellow}")
-            return
+        self.name = unicode(self.nameBox.definedName())
         layers = []
         styles = []
         for i in range(len(self.layernames)):

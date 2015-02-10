@@ -107,20 +107,16 @@ class GroupDialogTests(ExplorerIntegrationTest):
                                         
     def testGroupDialogWithEmptyName(self):
         dialog = LayerGroupDialog(self.cat)
-        dialog.nameBox.setText("")
+        dialog.nameBox.setName("")
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
-        QTest.mouseClick(okWidget, Qt.LeftButton)
-        self.assertIsNone(dialog.group)
-        self.assertEquals("QLineEdit{background: yellow}", dialog.nameBox.styleSheet())
-        
+        self.assertFalse(okWidget.isEnabled())
+
     def testGroupDialogWithNameContaingBlankSpaces(self):
         dialog = LayerGroupDialog(self.cat)
-        dialog.nameBox.setText("my group")
+        dialog.nameBox.setName("my group")
         dialog.table.cellWidget(0, 0).setChecked(True)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
-        QTest.mouseClick(okWidget, Qt.LeftButton)
-        self.assertIsNotNone(dialog.group)
-        self.assertEquals("my_group", dialog.group.name)
+        self.assertFalse(okWidget.isEnabled())
     
     def testSelectAllButton(self):
         dialog = LayerGroupDialog(self.cat)        
@@ -444,7 +440,7 @@ class GSNameDialogTest(unittest.TestCase):
         self.assertTrue(ndlg.overwritingName())
 
 
-class InfoIconTets(unittest.TestCase):
+class InfoIconTest(unittest.TestCase):
 
     def testInfoIcon(self):
         iw = QWidget()

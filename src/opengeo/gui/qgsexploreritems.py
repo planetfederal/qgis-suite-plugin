@@ -373,7 +373,7 @@ class QgsStyleItem(QgsTreeItem):
         return [publishStyleAction, editAction]
 
     def publishStyle(self, tree, explorer):
-        dlg = PublishStyleDialog(explorer.catalogs().keys())
+        dlg = PublishStyleDialog(explorer.catalogs(), self.element.name())
         dlg.exec_()
         if dlg.catalog is None:
             return

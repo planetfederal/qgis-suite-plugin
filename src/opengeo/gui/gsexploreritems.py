@@ -483,7 +483,9 @@ class GsStylesItem(GsTreeItem):
         explorer.run(ogcat.cleanUnusedStyles, "Clean (remove unused styles)", [self])
 
     def createStyleFromLayer(self, explorer):
-        dlg = StyleFromLayerDialog()
+        catalog = self.parentCatalog()
+        styles = [style.name for style in catalog.get_styles()]
+        dlg = StyleFromLayerDialog(styles=styles)
         dlg.exec_()
         if dlg.layer is not None:
             ogcat = OGCatalog(self.catalog)
@@ -491,6 +493,7 @@ class GsStylesItem(GsTreeItem):
                      "Create style from layer '" + dlg.layer + "'",
                      [self],
                      dlg.layer, True, dlg.name)
+            explorer.refreshContent()
 
 
 class GsCatalogItem(GsTreeItem):

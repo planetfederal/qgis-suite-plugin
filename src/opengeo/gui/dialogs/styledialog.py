@@ -43,7 +43,7 @@ class StyleFromLayerDialog(QtGui.QDialog):
                               QtGui.QSizePolicy.Fixed))
         defaultname = ''
         if len(self.alllayers) > 0:
-            defaultname = self.alllayers[0]
+            defaultname = xmlNameFixUp(self.alllayers[0])
         self.nameBox = GSNameWidget(
             namemsg='',
             name=defaultname,
@@ -69,13 +69,17 @@ class StyleFromLayerDialog(QtGui.QDialog):
         buttonBox.accepted.connect(self.okPressed)
         buttonBox.rejected.connect(self.cancelPressed)
 
-        self.layerBox.currentIndexChanged[str].connect(self.nameBox.setName)
+        self.layerBox.currentIndexChanged[str].connect(self.updateNameBox)
         self.nameBox.nameValidityChanged.connect(self.okButton.setEnabled)
         self.nameBox.overwritingChanged.connect(self.updateButtons)
         self.okButton.setEnabled(self.nameBox.isValid())
         self.updateButtons(self.nameBox.overwritingName())
         
         self.resize(400,150)
+
+    @QtCore.pyqtSlot(str)
+    def updateNameBox(self, name):
+        self.nameBox.setName(xmlNameFixUp(name))
 
     @QtCore.pyqtSlot(bool)
     def updateButtons(self, overwriting):

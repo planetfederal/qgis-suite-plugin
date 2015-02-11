@@ -426,7 +426,8 @@ class GsWorkspacesItem(GsTreeItem):
         return [createWorkspaceAction]
 
     def createWorkspace(self, explorer):
-        dlg = DefineWorkspaceDialog()
+        workspaces = [ws.name for ws in self.parentCatalog().get_workspaces()]
+        dlg = DefineWorkspaceDialog(workspaces=workspaces)
         dlg.exec_()
         if dlg.name is not None:
             explorer.run(self.parentCatalog().create_workspace,
@@ -482,7 +483,9 @@ class GsStylesItem(GsTreeItem):
         explorer.run(ogcat.cleanUnusedStyles, "Clean (remove unused styles)", [self])
 
     def createStyleFromLayer(self, explorer):
-        dlg = StyleFromLayerDialog()
+        catalog = self.parentCatalog()
+        styles = [style.name for style in catalog.get_styles()]
+        dlg = StyleFromLayerDialog(styles=styles)
         dlg.exec_()
         if dlg.layer is not None:
             ogcat = OGCatalog(self.catalog)
@@ -490,6 +493,7 @@ class GsStylesItem(GsTreeItem):
                      "Create style from layer '" + dlg.layer + "'",
                      [self],
                      dlg.layer, True, dlg.name)
+            explorer.refreshContent()
 
 
 class GsCatalogItem(GsTreeItem):
@@ -948,10 +952,10 @@ class GsLayerItem(GsTreeItem):
 
     def addStyleToLayer(self, explorer):
         cat = self.parentCatalog()
-        dlg = AddStyleToLayerDialog(cat)
+        layer = self.element
+        dlg = AddStyleToLayerDialog(cat, layer)
         dlg.exec_()
         if dlg.style is not None:
-            layer = self.element
             styles = layer.styles
             if dlg.default:
                 default = layer.default_style

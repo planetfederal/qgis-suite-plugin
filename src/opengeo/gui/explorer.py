@@ -119,7 +119,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
             s = e.message
             if not isinstance(s, unicode):
                 s = unicode(e.message, errors = "ignore").encode("utf-8")
-            self.setError(s + "\n" + traceback.format_exc())
+            self.setError(s + "\n\n<pre>" + traceback.format_exc() + "</pre>")
             noerror = False
         finally:
             QtGui.QApplication.restoreOverrideCursor()

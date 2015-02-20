@@ -19,6 +19,7 @@ class OpenGeoPlugin:
         self.menu.deleteLater()
         self.iface.legendInterface().itemAdded.disconnect(self.explorer.updateQgisContent)
         self.iface.legendInterface().itemRemoved.disconnect(self.explorer.updateQgisContent)
+        self.iface.legendInterface().groupRelationsChanged.disconnect(self.explorer.updateQgisContent)
         self.iface.projectRead.connect(self.explorer.updateQgisContent)
         self.iface.newProjectCreated.connect(self.explorer.updateQgisContent)
         pem.removePkiTempFiles(self.explorer.catalogs())
@@ -45,6 +46,7 @@ class OpenGeoPlugin:
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.explorer)
         self.iface.legendInterface().itemAdded.connect(self.explorer.updateQgisContent)
         self.iface.legendInterface().itemRemoved.connect(self.explorer.updateQgisContent)
+        self.iface.legendInterface().groupRelationsChanged.connect(self.explorer.updateQgisContent)
         self.iface.projectRead.connect(self.explorer.updateQgisContent)
         self.iface.newProjectCreated.connect(self.explorer.updateQgisContent)
         if not settings.value("/OpenGeo/Settings/General/ExplorerVisible", False, bool):

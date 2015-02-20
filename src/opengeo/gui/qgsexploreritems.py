@@ -28,29 +28,14 @@ class QgsProjectItem(QgsTreeItem):
         TreeItem.__init__(self, None, icon, "QGIS project")
 
     def populate(self):
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
-        layersItem = QgsTreeItem(None, icon, "QGIS Layers")
-        layersItem.setIcon(0, icon)
-        layers = qgislayers.getAllLayers()
-        for layer in layers:
-            layerItem = QgsLayerItem(layer)
-            layersItem.addChild(layerItem)
+        layersItem = QgsLayersItem()
+        layersItem.populate()
         self.addChild(layersItem)
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
-        groupsItem = QgsTreeItem(None, icon, "QGIS Groups")
-        groups = qgislayers.getGroups()
-        for group in groups:
-            groupItem = QgsGroupItem(group)
-            groupsItem.addChild(groupItem)
-            groupItem.populate()
+        groupsItem = QgsGroupsItem()
+        groupsItem.populate()
         self.addChild(groupsItem)
-        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        stylesItem = QgsTreeItem(None, icon, "QGIS Styles")
-        stylesItem.setIcon(0, icon)
-        styles = qgislayers.getAllLayers()
-        for style in styles:
-            styleItem = QgsStyleItem(style)
-            stylesItem.addChild(styleItem)
+        stylesItem = QgsStylesItem()
+        stylesItem.populate()
         self.addChild(stylesItem)
 
     def contextMenuActions(self, tree, explorer):
@@ -101,12 +86,46 @@ class QgsProjectItem(QgsTreeItem):
                      [], layergroup)
         tree.findAllItems(catalog)[0].refreshContent(explorer)
 
+class QgsLayersItem(QgsTreeItem):
+    def __init__(self):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
+        TreeItem.__init__(self, None, icon, "QGIS Layers")
+
+    def populate(self):
+        layers = qgislayers.getAllLayers()
+        for layer in layers:
+            layerItem = QgsLayerItem(layer)
+            self.addChild(layerItem)
+
+class QgsGroupsItem(QgsTreeItem):
+    def __init__(self):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
+        TreeItem.__init__(self, None, icon, "QGIS Groups")
+
+    def populate(self):
+        groups = qgislayers.getGroups()
+        for group in groups:
+            groupItem = QgsGroupItem(group)
+            self.addChild(groupItem)
+            groupItem.populate()
+
+class QgsStylesItem(QgsTreeItem):
+    def __init__(self):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
+        TreeItem.__init__(self, None, icon, "QGIS Groups")
+
+    def populate(self):
+        styles = qgislayers.getAllLayers()
+        for style in styles:
+            styleItem = QgsStyleItem(style)
+            self.addChild(styleItem)
 
 class QgsLayerItem(QgsTreeItem):
     def __init__(self, layer ):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         TreeItem.__init__(self, layer, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
@@ -287,6 +306,9 @@ class QgsGroupItem(QgsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/group.gif")
         TreeItem.__init__(self, group , icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+
+    def refreshContent(self, explorer):
+        self.parent().refreshContent(explorer)
 
     def populate(self):
         grouplayers = qgislayers.getGroups()[self.element]

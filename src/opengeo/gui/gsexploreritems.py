@@ -808,7 +808,7 @@ class GsLayerItem(GsTreeItem):
             addStyleToLayerAction.triggered.connect(lambda: self.addStyleToLayer(explorer))
             actions.append(addStyleToLayerAction)
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
-            deleteLayerAction = QtGui.QAction(icon, "Delete", None)
+            deleteLayerAction = QtGui.QAction(icon, "Delete", explorer)
             deleteLayerAction.triggered.connect(lambda: self.deleteLayer(tree, explorer))
             actions.append(deleteLayerAction)
             icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/import_into_qgis.png")

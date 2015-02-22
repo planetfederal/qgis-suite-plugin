@@ -67,6 +67,9 @@ class GSNameWidget(QtGui.QWidget):
 
         self.nameBox = QtGui.QComboBox(self)
         self.nameBox.setEditable(True)
+        # add default name to choice of names, so user can select it again
+        if self.name and self.name not in self.names:
+            self.nameBox.addItem(self.name)
         if self.hasnames:
             self.nameBox.addItems(self.names)
         self.nameBox.setCurrentIndex(-1)
@@ -117,6 +120,8 @@ class GSNameWidget(QtGui.QWidget):
         curname = self.nameBox.currentText()
         self.names = names
         self.nameBox.clear()
+        if self.name and self.name not in self.names:
+            self.nameBox.addItem(self.name)
         if len(names) > 0:
             self.nameBox.addItems(names)
         if curname != self.nameBox.currentText():

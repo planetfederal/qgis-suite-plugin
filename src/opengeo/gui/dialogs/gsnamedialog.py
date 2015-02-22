@@ -98,6 +98,7 @@ class GSXmlNameDialog(GSNameDialog):
             boxmsg='Define unique {0}'.format(kind) +
                    ' or overwrite existing' if not unique else '',
             name=xmlNameFixUp(kwargs.get('name', '')),
+            namemsg=kwargs.get('namemsg', ''),
             nameregex=kwargs.get('nameregex', xmlNameRegex()),
             nameregexmsg=kwargs.get('nameregexmsg', xmlNameRegexMsg()),
             names=kwargs.get('names', None),

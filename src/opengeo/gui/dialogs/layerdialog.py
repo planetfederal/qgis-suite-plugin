@@ -21,24 +21,24 @@ class PublishLayerDialog(QtGui.QDialog):
         self.setWindowTitle('Publish layer')
         layout = QtGui.QVBoxLayout()                                
          
-        verticalLayout = QtGui.QVBoxLayout() 
-        verticalLayout.setSpacing(10)
-        verticalLayout.setMargin(10)           
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)        
+        gridLayout = QtGui.QGridLayout()
+        gridLayout.setSpacing(10)
+        gridLayout.setMargin(10)
         catalogLabel = QtGui.QLabel('Catalog')
-        self.catalogBox = QtGui.QComboBox()        
+        catalogLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                              QtGui.QSizePolicy.Fixed))
+        gridLayout.addWidget(catalogLabel, 0, 0)
+        self.catalogBox = QtGui.QComboBox()
         self.catalogBox.addItems(self.catalogs.keys())
         self.catalogBox.currentIndexChanged.connect(self.catalogHasChanged)
-        horizontalLayout.addWidget(catalogLabel)
-        horizontalLayout.addWidget(self.catalogBox)
-        verticalLayout.addLayout(horizontalLayout)
-        
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)        
+        gridLayout.addWidget(self.catalogBox, 0, 1)
+
         workspaceLabel = QtGui.QLabel('Workspace')
+        workspaceLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                              QtGui.QSizePolicy.Fixed))
+        gridLayout.addWidget(workspaceLabel, 1, 0)
         self.workspaceBox = QtGui.QComboBox()
         cat = self.catalogs[self.catalogs.keys()[0]]      
         self.workspaces = cat.get_workspaces()
@@ -52,14 +52,13 @@ class PublishLayerDialog(QtGui.QDialog):
         self.workspaceBox.addItems(workspaceNames)        
         if defaultName is not None:
             self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
-        horizontalLayout.addWidget(workspaceLabel)
-        horizontalLayout.addWidget(self.workspaceBox)
-        verticalLayout.addLayout(horizontalLayout)
+        gridLayout.addWidget(self.workspaceBox, 1, 1)
 
-        horizontalLayout = QtGui.QHBoxLayout()
-        horizontalLayout.setSpacing(30)
-        horizontalLayout.setMargin(0)
         nameLabel = QtGui.QLabel('Layer')
+        nameLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                              QtGui.QSizePolicy.Fixed))
+        gridLayout.addWidget(nameLabel, 2, 0)
         gslayers = [lyr.name for lyr in cat.get_layers()]
         self.nameBox = GSNameWidget(
             name=xmlNameFixUp(self.layer.name()),
@@ -67,12 +66,10 @@ class PublishLayerDialog(QtGui.QDialog):
             nameregexmsg=xmlNameRegexMsg(),
             names=gslayers,
             unique=False)
-        horizontalLayout.addWidget(nameLabel)
-        horizontalLayout.addWidget(self.nameBox)
-        verticalLayout.addLayout(horizontalLayout)
+        gridLayout.addWidget(self.nameBox, 2, 1)
         
         self.destGroupBox = QtGui.QGroupBox()
-        self.destGroupBox.setLayout(verticalLayout)
+        self.destGroupBox.setLayout(gridLayout)
         
         layout.addWidget(self.destGroupBox)
         
@@ -240,5 +237,4 @@ class PublishLayersDialog(QtGui.QDialog):
     def cancelPressed(self):
         self.topublish = None                
         self.close()             
-        
         

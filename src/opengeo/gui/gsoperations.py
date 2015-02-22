@@ -67,7 +67,8 @@ def publishTable(table, catalog = None, workspace = None):
                          port = geodb.port,
                          user = geodb.user,
                          passwd = geodb.passwd)
-    catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
+    if store is not None:
+        catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
 
 def publishDraggedStyle(explorer, layerName, catalogItem):
     ogcat = OGCatalog(catalogItem.element)

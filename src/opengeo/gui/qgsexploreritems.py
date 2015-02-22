@@ -274,7 +274,7 @@ class QgsLayerItem(QgsTreeItem):
         explorer.resetActivity()
 
     def createStoreFromLayer(self, tree, explorer):
-        dlg = PublishLayerDialog(explorer.catalogs())
+        dlg = PublishLayerDialog(explorer.catalogs(), self.element)
         dlg.exec_()
         if dlg.catalog is None:
             return
@@ -285,20 +285,20 @@ class QgsLayerItem(QgsTreeItem):
         explorer.run(ogcat.upload,
                  "Create store from layer '" + self.element.name() + "'",
                  toUpdate,
-                 self.element, dlg.workspace, True)
+                 self.element, dlg.workspace, True, dlg.layername)
 
     def publishLayer(self, tree, explorer):
-        dlg = PublishLayerDialog(explorer.catalogs())
+        dlg = PublishLayerDialog(explorer.catalogs(), self.element)
         dlg.exec_()
         if dlg.catalog is None:
             return
         cat = dlg.catalog
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
-        explorer.run(publishLayer,
+        explorer.run(ogcat.publishLayer,
                  "Publish layer '" + self.element.name() + "'",
                  [catItem],
-                 ogcat, self.element, dlg.workspace, True)
+                 self.element, dlg.workspace, True, dlg.layername)
 
 
 class QgsGroupItem(QgsTreeItem):

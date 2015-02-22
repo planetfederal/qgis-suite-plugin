@@ -1,13 +1,19 @@
 from PyQt4 import QtGui, QtCore
 
+from opengeo.qgis import layers
+from opengeo.gui.gsnameutils import GSNameWidget, xmlNameFixUp, \
+    xmlNameRegexMsg, xmlNameRegex
+
 
 class PublishLayerDialog(QtGui.QDialog):
     
-    def __init__(self, catalogs, parent = None):
+    def __init__(self, catalogs, layer=None, parent = None):
         super(PublishLayerDialog, self).__init__(parent)
-        self.catalogs = catalogs            
+        self.catalogs = catalogs
+        self.layer = layer
         self.catalog = None
         self.workspace = None
+        self.layername = None
         self.initGui()
         
         
@@ -49,6 +55,21 @@ class PublishLayerDialog(QtGui.QDialog):
         horizontalLayout.addWidget(workspaceLabel)
         horizontalLayout.addWidget(self.workspaceBox)
         verticalLayout.addLayout(horizontalLayout)
+
+        horizontalLayout = QtGui.QHBoxLayout()
+        horizontalLayout.setSpacing(30)
+        horizontalLayout.setMargin(0)
+        nameLabel = QtGui.QLabel('Layer')
+        gslayers = [lyr.name for lyr in cat.get_layers()]
+        self.nameBox = GSNameWidget(
+            name=xmlNameFixUp(self.layer.name()),
+            nameregex=xmlNameRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=gslayers,
+            unique=False)
+        horizontalLayout.addWidget(nameLabel)
+        horizontalLayout.addWidget(self.nameBox)
+        verticalLayout.addLayout(horizontalLayout)
         
         self.destGroupBox = QtGui.QGroupBox()
         self.destGroupBox.setLayout(verticalLayout)
@@ -58,12 +79,21 @@ class PublishLayerDialog(QtGui.QDialog):
         self.spacer = QtGui.QSpacerItem(20,40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
                       
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)                       
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
+        self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
+        self.nameBox.nameValidityChanged.connect(self.okButton.setEnabled)
+        self.nameBox.overwritingChanged.connect(self.updateButtons)
+
         self.buttonBox.accepted.connect(self.okPressed)
         self.buttonBox.rejected.connect(self.cancelPressed)
+
+        # respond to intial validation
+        self.okButton.setEnabled(self.nameBox.isValid())
+        self.updateButtons(self.nameBox.overwritingName())
         
         self.resize(400,160) 
         
@@ -81,16 +111,27 @@ class PublishLayerDialog(QtGui.QDialog):
         self.workspaceBox.addItems(workspaceNames)
         if defaultName is not None:
             self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
-                
+
+        gslayers = [lyr.name for lyr in catalog.get_layers()]
+        self.nameBox.setNames(gslayers)
+
+    @QtCore.pyqtSlot(bool)
+    def updateButtons(self, overwriting):
+        txt = "Overwrite" if overwriting else "OK"
+        self.okButton.setText(txt)
+        self.okButton.setDefault(not overwriting)
+        self.cancelButton.setDefault(overwriting)
     
     def okPressed(self):                
         self.catalog = self.catalogs[self.catalogBox.currentText()]
         self.workspace = self.workspaces[self.workspaceBox.currentIndex()]
+        self.layername = unicode(self.nameBox.definedName())
         self.close()
 
     def cancelPressed(self):
         self.catalog = None        
         self.workspace = None
+        self.layername = None
         self.close()          
         
         

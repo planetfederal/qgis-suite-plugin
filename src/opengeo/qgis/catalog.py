@@ -13,6 +13,7 @@ import os
 from qgis.core import *
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from opengeo.qgis import layers, exporter, utils
 from geoserver.catalog import ConflictingDataError, UploadError, FailedRequestError
 from geoserver.catalog import Catalog as GSCatalog
@@ -22,6 +23,9 @@ from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
 from opengeo.geoserver.pki import PKICatalog, PKIClient
+from opengeo.gui.dialogs.gsnamedialog import getGSStoreName
+from opengeo.gui.dialogs.pgconnectiondialog import getUserPassword
+from opengeo.qgis.utils import UserCanceledOperation
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -173,20 +177,42 @@ class OGCatalog(object):
         return data
 
 
-    def _publishExisting(self, layer, workspace, overwrite):
-        connName = self.getConnectionNameFromLayer(layer)
+    def _publishExisting(self, layer, workspace, overwrite, name):
         uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
+        user = uri.username()
+        passwd = uri.password()
+        # GeoServer's PG connector apparently requires a username.
+        # Username is not required to be defined for a QGIS PG layer (e.g. user can
+        # rely upon PG's default). Username and/or password might be saved in QGIS,
+        # though the user has to choose the option to have them saved
+        if not user or (user and not passwd):
+            newu, newp = getUserPassword(user=user, passwd=passwd)
+            if newu:
+                user = newu
+                passwd = newp
+            else:
+                raise UserCanceledOperation
+
+        connName = self.getConnectionNameFromLayer(layer)
+        storenames = [s.name for s in self.catalog.get_stores(workspace)]
+        storename = getGSStoreName(
+            name=connName,
+            namemsg='Sample is generated from PostgreSQL connection name.',
+            names=storenames,
+            unique=not overwrite)
+
         store = createPGFeatureStore(self.catalog,
-                                     connName,
+                                     storename,
                                      workspace = workspace,
                                      overwrite = overwrite,
                                      host = uri.host(),
                                      database = uri.database(),
                                      schema = uri.schema(),
                                      port = uri.port(),
-                                     user = uri.username(),
-                                     passwd = uri.password())
-        self.catalog.publish_featuretype(uri.table(), store, layer.crs().authid())
+                                     user = user,
+                                     passwd = passwd)
+        if store is not None:
+            self.catalog.publish_featuretype(name, store, layer.crs().authid())
 
 
     def _uploadRest(self, layer, workspace, overwrite, name):
@@ -249,7 +275,7 @@ class OGCatalog(object):
         provider = layer.dataProvider()
         try:
             if provider.name() == 'postgres':
-                self._publishExisting(layer, workspace, overwrite)
+                self._publishExisting(layer, workspace, overwrite, name)
             elif restApi:
                 self._uploadRest(layer, workspace, overwrite, name)
             else:
@@ -482,28 +508,32 @@ class OGCatalog(object):
             raise Exception("Cannot add layer. Unsupported layer type.")
 
 def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
-    host="localhost", port = 5432 , database="db", schema="public", user="postgres", passwd=""):
+    host="localhost", port=5432, database="db", schema="public", user="postgres", passwd=""):
     try:
         store = catalog.get_store(name, workspace)
     except FailedRequestError:
         store = None
-    if store is not None:
-        if overwrite:
-            #if the existing store is the same we are trying to add, we do nothing
-            params = store.connection_parameters
-            if (str(params['port']) == str(port) and params['database'] == database and params['host'] == host
-                    and params['user'] == user):
-                return store
-        else:
-            msg = "There is already a store named " + name
-            if workspace:
-                msg += " in " + str(workspace)
-            raise ConflictingDataError(msg)
 
     if store is None:
         store = catalog.create_datastore(name, workspace)
+    elif overwrite:
+        # if existing store is the same we are trying to add, just return it
+        params = store.connection_parameters
+        if (str(params['port']) == str(port)
+            and params['database'] == database
+            and params['host'] == host
+            and params['user'] == user):
+            return store
+        else:
+            msg = "Cannot overwrite store named '" + str(name) + "'"
+            if workspace is not None:
+                msg += " in '" + str(workspace) + "'"
+            msg += ': connection info is different'
+            raise ConflictingDataError(msg)
+
     store.connection_parameters.update(
         host=host, port=str(port), database=database, user=user, schema=schema,
         passwd=passwd, dbtype="postgis")
+
     catalog.save(store)
     return store

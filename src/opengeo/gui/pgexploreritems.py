@@ -471,8 +471,8 @@ class PgTableItem(PgTreeItem):
         dlg.exec_()
         
     def publishPgTable(self, tree, explorer):
-        dlg = PublishLayerDialog(explorer.catalogs())
-        dlg.exec_()      
+        dlg = PublishLayerDialog(explorer.catalogs(), self.element)
+        dlg.exec_()
         if dlg.catalog is None:
             return
         cat = dlg.catalog          

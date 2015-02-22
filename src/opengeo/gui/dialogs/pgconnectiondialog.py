@@ -2,6 +2,18 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from qgis.core import *
 from opengeo.postgis.connection import PgConnection
+from opengeo.gui.dialogs.userpasswd import UserPasswdDialog
+
+
+def getUserPassword(user=None, passwd=None):
+    updlg = UserPasswdDialog(user=user, passwd=passwd)
+
+    QApplication.setOverrideCursor(QCursor(Qt.ArrowCursor))
+    updlg.exec_()
+    QApplication.restoreOverrideCursor()
+
+    return updlg.user, updlg.passwd
+
 
 class NewPgConnectionDialog(QDialog):
     
@@ -81,7 +93,7 @@ class NewPgConnectionDialog(QDialog):
         usernameLabel = QLabel('User name')
         usernameLabel.setMinimumWidth(150)
         self.usernameBox = QLineEdit()   
-        self.usernameBox.setText(settings.value('/OpenGeo/PostGIS/LastUserName', 'postgres'))
+        self.usernameBox.setText(settings.value('/OpenGeo/PostGIS/LastUserName', 'postgres', str))
         self.usernameBox.setMinimumWidth(250)          
         horizontalLayout.addWidget(usernameLabel)
         horizontalLayout.addWidget(self.usernameBox)
@@ -139,36 +151,32 @@ class NewPgConnectionDialog(QDialog):
             int(self.portBox.text())
         except:
             self.portBox.setStyleSheet("QLineEdit{background: yellow}")                 
-        settings = QSettings();
+        settings = QSettings()
         settings.beginGroup("/PostgreSQL/connections/" + self.nameBox.text())                                                                
-        settings.setValue("host", self.hostBox.text());
-        settings.setValue("port", self.portBox.text());
-        settings.setValue("database", self.databaseBox.text() );
-        settings.setValue("username", self.usernameBox.text());
-        settings.setValue("password", self.passwordBox.text());
+        settings.setValue("host", self.hostBox.text())
+        settings.setValue("port", self.portBox.text())
+        settings.setValue("database", self.databaseBox.text() )
+        settings.setValue("username", self.usernameBox.text())
+        settings.setValue("password", self.passwordBox.text())
         self.conn = PgConnection(self.nameBox.text(), settings.value('host'), int(settings.value('port')), 
                             settings.value('database'), settings.value('username'), 
                             settings.value('password'))
         settings.endGroup()
         settings.beginGroup("/OpenGeo/PostGIS") 
-        settings.setValue("LastHost", self.hostBox.text());
-        settings.setValue("LastPort", self.portBox.text());
-        settings.setValue("LastDatabase", self.databaseBox.text() );
-        settings.setValue("LastUserName", self.usernameBox.text());
+        settings.setValue("LastHost", self.hostBox.text())
+        settings.setValue("LastPort", self.portBox.text())
+        settings.setValue("LastDatabase", self.databaseBox.text() )
+        settings.setValue("LastUserName", self.usernameBox.text())
         settings.endGroup()
         
         #delete the previous connection if it has been renamed
         if self._conn is not None and self.conn.name != self._conn.name: 
             settings.beginGroup("/PostgreSQL/connections/" + self._conn.name) 
-            settings.remove(""); 
-            settings.endGroup();
+            settings.remove("")
+            settings.endGroup()
         
         QDialog.accept(self)        
         
     def reject(self):
         self.conn = None    
         QDialog.reject(self)
-
-        
-        
-       

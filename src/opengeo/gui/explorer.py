@@ -10,6 +10,8 @@ from opengeo import config
 from qgis.utils import pluginMetadata
 import traceback
 from opengeo.gui.dialogs.errorreportdialog import ErrorReportDialog
+from opengeo.qgis.utils import UserCanceledOperation
+
 
 class OpenGeoExplorer(QtGui.QDockWidget):
 
@@ -115,6 +117,8 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 self.refreshContent()
             if msg is not None and not self.isProgressVisible:
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")
+        except UserCanceledOperation:
+            pass
         except Exception, e:
             s = e.message
             if not isinstance(s, unicode):

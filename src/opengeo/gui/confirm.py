@@ -2,6 +2,7 @@
 Routines to ask for confirmation when performing certain operations 
 '''
 from PyQt4 import QtGui, QtCore
+from opengeo.gui.dialogs.gsnamedialog import getGSLayerName
 
 def _confirmationBox(title, msg):
     QtGui.QApplication.restoreOverrideCursor()
@@ -12,11 +13,12 @@ def _confirmationBox(title, msg):
     
     
 def publishLayer (catalog, layer, workspace=None, overwrite=True, name=None):
-    gslayer = catalog.catalog.get_layer(layer.name())
-    if gslayer is None or _confirmationBox("Confirm overwrite", 
-            "A layer named '%s' already exists in the catalog\nDo you want to overwrite it?" % layer.name()):
-        catalog.publishLayer(layer, workspace, overwrite, name)
-        
+    name = name if name is not None else layer.name()
+    gslayers = [lyr.name for lyr in catalog.catalog.get_layers()]
+    lyrname = getGSLayerName(name=name, names=gslayers, unique=not overwrite)
+    catalog.publishLayer(layer, workspace, overwrite, lyrname)
+
+
 def confirmDelete():
     askConfirmation = bool(QtCore.QSettings().value("/OpenGeo/Settings/General/ConfirmDelete", True, bool))
     if not askConfirmation:
@@ -26,4 +28,3 @@ def confirmDelete():
                                                msg, QtGui.QMessageBox.Yes | 
                                                QtGui.QMessageBox.No, QtGui.QMessageBox.No)
     return reply != QtGui.QMessageBox.No
-                        

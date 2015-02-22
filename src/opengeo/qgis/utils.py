@@ -4,6 +4,11 @@ import time
 from PyQt4.QtCore import *
 from qgis.core import *
 
+
+class UserCanceledOperation(Warning):
+    pass
+
+
 def tempFolder():
     tempDir = os.path.join(unicode(QDir.tempPath()), "suiteplugin")
     if not QDir(tempDir).exists():

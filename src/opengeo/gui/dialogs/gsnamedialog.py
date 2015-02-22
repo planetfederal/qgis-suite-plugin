@@ -11,7 +11,9 @@ if __name__ == '__main__':
     # instantiate QApplication before importing QtGui subclasses
     APP = QtGui.QApplication(sys.argv)
 
-from opengeo.gui.gsnameutils import GSNameWidget
+from opengeo.qgis.utils import UserCanceledOperation
+from opengeo.gui.gsnameutils import GSNameWidget, \
+    xmlNameFixUp, xmlNameRegex, xmlNameRegexMsg
 
 
 # noinspection PyAttributeOutsideInit, PyPep8Naming
@@ -85,6 +87,42 @@ class GSNameDialog(QtGui.QDialog):
         self.okButton.setText(txt)
         self.okButton.setDefault(not overwriting)
         self.cancelButton.setDefault(overwriting)
+
+
+class GSXmlNameDialog(GSNameDialog):
+
+    def __init__(self, kind, **kwargs):
+        unique = kwargs.get('unique', False)
+        super(GSXmlNameDialog, self).__init__(
+            boxtitle='GeoServer {0} name'.format(kind),
+            boxmsg='Define unique {0}'.format(kind) +
+                   ' or overwrite existing' if not unique else '',
+            name=xmlNameFixUp(kwargs.get('name', '')),
+            nameregex=kwargs.get('nameregex', xmlNameRegex()),
+            nameregexmsg=kwargs.get('nameregexmsg', xmlNameRegexMsg()),
+            names=kwargs.get('names', None),
+            unique=unique,
+            maxlength=kwargs.get('maxlength', 0),
+            parent=kwargs.get('parent', None))
+
+
+def getGSXmlName(kind, **kwargs):
+    dlg = GSXmlNameDialog(kind=kind, **kwargs)
+    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+    res = dlg.exec_()
+    QtGui.QApplication.restoreOverrideCursor()
+    if res:
+        return dlg.definedName()
+    else:
+        raise UserCanceledOperation()
+
+
+def getGSLayerName(**kwargs):
+    return getGSXmlName('layer', **kwargs)
+
+
+def getGSStoreName(**kwargs):
+    return getGSXmlName('data store', **kwargs)
 
 
 if __name__ == '__main__':

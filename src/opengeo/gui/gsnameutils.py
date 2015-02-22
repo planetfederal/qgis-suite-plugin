@@ -66,6 +66,7 @@ class GSNameWidget(QtGui.QWidget):
         layout.setSpacing(6)
 
         self.nameBox = QtGui.QComboBox(self)
+        self.setMinimumWidth(150)
         self.nameBox.setEditable(True)
         # add default name to choice of names, so user can select it again
         if self.name and self.name not in self.names:

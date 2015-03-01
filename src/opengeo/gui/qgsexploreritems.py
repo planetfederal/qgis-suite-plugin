@@ -209,7 +209,7 @@ class QgsLayerItem(QgsTreeItem):
             return
         explorer.setProgressMaximum(len(toPublish), "Publish layers")
         progress = 0
-        toUpdate = set();
+        toUpdate = set()
         for layer, catalog, workspace, layername in toPublish:
             explorer.setProgress(progress)
             ogcat = OGCatalog(catalog)
@@ -281,10 +281,9 @@ class QgsLayerItem(QgsTreeItem):
         cat = dlg.catalog
         ogcat = OGCatalog(cat)
         catItem = tree.findAllItems(cat)[0]
-        toUpdate = [catItem]
         explorer.run(ogcat.upload,
                  "Create store from layer '" + self.element.name() + "'",
-                 toUpdate,
+                 [catItem],
                  self.element, dlg.workspace, True, dlg.layername)
 
     def publishLayer(self, tree, explorer):
@@ -346,7 +345,7 @@ class QgsGroupItem(QgsTreeItem):
         for layer in group:
             if layer.name() not in gslayers or overwrite:
                 missing.append(layer)
-        toUpdate = set();
+        toUpdate = set()
         toUpdate.add(tree.findAllItems(cat)[0])
 
         if missing:

@@ -257,16 +257,16 @@ class QgsLayerItem(QgsTreeItem):
             return
         explorer.setProgressMaximum(len(toPublish), "Upload layers")
         progress = 0
-        toUpdate = set();
-        for layer, catalog, workspace in toPublish:
+        toUpdate = set()
+        for layer, catalog, workspace, layername in toPublish:
             explorer.setProgress(progress)
             ogcat = OGCatalog(catalog)
-            explorer.run(ogcat.upload,
+            if explorer.run(ogcat.upload,
                      None,
                      [],
-                     layer, workspace, True)
+                     layer, workspace, True, layername):
+                toUpdate.add(tree.findAllItems(catalog)[0])
             progress += 1
-            toUpdate.add(tree.findAllItems(catalog))
             explorer.setProgress(progress)
 
         for item in toUpdate:

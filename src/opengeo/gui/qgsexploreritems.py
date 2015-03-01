@@ -112,7 +112,7 @@ class QgsGroupsItem(QgsTreeItem):
 class QgsStylesItem(QgsTreeItem):
     def __init__(self):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        TreeItem.__init__(self, None, icon, "QGIS Groups")
+        TreeItem.__init__(self, None, icon, "QGIS Styles")
 
     def populate(self):
         styles = qgislayers.getAllLayers()

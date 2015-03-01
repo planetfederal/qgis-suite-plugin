@@ -4,6 +4,8 @@ from opengeo.qgis import layers
 from opengeo.gui.gsnameutils import GSNameWidget, xmlNameFixUp, \
     xmlNameRegexMsg, xmlNameRegex
 
+from functools import partial
+
 
 class PublishLayerDialog(QtGui.QDialog):
     
@@ -134,56 +136,111 @@ class PublishLayerDialog(QtGui.QDialog):
         
         
 class PublishLayersDialog(QtGui.QDialog):
-    
+
     def __init__(self, catalogs, layers, parent = None):
         super(PublishLayersDialog, self).__init__(parent)
         self.catalogs = catalogs        
         self.layers = layers
-        self.topublish = None        
+        self.showCatalogCol = len(self.catalogs) > 1
+        self.columns = []
+        self.nameBoxes = []
+        self.topublish = None
+        self.lyr = "Layer"
+        self.cat = "Catalog"
+        self.wrksp = "Workspace"
+        self.ow = "OW"
+        self.name = "Name"
         self.initGui()
         
         
     def initGui(self):
-        self.resize(500, 300)                         
+        self.resize(760, 400)
         layout = QtGui.QVBoxLayout()                                               
         self.setWindowTitle('Publish layers')         
         self.table = QtGui.QTableWidget(None)
-        
-        columnCount = 1 if len(self.catalogs) == 1 else 2
-        columns = ["Workspace"] if len(self.catalogs) == 1 else ["Catalog", "Workspace"]
-        self.table.setColumnCount(columnCount)
-        self.table.setColumnWidth(0,300)
-        self.table.verticalHeader().setVisible(True)
+
+        self.columns = [self.lyr, self.cat, self.wrksp, self.ow, self.name] if self.showCatalogCol \
+            else [self.lyr, self.wrksp, self.ow, self.name]
+
+        self.table.setColumnCount(len(self.columns))
+        self.table.horizontalHeader().setDefaultSectionSize(120)
+        self.table.setColumnWidth(self.getColumn(self.lyr), 160)
+        self.table.setColumnWidth(self.getColumn(self.wrksp), 160)
+        self.table.setColumnWidth(self.getColumn(self.ow), 25)
+        self.table.setColumnWidth(self.getColumn(self.name), 140)
+        if self.showCatalogCol:
+            self.table.setColumnWidth(self.getColumn(self.cat), 140)
+        self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(True)
-        self.table.setHorizontalHeaderLabels(columns)
-        self.table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self.table.horizontalHeader().setStretchLastSection(True)            
+        self.table.setHorizontalHeaderLabels(self.columns)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setMinimumSectionSize(25)
         self.table.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         self.setTableContent()        
 
+        self.table.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         layout.addWidget(self.table)
         
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel) 
+        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
+        self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 
         self.buttonBox.accepted.connect(self.okPressed)
         self.buttonBox.rejected.connect(self.cancelPressed)
+
+        self.validateNames()  # so OK button is initially updated
+
+    def getColumn(self, name):
+        if name not in self.columns:
+            return None
+        return self.columns.index(name)
         
     def setTableContent(self):
-        showCatalogCol = len(self.catalogs) > 1        
         self.table.setRowCount(len(self.layers))
-        layernames = [layer.name().ljust(25) for layer in self.layers]
-        self.table.setVerticalHeaderLabels(layernames)        
+        cat = self.catalogs.values()[0]
+        catlayers = [lyr.name for lyr in cat.get_layers()]
         for idx, layer in enumerate(self.layers):
-            if showCatalogCol:
-                catalogBox = QtGui.QComboBox()                       
+
+            lyritem = QtGui.QTableWidgetItem(layer.name())
+            lyritem.setToolTip(layer.name())
+            lyritem.setFlags(QtCore.Qt.ItemIsEnabled)
+            self.table.setItem(idx, self.getColumn("Layer"), lyritem)
+
+            nameBox = GSNameWidget(
+                name=xmlNameFixUp(layer.name()),
+                nameregex=xmlNameRegex(),
+                nameregexmsg=xmlNameRegexMsg(),
+                names=catlayers,
+                unique=False)
+            self.table.setCellWidget(idx, self.getColumn(self.name), nameBox)
+
+            self.nameBoxes.append(nameBox)
+
+            overwriteBox = QtGui.QCheckBox()
+            overwriteBox.setEnabled(False)
+            overwriteBox.setToolTip("Overwrite existing layer")
+            self.table.setCellWidget(idx, self.getColumn(self.ow), overwriteBox)
+
+            nameBox.nameValidityChanged.connect(self.validateNames)
+            nameBox.overwritingChanged[bool].connect(overwriteBox.setChecked)
+            overwriteBox.setChecked(nameBox.overwritingName())  # initial update
+
+            if self.showCatalogCol:
+                catalogBox = QtGui.QComboBox()
+                catalogBox.setSizePolicy(
+                    QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                                      QtGui.QSizePolicy.Fixed))
                 catalogBox.addItems(self.catalogs.keys())
-                catalogBox.currentIndexChanged.connect(lambda: self.catalogHasChanged(idx))
-                self.table.setCellWidget(idx, 0, catalogBox)                            
-            workspaceBox = QtGui.QComboBox()                                          
-            cat = self.catalogs.values()[0]
-            workspaces = cat.get_workspaces()            
+                catalogBox.currentIndexChanged.connect(partial(self.catalogHasChanged, idx))
+                self.table.setCellWidget(idx, self.getColumn(self.cat), catalogBox)
+
+            workspaceBox = QtGui.QComboBox()
+            workspaceBox.setSizePolicy(
+                QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                                  QtGui.QSizePolicy.Fixed))
+            workspaces = cat.get_workspaces()
             try:
                 defaultWorkspace = cat.get_default_workspace()
                 defaultWorkspace.fetch()
@@ -194,14 +251,17 @@ class PublishLayersDialog(QtGui.QDialog):
             workspaceBox.addItems(workspaceNames)
             if defaultName is not None: 
                 workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
-            if showCatalogCol:            
-                self.table.setCellWidget(idx, 1, workspaceBox)
-            else:
-                self.table.setCellWidget(idx, 0, workspaceBox)
-    
-    def catalogHasChanged(self, row):        
-        catalogBox = self.table.cellWidget(row, 0)
-        cat = self.catalogs[catalogBox.currentText()]
+            self.table.setCellWidget(idx, self.getColumn(self.wrksp), workspaceBox)
+
+    def catalogHasChanged(self, row):
+        catalogBox = self.table.cellWidget(row, self.getColumn(self.cat))
+        catname = unicode(catalogBox.currentText())
+        cat = self.catalogs[catname]
+
+        catlayers = [lyr.name for lyr in cat.get_layers()]
+        nameBox = self.table.cellWidget(row, self.getColumn(self.name))
+        nameBox.setNames(catlayers)
+
         try:
             defaultWorkspace = cat.get_default_workspace()
             defaultWorkspace.fetch()
@@ -210,31 +270,40 @@ class PublishLayersDialog(QtGui.QDialog):
             defaultName = None  
         workspaces = cat.get_workspaces()        
         workspaceNames = [w.name for w in workspaces]        
-        workspaceBox = self.table.cellWidget(row, 1)
+        workspaceBox = self.table.cellWidget(row, self.getColumn(self.wrksp))
         workspaceBox.clear()
         workspaceBox.addItems(workspaceNames)             
         if defaultName is not None:
-            workspaceBox.setCurrentIndex(workspaceNames.index(defaultName)) 
+            workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
+
+    def validateNames(self):
+        valid = True
+        for namebox in self.nameBoxes:
+            if not namebox.isValid():
+                valid = False
+                break
+        self.okButton.setEnabled(valid)
     
     def okPressed(self):
         self.topublish = []        
         for idx, layer in enumerate(self.layers):
-            if len(self.catalogs) > 1:
-                catalogBox = self.table.cellWidget(idx, 0)
+            nameBox = self.table.cellWidget(idx, self.getColumn(self.name))
+            layername = nameBox.definedName()
+            if self.showCatalogCol:
+                catalogBox = self.table.cellWidget(idx, self.getColumn(self.cat))
                 catalog = self.catalogs[catalogBox.currentText()]
-                workspaceBox = self.table.cellWidget(idx, 1)
+                workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))
                 workspaces = catalog.get_workspaces()
                 workspace = workspaces[workspaceBox.currentIndex()]
-                self.topublish.append((layer, catalog, workspace))
+                self.topublish.append((layer, catalog, workspace, layername))
             else:
                 catalog = self.catalogs.values()[0]
-                workspaceBox = self.table.cellWidget(idx, 0)
+                workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))
                 workspaces = catalog.get_workspaces()
                 workspace = workspaces[workspaceBox.currentIndex()]
-                self.topublish.append((layer, catalog, workspace))
+                self.topublish.append((layer, catalog, workspace, layername))
         self.close()
 
     def cancelPressed(self):
         self.topublish = None                
-        self.close()             
-        
+        self.close()

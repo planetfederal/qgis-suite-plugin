@@ -99,24 +99,40 @@ class GwcLayerItem(GwcTreeItem):
 
 
     def _getDescriptionHtml(self, tree, explorer):
-        try:
-            html = '<p><b>Seeding status</b></p>'
-            state = self.element.getSeedingState()
-            if state is None:
-                html += "<p>No seeding tasks exist for this layer</p>"
-            else:
-                html += "<p>This layer is being seeded. Processed {} tiles of {}</p>".format(state[0], state[1])
-                html += '<p><a href="update">update</a> - <a href="kill">kill</a></p>'
-        except SeedingStatusParsingError:
-            html += '<p>Cannot determine running seeding tasks for this layer</p>'
-        except:
-            html = "<p><b>Could not get information from server. Try refreshing the item to update this description panel</b></p>"
+        html = ""
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
+
+        items = tree.selectedItems()
+        # don't show if multiple items selected, but not the current item
+        if not items or self in items or len(items) == 1:
+            try:
+                html += '<p><b>Seeding status</b></p>'
+                state = self.element.getSeedingState()
+                if state is None:
+                    html += "<p>No seeding tasks exist for this layer</p>"
+                else:
+                    html += "<p>This layer is being seeded. Processed {} tiles of {}</p>".format(state[0], state[1])
+                    html += '<p><a href="update">update</a> - <a href="kill">kill</a></p>'
+            except SeedingStatusParsingError:
+                html += '<p>Cannot determine running seeding tasks for this layer</p>'
+            except:
+                html = "<p><b>Could not get information from server. Try refreshing the item to update this description panel</b></p>"
+
         actions = self.contextMenuActions(tree, explorer)
-        html += "<p><b>Available actions</b></p><ul>"
-        for action in actions:
-            if action.isEnabled():
+        items = tree.selectedItems()
+        if len(items) > 1:
+            actions = self.multipleSelectionContextMenuActions(
+                tree, explorer, items)
+        actsenabled = [act for act in actions if act.isEnabled()]
+        if actsenabled:
+            html += "<p><b>Available actions</b></p><ul>"
+            for action in actsenabled:
                 html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
-        html += '</ul>'
+            html += '</ul>'
         return html
 
 

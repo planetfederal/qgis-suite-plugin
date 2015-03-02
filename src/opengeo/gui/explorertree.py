@@ -12,6 +12,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setColumnCount(1)
         self.header().hide()
+        self.currentItemChanged.connect(self.highlightCurrentItem)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.itemExpanded.connect(self.treeItemExpanded)
@@ -24,33 +25,58 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.catalogs = {}
         self.qgisItem = None
         self.lastClicked = None
+        self.itemSelectionChanged.connect(
+            lambda : self._selectionChanged(explorer))
 
     def refreshContent(self):
         pass
         #self.qgisItem.refreshContent()
+
+    def highlightCurrentItem(self, cur, prev):
+        if cur == prev:
+            return
+        def highlight(item, h):
+            f = item.font(0)
+            f.setUnderline(h)
+            item.setFont(0, f)
+        if prev:
+            highlight(prev, False)
+        if cur:
+            highlight(cur, True)
 
     def getSelectionTypes(self):
         items = self.selectedItems()
         return set([type(item) for item in items])
 
     def treeItemClicked(self, item, column):
+        # handle situation where actions act on current clicked item, but single
+        # selection of another item leads user to think that is being acted upon
+        # fix: when a single selection is created that is not the current item,
+        #      make it the current item, as if the user had clicked only it
+        # NOTE: without a proper model/view setup, this hack is required, unless
+        #       the whole plugin is refactored to work only upon tree selection
+        # see also: self._selectionChanged
+        items = self.selectedItems()
+        if len(items) == 1 and self.currentItem() not in items:
+            self.setCurrentItem(items[0], 0, QtGui.QItemSelectionModel.Current)
+            self.treeItemClicked(items[0], 0)
+            return
+
         self.lastClicked = item
         if hasattr(item, 'descriptionWidget'):
             widget = item.descriptionWidget(self, self.explorer)
             if widget is not None:
                 self.explorer.setDescriptionWidget(widget)
-        allTypes = self.getSelectionTypes()
-        if len(allTypes) != 1:
-            return
-        items = self.selectedItems()
-        if len(items) == 1:
-            actions = item.contextMenuActions(self, self.explorer)
-            if (isinstance(item, TreeItem)):
-                icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")
-                refreshAction = QtGui.QAction(icon, "Refresh", self.explorer)
-                refreshAction.triggered.connect(lambda: item.refreshContent(self.explorer))
-                actions.append(refreshAction)
-            self.explorer.setToolbarActions(actions)
+        actions = item.contextMenuActions(self, self.explorer)
+        if len(items) > 1:
+            actions = item.multipleSelectionContextMenuActions(
+                self, self.explorer, items)
+        if (isinstance(item, TreeItem)):
+            icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/refresh.png")
+            refreshAction = QtGui.QAction(icon, "Refresh", self.explorer)
+            refreshAction.triggered.connect(lambda: item.refreshContent(self.explorer))
+            actions.append(refreshAction)
+        self.explorer.setToolbarActions(actions)
 
     def treeItemDoubleClicked(self, item, column):
         if not isinstance(item, TreeItem):
@@ -129,6 +155,14 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         #     allItems = [None] #Signal that the whole tree has to be updated
         #=======================================================================
         return allItems
+
+    def _selectionChanged(self, explorer):
+        items = self.selectedItems()
+        # see also: self.treeItemClicked about single selection workaround
+        if (len(items) > 1 and self.currentItem() not in items) \
+                or len(items) < 1:
+            # reset widget to whatever was the last current item or nothing
+            explorer.refreshDescription()
 
 
 

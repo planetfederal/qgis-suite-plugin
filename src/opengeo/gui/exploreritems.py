@@ -38,10 +38,14 @@ class TreeItem(QtGui.QTreeWidgetItem):
 
     def getDescriptionHtml(self, tree, explorer):
         html = self._getDescriptionHtml(tree, explorer)
+        txt = self.text(0)
+        items = tree.selectedItems()
+        if len(items) > 1:
+            txt = "Multiple Selection"
         img = ""
         if hasattr(self, "iconPath"):
             img = '<img src="' + self.iconPath() + '"/>'
-        header = u'<div style="background-color:#C7DBFC;"><h1>&nbsp; ' + img + "&nbsp;" + self.text(0) + '</h1></div>'
+        header = u'<div style="background-color:#C7DBFC;"><h1>&nbsp; ' + img + "&nbsp;" + txt + '</h1></div>'
         html = u"""
             <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
             <html>
@@ -63,23 +67,45 @@ class TreeItem(QtGui.QTreeWidgetItem):
         return html
 
     def _getDescriptionHtml(self, tree, explorer):
-        html = "<br>"
+        html = ""
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
         actions = self.contextMenuActions(tree, explorer)
-        if actions:
-            html = "<p><b>Actions:</b></p><ul>"
-            for action in actions:
-                if action.isEnabled():
-                    html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
+        items = tree.selectedItems()
+        if len(items) > 1:
+            actions = self.multipleSelectionContextMenuActions(
+                tree, explorer, items)
+        actsenabled = [act for act in actions if act.isEnabled()]
+        if actsenabled:
+            html += "<p><b>Actions:</b></p><ul>"
+            for action in actsenabled:
+                html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
             html += '</ul>'
         return html
 
     def linkClicked(self, tree, explorer, url):
         actionName = url.toString()
         actions = self.contextMenuActions(tree, explorer)
+        items = tree.selectedItems()
+        if len(items) > 1:
+            actions = self.multipleSelectionContextMenuActions(
+                tree, explorer, items)
         for action in actions:
             if action.text() == actionName:
                 action.trigger()
                 return
+
+    def _checkAllSelectionTypes(self, item, tree):
+        allTypes = tree.getSelectionTypes()
+        if allTypes and len(allTypes) != 1:
+            return False, "Incompatible item types"
+        items = tree.selectedItems()
+        if len(items) > 1 and tree.currentItem() in items:
+            return True, "<h3><b>Current item:</b> <em>{0}</em></h3>".format(item.text(0))
+        return True, ""
 
     def contextMenuActions(self, tree, explorer):
         return []

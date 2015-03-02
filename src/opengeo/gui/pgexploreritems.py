@@ -127,10 +127,20 @@ class PgConnectionItem(PgTreeItem):
             actions.extend([newSchemaAction, sqlAction, importAction])        
         return actions
         
-    def _getDescriptionHtml(self, tree, explorer):  
-        if not self.element.isValid:            
-            html = ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
-                    'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')     
+    def _getDescriptionHtml(self, tree, explorer):
+        if not self.element.isValid:
+            html = ""
+            typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+            if not typesok:
+                return typesmsg
+            else:
+                html += typesmsg
+
+            items = tree.selectedItems()
+            # don't show if multiple items selected, but not the current item
+            if not items or self in items or len(items) == 1:
+                html += ('<p>Cannot connect to this database. This might be caused by missing user/passwd credentials.'
+                        'Try <a href="refresh">refreshing</a> the connection, to enter new credentials and retry to connect</p>')
             return html
         else:
             return TreeItem._getDescriptionHtml(self, tree, explorer)
@@ -486,34 +496,50 @@ class PgTableItem(PgTreeItem):
     def populate(self):
         pass
     
-    def _getDescriptionHtml(self, tree, explorer):                                
-        db = self.element.conn.geodb
-        html = '<h3>General</h3><ul>'
-        properties = (("Row count:", db.get_table_rows(self.element.name, self.element.schema)),
-                      ("Geometry field", self.element.geomfield),
-                      ("Geometry type", self.element.geomtype),
-                      ("SRID", self.element.srid))
-                      
-        for name, value in properties:
-            html += '<li><b>%s</b>: %s' % (unicode(name), unicode(value))
-        html += '<p></p></ul><h3>Fields</h3><table><tr>'
-        headers = ["#", "Name", "Type", "Null", "Default"]
-        for header in headers:
-            html += '<th>%s</th>' % header
-        html += '</tr>' 
-        for field in db.get_table_fields(self.element.name, self.element.schema):
-            html += '<tr>'
-            default = field.default if field.hasdefault else ""
-            values = [field.num, field.name, field.data_type, not field.notnull, default]
-            for value in values:
-                html += '<td>%s</td>' % str(value)
-            html += '</tr>'   
-        html += '</table>'
+    def _getDescriptionHtml(self, tree, explorer):
+        html = ""
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
+
+        items = tree.selectedItems()
+        # don't show if multiple items selected, but not the current item
+        if not items or self in items or len(items) == 1:
+            db = self.element.conn.geodb
+            html += '<h3>General</h3><ul>'
+            properties = (("Row count:", db.get_table_rows(self.element.name, self.element.schema)),
+                          ("Geometry field", self.element.geomfield),
+                          ("Geometry type", self.element.geomtype),
+                          ("SRID", self.element.srid))
+
+            for name, value in properties:
+                html += '<li><b>%s</b>: %s' % (unicode(name), unicode(value))
+            html += '<p></p></ul><h3>Fields</h3><table><tr>'
+            headers = ["#", "Name", "Type", "Null", "Default"]
+            for header in headers:
+                html += '<th>%s</th>' % header
+            html += '</tr>'
+            for field in db.get_table_fields(self.element.name, self.element.schema):
+                html += '<tr>'
+                default = field.default if field.hasdefault else ""
+                values = [field.num, field.name, field.data_type, not field.notnull, default]
+                for value in values:
+                    html += '<td>%s</td>' % str(value)
+                html += '</tr>'
+            html += '</table>'
+            html += '<p></p>'
+
         actions = self.contextMenuActions(tree, explorer)
-        html += '<p></p>'
-        html += '"<h3>Available actions</h3><ul>'
-        for action in actions:
-            if action.isEnabled():
+        items = tree.selectedItems()
+        if len(items) > 1:
+            actions = self.multipleSelectionContextMenuActions(
+                tree, explorer, items)
+        actsenabled = [act for act in actions if act.isEnabled()]
+        if actsenabled:
+            html += '"<h3>Available actions</h3><ul>'
+            for action in actsenabled:
                 html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
-        html += '</ul>'
+            html += '</ul>'
         return html 

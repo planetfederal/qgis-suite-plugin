@@ -642,13 +642,19 @@ class GsCatalogItem(GsTreeItem):
 
 
     def _getDescriptionHtml(self, tree, explorer):
+        html = ""
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
         if self.isConnected:
             try:
-                return self.catalog.about()
+                return html + self.catalog.about()
             except:
                 return "<p><b>Could not get information from server. Try refreshing the item to update this description panel</b></p>"
         else:
-            html = ('<p>You are not connected to this catalog.'
+            html += ('<p>You are not connected to this catalog. '
                     '<a href="refresh">Refresh</a> to connect to it and populate the catalog item</p>')
             return html
 
@@ -710,38 +716,51 @@ class GsLayerItem(GsTreeItem):
 
     def _getDescriptionHtml(self, tree, explorer):
         html = ""
-        try:
-            wsname = self.element.resource.workspace.name
-            if self.isDuplicated:
-                iconPath = os.path.dirname(__file__) + "/../images/warning.png"
-                html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '
-                    + 'This results in an ambiguous situation and unfortunately we cannot differentiate between them. Only one layer is displayed.'
-                    + 'This element represents the layer based on a datastore from the ' + wsname + ' workspace </p>')
-            html += '<p><h3><b>Properties</b></h3></p><ul>'
-            html += '<li><b>Name: </b>' + unicode(self.element.name) + '</li>\n'
-            html += '<li><b>Title: </b>' + unicode(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'
-            html += '<li><b>Abstract: </b>' + unicode(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
-            html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')
-            html += ('<li><b>Datastore workspace: </b>' + wsname + ' </li>\n')
-            bbox = self.element.resource.latlon_bbox
-            if bbox is not None:
-                html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'
-                html += '<li> N:' + str(bbox[3]) + '</li>'
-                html += '<li> S:' + str(bbox[2]) + '</li>'
-                html += '<li> E:' + str(bbox[0]) + '</li>'
-                html += '<li> W:' + str(bbox[1]) + '</li>'
-                html += '</ul>'
-            html += '</ul>'
-        except:
-            html = "<p><b>Could not get layer information from server. Try refreshing the layer to update this description panel</b></p>"
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
 
+        items = tree.selectedItems()
+        # don't show if multiple items selected, but not the current item
+        if not items or self in items or len(items) == 1:
+            try:
+                wsname = self.element.resource.workspace.name
+                if self.isDuplicated:
+                    iconPath = os.path.dirname(__file__) + "/../images/warning.png"
+                    html += ('<p><img src="' + iconPath + '"/> &nbsp; There are several layers with this name in the catalog. '
+                        + 'This results in an ambiguous situation and unfortunately we cannot differentiate between them. Only one layer is displayed.'
+                        + 'This element represents the layer based on a datastore from the ' + wsname + ' workspace </p>')
+                html += '<p><h3><b>Properties</b></h3></p><ul>'
+                html += '<li><b>Name: </b>' + unicode(self.element.name) + '</li>\n'
+                html += '<li><b>Title: </b>' + unicode(self.element.resource.title) + ' &nbsp;<a href="modify:title">Modify</a></li>\n'
+                html += '<li><b>Abstract: </b>' + unicode(self.element.resource.abstract) + ' &nbsp;<a href="modify:abstract">Modify</a></li>\n'
+                html += ('<li><b>SRS: </b>' + str(self.element.resource.projection) + ' &nbsp;<a href="modify:srs">Modify</a></li>\n')
+                html += ('<li><b>Datastore workspace: </b>' + wsname + ' </li>\n')
+                bbox = self.element.resource.latlon_bbox
+                if bbox is not None:
+                    html += '<li><b>Bounding box (lat/lon): </b></li>\n<ul>'
+                    html += '<li> N:' + str(bbox[3]) + '</li>'
+                    html += '<li> S:' + str(bbox[2]) + '</li>'
+                    html += '<li> E:' + str(bbox[0]) + '</li>'
+                    html += '<li> W:' + str(bbox[1]) + '</li>'
+                    html += '</ul>'
+                html += '</ul>'
+            except:
+                html = "<p><b>Could not get layer information from server. Try refreshing the layer to update this description panel</b></p>"
 
         actions = self.contextMenuActions(tree, explorer)
-        html += "<p><h3><b>Available actions</b></h3></p><ul>"
-        for action in actions:
-            if action.isEnabled():
+        items = tree.selectedItems()
+        if len(items) > 1:
+            actions = self.multipleSelectionContextMenuActions(
+                tree, explorer, items)
+        actsenabled = [act for act in actions if act.isEnabled()]
+        if actsenabled:
+            html += "<p><h3><b>Available actions</b></h3></p><ul>"
+            for action in actsenabled:
                 html += '<li><a href="' + action.text() + '">' + action.text() + '</a></li>\n'
-        html += '</ul>'
+            html += '</ul>'
         return html
 
     def linkClicked(self, tree, explorer, url):
@@ -752,24 +771,21 @@ class GsLayerItem(GsTreeItem):
                 r = self.element.resource
                 r.title = text
                 explorer.run(self.catalog.save, "Update layer title", [], r)
-        if actionName == 'modify:abstract':
+        elif actionName == 'modify:abstract':
             text, ok = QtGui.QInputDialog.getText(None, "New abstract", "Enter new abstract", text=self.element.resource.abstract)
             if ok:
                 r = self.element.resource
                 r.abstract = text
                 explorer.run(self.catalog.save, "Update layer abstract", [], r)
-        if actionName == 'modify:srs':
+        elif actionName == 'modify:srs':
             dlg = CrsSelectionDialog()
             dlg.exec_()
             if dlg.authid is not None:
                 r = self.element.resource
                 r.dirty['srs'] = str(dlg.authid)
                 explorer.run(self.catalog.save, "Update layer srs", [], r)
-        actions = self.contextMenuActions(tree, explorer)
-        for action in actions:
-            if action.text() == actionName:
-                action.trigger()
-                return
+        else:
+            TreeItem.linkClicked(self, tree, explorer, url)
 
     def contextMenuActions(self, tree, explorer):
         actions = []
@@ -1391,16 +1407,22 @@ class GsGeonodesItem(GsTreeItem):
     def __init__(self, geonode):
         self.geonode = geonode
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geonode.png")
-        GsTreeItem.__init__(self, None, icon, "GeoNode")
+        GsTreeItem.__init__(self, None, icon, "GeoNodes")
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
     def _getDescriptionHtml(self, tree, explorer):
-        description = '<p> GeoNode URL: ' + self.geonode.url + '</p><p>Right click on a GeoServer layer to publish a layer to GeoNode'
-        return description
+        html = ""
+        typesok, typesmsg = self._checkAllSelectionTypes(self, tree)
+        if not typesok:
+            return typesmsg
+        else:
+            html += typesmsg
+        html += '<p> GeoNode URL: ' + self.geonode.url + '</p><p>Right click on a GeoServer layer to publish a layer to GeoNode'
+        return html
 
 class GsGeonodeItem(GsTreeItem):
-    def __init__(self):
-        #self.catalog = settings.catalog
+    def __init__(self, settings, name, value):
+        self.catalog = settings.catalog
         GsTreeItem.__init__(self, None, None, name)
         self.setText(1, value)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)

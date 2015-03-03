@@ -1,6 +1,4 @@
 from PyQt4 import QtCore, QtGui
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
 class ParameterEditor(QtGui.QWidget):
     def __init__(self, settings, explorer):
@@ -11,7 +9,7 @@ class ParameterEditor(QtGui.QWidget):
         self.setupUi()
 
     def setupUi(self):
-        layout = QVBoxLayout()
+        layout = QtGui.QVBoxLayout()
         layout.setSpacing(2)
         layout.setMargin(0)
         self.tree = QtGui.QTreeWidget()
@@ -28,15 +26,15 @@ class ParameterEditor(QtGui.QWidget):
                 item = QtGui.QTreeWidgetItem()
                 item.setText(0, name)
                 item.setText(1, value)
-                item.setFlags(item.flags() | Qt.ItemIsEditable)
+                item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
                 paramsItem.addChild(item)
             self.tree.addTopLevelItem(paramsItem)
-        button = QPushButton()
+        button = QtGui.QPushButton()
         button.setText("Save")
         button.clicked.connect(self.saveSettings)
         buttonBox = QtGui.QDialogButtonBox()
         buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        buttonBox.addButton(button, QDialogButtonBox.ActionRole)
+        buttonBox.addButton(button, QtGui.QDialogButtonBox.ActionRole)
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 

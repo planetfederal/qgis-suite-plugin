@@ -5,8 +5,9 @@ from urlparse import urlparse
 from geoserver.catalog import FailedRequestError
 import json
 from geoserverexplorer.geoserver.pki import PKICatalog
+from geoserverexplorer.geoserver.retry import RetryDecorator
 
-class Gwc(object):
+class Gwc(RetryDecorator):
 
     def __init__(self, catalog):
         self.catalog = catalog

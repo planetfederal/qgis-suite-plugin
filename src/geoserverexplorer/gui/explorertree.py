@@ -1,9 +1,8 @@
 import os
-from PyQt4.QtCore import *
 from qgis.core import *
 from geoserverexplorer.gui.gsexploreritems import *
 from geoserverexplorer.qgis import uri as uri_utils
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 class ExplorerTreeWidget(QtGui.QTreeWidget):
 
@@ -14,7 +13,7 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         self.setColumnCount(1)
         self.header().hide()
         self.currentItemChanged.connect(self.highlightCurrentItem)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showTreePopupMenu)
         self.itemExpanded.connect(self.treeItemExpanded)
         self.itemClicked.connect(self.treeItemClicked)
@@ -182,8 +181,8 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
 
     def mimeData(self, items):
         mimeData = QtGui.QTreeWidget.mimeData(self, items)
-        encodedData = QByteArray()
-        stream = QDataStream(encodedData, QIODevice.WriteOnly)
+        encodedData = QtCore.QByteArray()
+        stream = QtCore.QDataStream(encodedData, QtCore.QIODevice.WriteOnly)
 
         for item in items:
             if isinstance(item, GsLayerItem):

@@ -1,13 +1,11 @@
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from geoserver.layergroup import UnsavedLayerGroup
 from geoserverexplorer.gui.gsnameutils import GSNameWidget, xmlNameRegexMsg, xmlNameRegex
 
 class LayerGroupDialog(QtGui.QDialog):
     def __init__(self, catalog, previousgroup = None):
         self.previousgroup = previousgroup
-        self.catalog = catalog        
+        self.catalog = catalog
         QtGui.QDialog.__init__(self)
         self.groups = catalog.get_layergroups()
         self.groupnames = [group.name for group in self.groups]
@@ -18,7 +16,7 @@ class LayerGroupDialog(QtGui.QDialog):
         self.setupUi()
         self.group = None
 
-    def setupUi(self):                
+    def setupUi(self):
         self.resize(600, 350)
         self.setWindowTitle("Group definition")
         self.verticalLayout = QtGui.QVBoxLayout(self)
@@ -47,7 +45,7 @@ class LayerGroupDialog(QtGui.QDialog):
 
         self.horizontalLayout.addWidget(self.nameLabel)
         self.horizontalLayout.addWidget(self.nameBox)
-        self.verticalLayout.addLayout(self.horizontalLayout)        
+        self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout = QtGui.QHBoxLayout(self)
         self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setMargin(0)
@@ -99,7 +97,7 @@ class LayerGroupDialog(QtGui.QDialog):
             except ValueError:
                 pass
             self.table.setCellWidget(i,1, item)
-            i += 1        
+            i += 1
         for layer in self.layers:
             if layer.name not in previouslayers:
                 item = QtGui.QCheckBox()
@@ -110,8 +108,8 @@ class LayerGroupDialog(QtGui.QDialog):
                 try:
                     idx = self.styles.index(layer.default_style.name)
                     item.setCurrentIndex(idx)
-                except:                    
-                    pass 
+                except:
+                    pass
                 self.table.setCellWidget(i,1, item)
                 i += 1
 
@@ -158,4 +156,4 @@ class LayerGroupDialog(QtGui.QDialog):
         for i in range(len(self.layernames)):
             widget = self.table.cellWidget(i, 0)
             widget.setChecked(checked)
-            
+

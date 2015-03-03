@@ -1,15 +1,13 @@
 import os
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from qgis.gui import QgsFilterLineEdit
 
 
-class ConfigDialog(QDialog):
+class ConfigDialog(QtGui.QDialog):
 
     def __init__(self, explorer):
         self.explorer = explorer
-        QDialog.__init__(self)
+        QtGui.QDialog.__init__(self)
         self.setupUi()
         if hasattr(self.searchBox, 'setPlaceholderText'):
             self.searchBox.setPlaceholderText(self.tr("Search..."))
@@ -89,7 +87,7 @@ class ConfigDialog(QDialog):
         self.tree.setColumnWidth(0, 400)
 
     def _getItem(self, name, icon, params):
-        item = QTreeWidgetItem()
+        item = QtGui.QTreeWidgetItem()
         item.setText(0, name)
         item.setIcon(0, icon)
         for param in params:
@@ -109,29 +107,29 @@ class ConfigDialog(QDialog):
             iterator += 1
             value = iterator.value()
         self.explorer.refreshContent()
-        QDialog.accept(self)
+        QtGui.QDialog.accept(self)
 
-class TreeSettingItem(QTreeWidgetItem):
+class TreeSettingItem(QtGui.QTreeWidgetItem):
 
     def __init__(self, name, description, defaultValue):
-        QTreeWidgetItem.__init__(self)
+        QtGui.QTreeWidgetItem.__init__(self)
         self.name = name
         self.setText(0, description)
         if isinstance(defaultValue,bool):
-            self.value = QSettings().value(name, defaultValue=defaultValue, type=bool)
+            self.value = QtCore.QSettings().value(name, defaultValue=defaultValue, type=bool)
             if self.value:
-                self.setCheckState(1, Qt.Checked)
+                self.setCheckState(1, QtCore.Qt.Checked)
             else:
-                self.setCheckState(1, Qt.Unchecked)
+                self.setCheckState(1, QtCore.Qt.Unchecked)
         else:
-            self.value = QSettings().value(name, defaultValue=defaultValue)
-            self.setFlags(self.flags() | Qt.ItemIsEditable)
+            self.value = QtCore.QSettings().value(name, defaultValue=defaultValue)
+            self.setFlags(self.flags() | QtCore.Qt.ItemIsEditable)
             self.setText(1, unicode(self.value))
 
     def saveValue(self):
         if isinstance(self.value,bool):
-            self.value = self.checkState(1) == Qt.Checked
+            self.value = self.checkState(1) == QtCore.Qt.Checked
         else:
             self.value = self.text(1)
-        QSettings().setValue(self.name, self.value)
+        QtCore.QSettings().setValue(self.name, self.value)
 

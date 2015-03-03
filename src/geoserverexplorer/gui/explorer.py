@@ -1,12 +1,10 @@
 import os
-from PyQt4.QtCore import *
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import sip
 from qgis.core import *
 from qgis.gui import *
 from geoserverexplorer.gui.exploreritems import *
 from geoserverexplorer import config
-from qgis.utils import pluginMetadata
 import traceback
 from geoserverexplorer.gui.explorertree import ExplorerTreeWidget
 from geoserverexplorer.qgis.utils import UserCanceledOperation
@@ -22,16 +20,16 @@ class GeoServerExplorer(QtGui.QDockWidget):
     def initGui(self):
         self.progressMaximum = 0
         self.isProgressVisible = False
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea | QtCore.Qt.RightDockWidgetArea)
         self.dockWidgetContents = QtGui.QWidget()
         self.setWindowTitle('GeoServer Explorer')
         self.splitter = QtGui.QSplitter()
-        self.splitter.setOrientation(Qt.Vertical)
+        self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.subwidget = QtGui.QWidget()
         self.explorerTree = self.tree = ExplorerTreeWidget(self)
-        showToolbar = QSettings().value("/GeoServer/Settings/General/ShowToolbar", True, bool)
+        showToolbar = QtCore.QSettings().value("/GeoServer/Settings/General/ShowToolbar", True, bool)
         self.toolbar = QtGui.QToolBar()
-        self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
         self.toolbar.setVisible(showToolbar)
         self.setToolbarActions([])
         self.splitter.addWidget(self.explorerTree)
@@ -43,7 +41,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.description.setLayout(self.descriptionLayout)
         self.splitter.addWidget(self.description)
         self.setDescriptionWidget()
-        showDescription = QSettings().value("/GeoServer/Settings/General/ShowDescription", True, bool)
+        showDescription = QtCore.QSettings().value("/GeoServer/Settings/General/ShowDescription", True, bool)
         self.description.setVisible(showDescription)
         self.progress = None
         self.layout = QtGui.QVBoxLayout()
@@ -59,9 +57,9 @@ class GeoServerExplorer(QtGui.QDockWidget):
     def dockStateChanged(self, floating):
         if floating:
             self.resize(800, 450)
-            self.splitter.setOrientation(Qt.Horizontal)
+            self.splitter.setOrientation(QtCore.Qt.Horizontal)
         else:
-            self.splitter.setOrientation(Qt.Vertical)
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
 
     def setToolbarActions(self, actions):
         self.toolbar.clear()
@@ -86,9 +84,9 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.toolbar.update()
 
     def refreshContent(self):
-        showDescription = QSettings().value("/GeoServer/Settings/General/ShowDescription", True, bool)
+        showDescription = QtCore.QSettings().value("/GeoServer/Settings/General/ShowDescription", True, bool)
         self.description.setVisible(showDescription)
-        showToolbar = QSettings().value("/GeoServer/Settings/General/ShowToolbar", True, bool)
+        showToolbar = QtCore.QSettings().value("/GeoServer/Settings/General/ShowToolbar", True, bool)
         self.toolbar.setVisible(showToolbar)
         self.explorerTree.refreshContent()
         self.refreshDescription()
@@ -100,7 +98,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
 
     def run(self, command, msg, refresh, *params):
         noerror = True
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             command(*params)
             for item in refresh:
@@ -141,7 +139,7 @@ class GeoServerExplorer(QtGui.QDockWidget):
         self.progressMessageBar = config.iface.messageBar().createMessage(msg)
         self.progress = QtGui.QProgressBar()
         self.progress.setMaximum(self.progressMaximum)
-        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        self.progress.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress)
         config.iface.messageBar().pushWidget(self.progressMessageBar, QgsMessageBar.INFO)
 

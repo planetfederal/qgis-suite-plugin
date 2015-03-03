@@ -2,8 +2,9 @@ import httplib2
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
 from geoserverexplorer.geoserver.pki import PKICatalog
+from geoserverexplorer.geoserver.retry import RetryDecorator
 
-class Wps(object):
+class Wps(RetryDecorator):
 
     def __init__(self, catalog):
         self.catalog = catalog

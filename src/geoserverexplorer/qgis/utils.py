@@ -1,18 +1,16 @@
 import os
 import uuid
 import time
-from PyQt4.QtCore import *
 from qgis.core import *
-
+from PyQt4 import QtCore
 
 class UserCanceledOperation(Warning):
     pass
 
-
 def tempFolder():
-    tempDir = os.path.join(unicode(QDir.tempPath()), "suiteplugin")
-    if not QDir(tempDir).exists():
-        QDir().mkpath(tempDir)
+    tempDir = os.path.join(unicode(QtCore.QDir.tempPath()), "geoserverplugin")
+    if not QtCore.QDir(tempDir).exists():
+        QtCore.QDir().mkpath(tempDir)
     return unicode(os.path.abspath(tempDir))
 
 def tempFilename(ext):
@@ -38,8 +36,8 @@ def mkdir(newdir):
             mkdir(head)
         if tail:
             os.mkdir(newdir)
-            
+
 def isWindows():
-    return os.name == 'nt'            
+    return os.name == 'nt'
 
 

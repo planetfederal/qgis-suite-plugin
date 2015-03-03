@@ -2,12 +2,8 @@
 
 from geoserverexplorer.gui.rectangletool import RectangleMapTool
 from geoserverexplorer import config
-
 from qgis.core import *
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
 
 class ExtentSelectionPanel(QtGui.QWidget):
 
@@ -29,7 +25,7 @@ class ExtentSelectionPanel(QtGui.QWidget):
         canvas = config.iface.mapCanvas()
         self.prevMapTool = canvas.mapTool()
         self.tool = RectangleMapTool(canvas)
-        self.connect(self.tool, SIGNAL('rectangleCreated()'), self.fillCoords)
+        self.connect(self.tool, QtCore.SIGNAL('rectangleCreated()'), self.fillCoords)
 
     def selectOnCanvas(self):
         canvas = config.iface.mapCanvas()

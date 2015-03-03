@@ -1,8 +1,6 @@
 eclipse.preferences.version=1
 encoding//geoserverexplorer/gui/dialogs/configdialog.py=utf-8
-encoding//geoserverexplorer/gui/dialogs/createtable.py=utf-8
 encoding//geoserverexplorer/gui/dialogs/crsdialog.py=utf-8
-encoding//geoserverexplorer/gui/dialogs/importvector.py=utf-8
 encoding//geoserverexplorer/gui/extentpanel.py=utf-8
 encoding//geoserverexplorer/gui/rectangletool.py=utf-8
 encoding//geoserverexplorer/plugin.py=utf-8

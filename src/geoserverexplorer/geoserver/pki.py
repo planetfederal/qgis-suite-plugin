@@ -1,9 +1,8 @@
-from geoserver.catalog import Catalog
 import httplib2
-from PyQt4.QtCore import *
 from gsimporter.client import Client, _Client
+from geoserverexplorer.geoserver.retry import RetryCatalog
 
-class PKICatalog(Catalog):
+class PKICatalog(RetryCatalog):
 
     def __init__(self, service_url, key, cert, ca_cert):
         self.key = key

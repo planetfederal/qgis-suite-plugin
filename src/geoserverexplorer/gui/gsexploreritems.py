@@ -36,6 +36,7 @@ from geoserverexplorer.gui.gsoperations import publishProject, publishLayers
 from geoserverexplorer.gui.gsoperations import addDraggedLayerToGroup, addDraggedStyleToLayer,\
     publishDraggedLayer
 from geoserverexplorer.qgis.utils import UserCanceledOperation
+from geoserverexplorer.geoserver.retry import RetryCatalog
 
 class GsTreeItem(TreeItem):
 
@@ -235,7 +236,7 @@ class GsCatalogsItem(GsTreeItem):
                 if dlg.certfile is not None:
                     cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
                 else:
-                    cat = Catalog(dlg.url, dlg.username, dlg.password)
+                    cat = RetryCatalog(dlg.url, dlg.username, dlg.password)
                 cat.authid = dlg.authid
                 v = cat.gsversion()
                 supported = (v.startswith("2.3") or v.startswith("2.4")
@@ -464,7 +465,7 @@ class GsCatalogItem(GsTreeItem):
                     QgsAuthManager.instance().loadAuthenticationConfig(authid, configbasic, True)
                     password = configbasic.password()
                     username = configbasic.username()
-                    self.catalog = Catalog(url, username, password)
+                    self.catalog = RetryCatalog(url, username, password)
                 elif authtype in [QgsAuthType.PkiPaths, QgsAuthType.PkiPkcs12]:
                     certfile, keyfile, cafile = pem.getPemPkiPaths(authid, authtype)
                     self.catalog = PKICatalog(url, keyfile, certfile, cafile)
@@ -476,7 +477,7 @@ class GsCatalogItem(GsTreeItem):
                                           QtGui.QLineEdit.Password)
                 if not ok:
                     raise UserCanceledOperation()
-                self.catalog = Catalog(url, username, password)
+                self.catalog = RetryCatalog(url, username, password)
             self.catalog.authid = authid
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:

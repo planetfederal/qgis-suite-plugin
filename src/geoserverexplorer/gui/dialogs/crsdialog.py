@@ -1,16 +1,16 @@
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+
 from qgis.core import *
 from qgis.gui import *
+from PyQt4 import QtGui
 
-class CrsSelectionDialog(QDialog):
+class CrsSelectionDialog(QtGui.QDialog):
 
     def __init__(self):
-        QDialog.__init__(self)
+        QtGui.QDialog.__init__(self)
         self.authid = None
-        layout = QVBoxLayout()
+        layout = QtGui.QVBoxLayout()
         self.selector = QgsProjectionSelector(self)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Close)
+        buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)
         layout.addWidget(self.selector)
         layout.addWidget(buttonBox)
         self.setLayout(layout)

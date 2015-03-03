@@ -4,9 +4,8 @@ import xml.etree.ElementTree as ET
 from urlparse import urlparse
 from geoserver.support import url
 from geoserverexplorer.geoserver.pki import PKICatalog
-from geoserverexplorer.geoserver.retry import RetryDecorator
 
-class Settings(RetryDecorator):
+class Settings(object):
 
     def __init__(self, catalog):
         self.catalog = catalog

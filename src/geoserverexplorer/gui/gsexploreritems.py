@@ -14,7 +14,6 @@ from geoserverexplorer.gui.exploreritems import TreeItem
 from dialogs.groupdialog import LayerGroupDialog
 from dialogs.workspacedialog import DefineWorkspaceDialog
 from geoserver.layergroup import UnsavedLayerGroup
-from geoserver.catalog import Catalog
 from geoserver.catalog import FailedRequestError
 import traceback
 from geoserverexplorer.geoserver.wps import Wps
@@ -32,9 +31,7 @@ from geoserverexplorer.gui.confirm import confirmDelete
 from geoserverexplorer.geoserver.pki import PKICatalog
 from _ssl import SSLError
 from geoserverexplorer.geoserver import pem
-from geoserverexplorer.gui.gsoperations import publishProject, publishLayers
-from geoserverexplorer.gui.gsoperations import addDraggedLayerToGroup, addDraggedStyleToLayer,\
-    publishDraggedLayer
+from geoserverexplorer.gui.gsoperations import *
 from geoserverexplorer.qgis.utils import UserCanceledOperation
 from geoserverexplorer.geoserver.retry import RetryCatalog
 
@@ -613,7 +610,10 @@ class GsCatalogItem(GsTreeItem):
     def acceptDroppedUris(self, tree, explorer, uris):
         if not self.isConnected:
             return []
-        return addDraggedUrisToWorkspace(uris, self.element, self.getDefaultWorkspace(), explorer, tree)
+        ws = self.getDefaultWorkspace()
+        if ws is None:
+            return []
+        return addDraggedUrisToWorkspace(uris, self.element, ws, explorer, tree)
 
 
 class GsLayerItem(GsTreeItem):

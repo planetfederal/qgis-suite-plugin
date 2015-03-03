@@ -3,31 +3,12 @@
 Available commands and actions
 ===============================
 
-This document contains a listing of available actions in the OpenGeo Explorer.
+This document contains a listing of available actions in the GeoServer Explorer.
 
 Context menu actions
 *********************
 
-Below you can find more detailed information about commands available depending on the type of element you click onto in the OpenGeo Explorer, and a more detailed explanation about how to use them.
-
-
-GeoServer
-----------
-
-GeoServer catalogs are defined using the :guilabel:`New catalog...` option in the :guilabel:`GeoServer catalogs` item. A catalog is defined using the following dialog:
-
-.. image:: img/intro/add_catalog.png
-	:align: center
-
-Basic authentication is supported, as well as certificate-based authentication. Select the corresponding tab and enter the required parameters. The active tab in the window will define the type of authentication to use, even if the other tab has data in its text boxes.
-
-The certificate parameters should both point at PEM files with certificates and keys. A CA root certificates file can be configured in the OpenGeo Suite plugin setting dialog, which will be used along with the key and certificate files.
-
-There are certain limitations when using PKI authentication. See the :ref:`pkilimitations`section to know more about them.
-
-The GeoNode url is needed if you want to publish a GeoServer layer to a GeoNode endpoint. Otherwise, it is optional, and you can leave the default value.
-
-The list of catalogs is empty by default when you start the OpenGeo Explorer. See the :ref:`gs_connections` section to know how to keep a list of previously opened catalogs, so you do not have to define them and connect to them in each session.
+Below you can find more detailed information about commands available depending on the type of element you click onto in the GeoServer Explorer, and a more detailed explanation about how to use them.
 
 
 This is a detailed  list of actions available for each item under the :guilabel:`GeoServer` branch.
@@ -36,7 +17,7 @@ This is a detailed  list of actions available for each item under the :guilabel:
 
 	- :guilabel:`Clean (remove unused elements)`. Cleans all styles in the catalog that are not used by any layer, and all stores that are not published through any layer.
 
-	- :guilabel:`Remove`. Removes the catalog from the list of connected ones. This also removes it from the list that is kept between sessions, so it will not appear the next time that QGIS is started and the OpenGeo Explorer is run.
+	- :guilabel:`Remove`. Removes the catalog from the list of connected ones. This also removes it from the list that is kept between sessions, so it will not appear the next time that QGIS is started and the GeoServer Explorer is run.
 
 - GeoServer Feature type/Coverage item.
 
@@ -161,206 +142,39 @@ GeoWebCache
 
 		Instead, you can use QGIS as usual while the operation is running in the background, and to update the status, just click on the :guilabel:`update` link in the description box to get the current number of processed tiles. If you want to stop the seeding operation, just click on the :guilabel:`kill` link.
 
-PostGIS
-----------
-
-The functionality in the PostGIS branch is similar to that of the QGIS DB Manager, but with some additional operations and integrated with the other elements that can be managed from the OpenGeo explorer. It contains the list of connections currently available in QGIS. If passwords were not stored when the DB connection was created, the connection will not be possible, and the corresponding tree element will not be populated with the available schemas. This is indicated with a different icon in the connection element.
-
-.. image:: img/actions/wrong_db.png
-	:align: center
-
-To reconnect a wrong connection, select the :guilabel:`Refresh` option. You will be prompted for the username and password, and a new attemp will be made to conenct to the PostGIS database.
-
-.. image:: img/actions/db_credentials.png
-	:align: center
-
-The following actions are available for items in the PostGIS branch.
-
-- PostGIS connections item
-
-	- :guilabel:`Add new connection`. Adds a new PostGIS connection. The connection is not defined through the usual QGIS connection dialog, but a custom one instead.
-
-		.. image:: img/actions/new_pg_connection.png
-			:align: center
-
-		At the moment, this dialog does not allow to configure all the parameters that can be set up through the built-in dialog. Also, passwords and user names are always stored in this case. If this doesn't fit your needs, please, create the new connection through the usual interface, using the :guilabel:`Add PostGIS layers` menu entry and then creating a new connection. After doing it, refresh the :guilabel:`PostGIS connections` entry in the OpenGeo explorer, since it will not be automatically updated. 
-
-
-- PostGIS connection item
-
-	- :guilabel:`Edit...`. Edits the connection parameters of this PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for the OpenGeo Explorer. As in the case of adding a new connection, you can also edit it using the :guilabel:`Add PostGIS layers` QGIS command, but the Explorer tree will not be automatically updated. Refreshing the connection or the :guilabel:`PostGIS connections` item is needed to update the tree.
-
-		When a connection is edited using the OpenGeo explorer, user name and password are stored, even if when defining it originally using the QGIS interface this option was disabled. Use the QGUI UI instead if you want to edit the connection but not store the password. You will need to enter it each time you start the Explorer or refresh the PostGIS branch in the Explorer tree, to connect to the database.
-
-	- :guilabel:`New schema`. Creates a new schema. You will be prompted to enter the name for the new schema in an input box.
-
-	- :guilabel:`Import files`. Imports a set of files with data into the selected schema. The following window is shown.
-
-		 .. image:: img/actions/import_postgis.png
-		 	:align: center
-
-		 Click on the button in the :guilabel:`Layers` group and select the files you want to import. Then select the destination schema and table. You can select the name of a preexisting table or enter the name you want. In case of selecting a preexisting table, click on the :guilabel:`Add to table` checkbox to add the imported data to the current content of the table. Otherwise, the table will be deleted and a new one with that name created. If you select the :guilabel:`Add to table` box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
-
-		 There is an additional option, :guilabel:`[use file name]`, which will set the table name based on the name of the file to import (without extension). The :guilabel:`Add to table` box applies also in this case.
-
-		 When two or more files are selected, the :guilabel:`Add to table` box will automatically be checked in case a table name option other than :guilabel:`[use file name]` is selected. In this case, it makes no sense to overwrite the destination table, since all imported files are going to be imported into the same table, and that will cause each one to overwrite the previous ones, leaving in the final table just the content of the last file.
-
-		 When ussing the :guilabel:`Add to table` option, all imported layers should have a feature type compatible with that of table to which they are going to be added. However, the Explorer doesn't perform any checking itself. If feature types are not compatible, PostGIS will refuse to add the layer and raise an error.
-
-		 This command supports only vector layers. Importing raster layers is currently not supported in the plugin, even if the PostGIS database you are connected to has support for raster data.
-
-		 You can cehck to "Import as single geometries" box to force all geometries to be imported as single geometries instead of multi-geometries. All features with multiple geometries will be automaticaly converted.
-
-		 .. note:: If the import is done without the :guilabel:`Add to table` option, it will be performed completely by QGIS. However, if using the :guilabel:`Add to table` option, the import relies on the ``shp2pgsql`` utility, which has to be in your ``PATH`` environment variable so it can be called from QGIS. If you are using OpenGeo Suite, you should have no problems, but if you are running your own installation of PostGIS, make sure that your ``PATH`` variable is correctly configured. To check it, just open a shell and type ``shp2pgsql`` to see that it can be correctly found and executed.
-
-	- :guilabel:`Run SQL`. Opens the DB manager SQL dialog, where SQL sentences can be entered and run.
-
-		.. image:: img/actions/runsql.png
-		 	:align: center
-
-
-- PostGIS schema item
-
-	- :guilabel:`New table`. Creates a new table. Creates a new table with the specified structure. The table definition is done in the following dialog.
-
-		.. image:: img/actions/create_table.png
-			:align: center
-
-	- :guilabel:`Delete`. Deletes the schema. It has to be empty to be removed. Otherwise, PostGIS will refuse to delete it.
-
-	- :guilabel:`Rename`. Renames the schema.
-
-	- :guilabel:`Import files`. Same as the import command for connection items, but the schema field in the import dialog is not enabled.
-
-- PostGIS table item
-
-	- :guilabel:`Delete`. Deletes the table.
-
-	- :guilabel:`Rename...`. Renames the table.
-
-	- :guilabel:`Edit...`. Opens the DB manager table edit dialog, which allows to edit the structure of the table and its properties.
-
-		.. image:: img/actions/edit_table.png
-		 	:align: center
-
-
-	- :guilabel:`Run vacuum analyze`. Vacuums the table
-
-
-QGIS project
---------------
-
-- QGIS layer item
-
-	- :guilabel:`Publish...`. Publishes the layer to a GeoServer catalog. It creates a store and resource, and a layer based on it. If the layer is a vector layer, the corresponding styling defined in QGIS or that layer will be published and used for the layer. The catalog and workspace are selected in a dialog like the one shown below
-
-		.. image:: img/actions/publish_layer.png
-			:align: center
-
-		When publishing a layer this way, you do not have to worry about the layer origin. The plugin code will take care of converting your data to a suitable format to be uploaded to GeoServer. If the current format of the layer is not supported, an intermediate Shapefile or Tiff file will be created, and then used to create the corresponding datastore from which the layer will then be published.
-
-
-		The name of the layer in the QGIS TOC will be used as name for the resource, layer and corresponding. If elements exist with those names, they will be overwritten
-
-		If you try to publish a QGIS layer that is based on a PostGIS connection, a PostGIS datastore will be created, instead of a file--based one. A feature type corresponding to the layer to publish will be created for that datastore. If a PostGIS datastore with the same name and connection parameters already exist, no new datastore is created, and the featuretype will be directly created under it. This allows to publish several layer based on a single PostGIS connection. The name of the datastore will be the name of the corresponding QGIS PostGIS connection, and the name of the featuretype will be the name of the layer.
-
-		The current symbology is used to create a style that is layer used from the published the layer. In the case of raster layers, since QGIS does not support SLD styling of raster layers, the symbology is not used. A default style is used instead. In the case of 3--band images, a RGB style is used. In the case of single--band layers, a grayscale style is used.
-
-	- :guilabel:`Create store from layer`. Like the command above, but it does not publish or use the styling. 
-
-	- :guilabel:`Edit/view layer metadata`. Open the metadata editor/viewer. More information about the metadata interface is provided in the :ref:`metadata` section.
-
-
-- QGIS group item
-
-	- :guilabel:`Publish`. Publishes the selected group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGIS layers will not be used. Otherwise, layers belonging to the QGIS group to publish will be published as well.
-
-		If you want all layers to be published, even if there is a layer with the same name in the catalog, the :guilabel:`Overwrite layers when uploading group` should be checked in the configuration dialog. This option is enabled by default.
-
-		The command will first ask you to select a catalog, in case there are several catalogs currently configured. Then, it will check the layers in the selected catalog, to see if there are missing layers. If so, the layer publish dialog will be shown, containing the layers that have to be published before the group can be created, so you can specify the destintaion workspace for each of them.
-
-		.. image:: img/actions/publish_layers_single_catalog.png
-			:align: center
-
-		The set of layers to publish depends on the configuration of the :guilabel:`Overwrite layers when uploading group` setting. If it is set to true, all layers of the group will be included, since all of them will be published even if layers with the same name already exist in the catalog.
-
-- QGIS style item
-
-	- :guilabel:`Publish`. Publishes the selected style. The operation is defined in the dialog shown below.
-
-		.. image:: img/actions/publish_style.png
-			:align: center
-
-		If no name is entered in the textbox, the name of the layer will be used as sytle name. Otherwise, the specified name will be used.
-
-- QGIS project item
-
-	- :guilabel:`Publish`. Publishes all the layers in the project. The publish operation is configured through the following dialog.
-
-		.. image:: img/actions/publish_project.png 
-			:align: center
-
-		All layers will be published to the selected workspace. 
-
-		If there are groups in the QGIS project, they will also be created. Groups are not overwritten when publishing a project. If a group with the same name exists in the catalog, a warning message will be shown and the group will not be uploaded.
-
-		If you want to create a group containing all the published layers, enter its name in the :guilabel:`Global group name` textbox. Otherwise, leave it empty and the global group will not be created.
-
-
 
 Multiple selection
 *******************
 
-You can select multiple elements of the same type (i.e. multiple QGIS layers), to automate operations. For instance, let's say that you have several layers in your current project. Select them all (click while pressing the Ctrl or Shift keys) and then right--click and select :guilabel:`Publish...`. You will get see to a dialog like the following one.
-
-.. image:: img/actions/publish_layers_multiple_catalogs.png
-	:align: center
-
-This is the same dialog that appears in case of publishing a group to a GeoServer catalog. Notice, however, that in the case of a group, all layers for that group have to be imported into the catalog where the group will be created, so the layer publishing dialog doesn't let you select the catalog, but only the workspace for each layer. In this case, there is more flexibility, so an additional column is show, which can be used to select the catalog for each layer. Changing the selected catalog at a given row will automatically update the list of workspaces in that row, so it contains the workspaces of that catalog.
-
-If only one catalog exists in the Explorer tree, the catalog column will not be shown.
-
-Configure the catalog (if available) and workspace you want to upload each layer to, and a multiple upload will be executed.
-
-Another task than can be done with a multiple selection is creating a new group. Just select a set of layers, right--click on them and select :guilabel:`Create group...`. A new group will be created with those layers, using the default style of each of them. For a more fine-grained definition of the group, remember that you can use the :guilabel:`Create new group...` option in the :guilabel:`GeoServer Groups` item
+You can select multiple elements of the same type (i.e. multiple layers), to automate operations. For instance, you can create a new group with a set of selected layers. Just select a set of layers, right--click on them and select :guilabel:`Create group...`. A new group will be created with those layers, using the default style of each of them. For a more fine-grained definition of the group, remember that you can use the :guilabel:`Create new group...` option in the :guilabel:`Groups` item
 
 Double-clicking on tree items
 ******************************
 
-Certain items respond to double-clicking. If the corresponding element can be edited, the edition can be started by double-clicking on it instead of using the corresponding context menu entry. For instance, double-clicking on a GeoServer group item will open the dialog to define the layers that are included in that group.
+Certain items respond to double-clicking. If the corresponding element can be edited, the edition can be started by double-clicking on it instead of using the corresponding context menu entry. For instance, double-clicking on a group item will open the dialog to define the layers that are included in that group.
 
 Drag & drop operations
 ***********************
 
-The Explorer tree supports drag & drop, and you can use it to relocate elements, publish data or edit the configuration of an element. 
+The Explorer tree supports drag & drop, and you can use it to relocate elements, set the style of a layer or edit the configuration of an element, among other tasks 
 
 .. image:: img/actions/dragdrop.png
 	:align: center
 
 Below you can find more information about the operations that can be performed this way.
 
-- Dragging a QGIS layer item onto a GeoServer item element. It will publish the layer on the workspace where the item was dropped, or on the parent workspace if the destination element is of type Resource/Store. Otherwise, it will publish to the default workspace.
 - Dragging a GeoServer layer item onto a GeoServer group element. It adds the layer to the group, using its default style.
 - Dragging a GeoServer or QGIS style item onto a GeoServer layer. It adds the style to the list of alternative styles of the layer.
-- Dragging a QGIS style into the :guilabel:`Styles` element of a catalog or a catalog item itself. It adds the style to that catalog.
-- Dragging a QGIS style into a GeoServer layer element. It publishes the style to the catalog the layer belongs to, and then adds the style to the list of alternative styles of the layer.
-- Dragging a QGIS group element into the :guilabel:`Groups`, :guilabel:`Workspaces`, :guilabel:`Layers` of a catalog, or the catalog item itself. The group is published and all layers that do not exist in the catalog and need to be published as well, their corresponding stores will be added to the default workspace. If dropped on a workspace item, that workspace will be used as destination.
-- Dragging a GeoServer layer item onto the :guilabel:`GeoWebCache layers` item of the same catalog. It will add the corresponding cached layer for the dragged layer.
-- Dragging a QGIS layer into a PostGIS connection or schema item. It will import the layer into the corresponding PostGIS database. The import dialog is shown before importing.
-- Dragging a QGIS layer into a PostGIS table item. It will append the dragged layer to the existing table, not overwriting it. No checking is performed, so the schema of the imported layer should match the schema of the table. Otherwise, PostGIS will throw an error.
-- Draggin a PostGIS table item into a GeoServer catalog or workspace item. It will publish a new layer based on that table, using the item workspace or the default workspace in case of dropping onto a catalog item
-
+- Dragging a GeoServer layer item onto the *GeoWebCache layers* item of the same catalog. It will add the corresponding cached layer for the dragged layer.
 
 Multiple elements can be selected and dragged, as long as they are of the same type.
 
-You can also drag elements from outside of the OpenGeo Explorer itself. For instance, you can open the QGIS browser, select some files with raster or vector data and drag and drop them into a PostGIS database or Geoserver catalog element in the explorer. That will cause the data in those files to be imported into the corresponding database or catalog. Format conversion will be performed automatically if needed.
+You can also drag elements from outside of the GeoServer Explorer itself. For instance, you can open the QGIS browser, select some files with raster or vector data and drag and drop them into a PostGIS database or Geoserver catalog element in the explorer. That will cause the data in those files to be imported into the corresponding database or catalog. Format conversion will be performed automatically if needed.
 
 .. image:: img/actions/dragdrop_external.png
 	:align: center
 
 If the dragged files are not opened in the current QGIS project, no style will be uploaded along with them when publishing to a GeoServer catalog.
-
-In general, any operation that can be performed dragging a QGIS layer item within the Explorer tree can also be performed dragging an element in the QGIS browser that represents a layer.
 
 Also, elements from the explorer can be dropped onto the QGIS canvas. GeoServer layers can be dropped onto the QGIS canvas to add them to the project. The corresponding WFS/WCS layer will be created as in the case of using the :guilabel:`Add to QGIS project` menu option, already described. Notice that, however, the style of the layer will not be used in this case, and the layer that will be added to the QGIS project will have a default style assigned to it.
 

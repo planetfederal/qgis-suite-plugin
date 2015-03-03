@@ -41,7 +41,7 @@ def publishDraggedLayer(explorer, layer, workspace):
     ret = explorer.run(publishLayer,
              "Publish layer from layer '" + layer.name() + "'",
              [],
-             cat, layer, workspace, True)
+             cat, layer, workspace)
     return ret
 
 def publishDraggedTable(explorer, table, workspace):

@@ -3,17 +3,17 @@ Configuring a GeoServer catalog from the console
 
 A GeoServer catalog can be configured from the QGIS Python console.
 
-Open the QGIS console and import the ``opengeo`` package
+Open the QGIS console and import the ``geoserverexplorer`` package
 
 ::
 
-	import opengeo
+	import geoserverexplorer
 
 Now create a GeoServer catalog
 
 ::
 
-	catalog = opengeo.createGeoServerCatalog()
+	catalog = geoserverexplorer.createGeoServerCatalog()
 
 Since we have passed no arguments to the method, it will use the default ones, which correspond to a GeoServer available at localhost and with the default user (``admin``) and password(``geoserver``).
 
@@ -70,4 +70,4 @@ That will create a layer in the current QGIS project which is connected to the G
 
 If the layer that is created in the QGIS project is a vector layer, it will be connected to the corresponding store in GeoServer using the WFS endpoint. If is is a raster layer, it will create a WCS layer. In all cases, no data is downloaded, but a connection is created instead.
 
-Additional functionality is available in the OGCatalog class. Check it's documentation to know more about its usage.
+Additional functionality is available in the CatalogWrapper class. Check it's documentation to know more about its usage.

@@ -283,7 +283,11 @@ class GsCatalogsItem(GsTreeItem):
             finally:
                 QtGui.QApplication.restoreOverrideCursor()
 
-
+    def refreshContent(self, explorer):
+        for i in xrange(self.childCount()):
+            catItem = self.child(i)
+            if catItem.isConnected:
+                catItem.refreshContent(explorer)
 
 class GsLayersItem(GsTreeItem):
     def __init__(self, catalog):

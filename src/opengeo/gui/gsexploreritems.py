@@ -92,7 +92,7 @@ class GsTreeItem(TreeItem):
                         elements.insert(0, subsubitem.element)
         toUpdate = set(item.parent() for item in selected)
         progress = 0
-        dependent = self.getDependentElements(elements)
+        dependent = self.getDependentElements(elements, tree)
         if dependent:
             msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
             names = set(["-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent])
@@ -170,7 +170,7 @@ class GsTreeItem(TreeItem):
             unique.append(layer.default_style)
         return unique
 
-    def getDependentElements(self, elements):
+    def getDependentElements(self, elements, tree):
         dependent = []
         for element in elements:
             if isinstance(element, Layer):
@@ -182,6 +182,20 @@ class GsTreeItem(TreeItem):
                         if layer == element.name:
                             dependent.append(group)
                             break
+                catItem = tree.findAllItems(element.catalog)[0];
+                gwcItem = catItem.gwcItem
+                possibleGwcLayers = []
+                for idx in xrange(gwcItem.childCount()):
+                    gwcLayerItem = gwcItem.child(idx)
+                    gwcLayer = gwcLayerItem.element
+                    print gwcLayer.name, element.name
+                    if gwcLayer.name.split(":")[-1] == element.name:
+                        possibleGwcLayers.append(gwcLayer)
+                if len(possibleGwcLayers) == 1:
+                    #Since layers have no workspace, we cannot fully compare with gwc layer names.
+                    #We only delete if we are sure that the gwc layer is the only one with that name,
+                    #not considering namespaces
+                    dependent.append(possibleGwcLayers[0])
             elif isinstance(element, (FeatureType, Coverage)):
                 layers = element.catalog.get_layers()
                 for layer in layers:
@@ -199,7 +213,7 @@ class GsTreeItem(TreeItem):
                                 break
 
         if dependent:
-            subdependent = self.getDependentElements(dependent)
+            subdependent = self.getDependentElements(dependent, tree)
             if subdependent:
                 dependent[0:0] = subdependent
         return dependent

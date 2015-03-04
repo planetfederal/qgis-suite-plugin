@@ -226,7 +226,7 @@ class GsCatalogsItem(GsTreeItem):
     def __init__(self):
         self._catalogs = {}
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
-        GsTreeItem.__init__(self, None, icon, "GeoServer catalogs")
+        GsTreeItem.__init__(self, None, icon, "GeoServer Catalogs")
         settings = QSettings()
         saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", False, bool))
         if saveCatalogs:
@@ -1372,7 +1372,7 @@ class GsProcessesItem(GsTreeItem):
     def __init__(self, catalog):
         self.catalog = catalog
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/process.png")
-        GsTreeItem.__init__(self, None, icon, "WPS processes")
+        GsTreeItem.__init__(self, None, icon, "WPS Processes")
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
     def populate(self):

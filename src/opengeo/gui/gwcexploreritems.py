@@ -15,7 +15,7 @@ class GwcLayersItem(GwcTreeItem):
     def __init__(self, catalog):
         self.catalog = catalog
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/gwc.png")
-        TreeItem.__init__(self, None, icon, "GeoWebCache layers")
+        TreeItem.__init__(self, None, icon, "GeoWebCache Layers")
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDropEnabled)
 
     def populate(self):

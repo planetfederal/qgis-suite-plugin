@@ -22,6 +22,46 @@ class QgsTreeItem(TreeItem):
     def iconPath(self):
         return os.path.dirname(__file__) + "/../images/qgis.png"
 
+def publishProject(tree, explorer):
+    layers = qgislayers.getAllLayers()
+    dlg = PublishProjectDialog(explorer.catalogs())
+    dlg.exec_()
+    catalog  = dlg.catalog
+    if catalog is None:
+        return
+    workspace = dlg.workspace
+    groupName = dlg.groupName
+    explorer.setProgressMaximum(len(layers), "Publish layers")
+    progress = 0
+    ogcat = OGCatalog(catalog)
+    for layer in layers:
+        explorer.setProgress(progress)
+        if not explorer.run(publishLayer,
+                 None,
+                 [],
+                 ogcat, layer, workspace, True):
+            explorer.setProgress(0)
+            return
+        progress += 1
+        explorer.setProgress(progress)
+    explorer.resetActivity()
+    groups = qgislayers.getGroups()
+    for group in groups:
+        names = [layer.name() for layer in groups[group]]
+        try:
+            layergroup = catalog.create_layergroup(group, names, names)
+            explorer.run(catalog.save, "Create layer group '" + group + "'",
+                 [], layergroup)
+        except ConflictingDataError, e:
+            explorer.setWarning(str(e))
+
+    if groupName is not None:
+        names = [layer.name() for layer in layers]
+        layergroup = catalog.create_layergroup(groupName, names, names)
+        explorer.run(catalog.save, "Create global layer group",
+                 [], layergroup)
+    tree.findAllItems(catalog)[0].refreshContent(explorer)
+
 class QgsProjectItem(QgsTreeItem):
     def __init__(self):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
@@ -41,50 +81,10 @@ class QgsProjectItem(QgsTreeItem):
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
         publishProjectAction = QtGui.QAction(icon, "Publish...", explorer)
-        publishProjectAction.triggered.connect(lambda: self.publishProject(tree, explorer))
+        publishProjectAction.triggered.connect(lambda: publishProject(tree, explorer))
         publishProjectAction.setEnabled(len(explorer.catalogs())>0)
         return [publishProjectAction]
 
-
-    def publishProject(self, tree, explorer):
-        layers = qgislayers.getAllLayers()
-        dlg = PublishProjectDialog(explorer.catalogs())
-        dlg.exec_()
-        catalog  = dlg.catalog
-        if catalog is None:
-            return
-        workspace = dlg.workspace
-        groupName = dlg.groupName
-        explorer.setProgressMaximum(len(layers), "Publish layers")
-        progress = 0
-        ogcat = OGCatalog(catalog)
-        for layer in layers:
-            explorer.setProgress(progress)
-            if not explorer.run(publishLayer,
-                     None,
-                     [],
-                     ogcat, layer, workspace, True):
-                explorer.setProgress(0)
-                return
-            progress += 1
-            explorer.setProgress(progress)
-        explorer.resetActivity()
-        groups = qgislayers.getGroups()
-        for group in groups:
-            names = [layer.name() for layer in groups[group]]
-            try:
-                layergroup = catalog.create_layergroup(group, names, names)
-                explorer.run(catalog.save, "Create layer group '" + group + "'",
-                     [], layergroup)
-            except ConflictingDataError, e:
-                explorer.setWarning(str(e))
-
-        if groupName is not None:
-            names = [layer.name() for layer in layers]
-            layergroup = catalog.create_layergroup(groupName, names, names)
-            explorer.run(catalog.save, "Create global layer group",
-                     [], layergroup)
-        tree.findAllItems(catalog)[0].refreshContent(explorer)
 
 class QgsLayersItem(QgsTreeItem):
     def __init__(self):
@@ -96,6 +96,13 @@ class QgsLayersItem(QgsTreeItem):
         for layer in layers:
             layerItem = QgsLayerItem(layer)
             self.addChild(layerItem)
+
+    def contextMenuActions(self, tree, explorer):
+        icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
+        publishProjectAction = QtGui.QAction(icon, "Publish...", explorer)
+        publishProjectAction.triggered.connect(lambda: publishProject(tree, explorer))
+        publishProjectAction.setEnabled(len(explorer.catalogs())>0)
+        return [publishProjectAction]
 
 class QgsGroupsItem(QgsTreeItem):
     def __init__(self):

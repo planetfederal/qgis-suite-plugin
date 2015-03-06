@@ -8,10 +8,12 @@ from dialogs.styledialog import PublishStyleDialog
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.catalogselector import selectCatalog
 from dialogs.layerdialog import PublishLayersDialog, PublishLayerDialog
+from dialogs.groupdialog import PublishLayerGroupDialog
 from dialogs.projectdialog import PublishProjectDialog
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
 from geoserver.catalog import ConflictingDataError
+from geoserver.layergroup import UnsavedLayerGroup
 from opengeo.gui.confirm import publishLayer
 from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
 from opengeo.metadata.metadata_provider import MetadataProvider
@@ -332,56 +334,57 @@ class QgsGroupItem(QgsTreeItem):
     def publishGroup(self, tree, explorer):
         groupname = self.element
         groups = qgislayers.getGroups()
-        group = groups[groupname]
+        grouplyrs = groups[groupname]
+
         cat = selectCatalog(explorer.catalogs())
         if cat is None:
             return
         catgroup = cat.get_layergroup(groupname)
-        if catgroup is not None:
-            reply = QtGui.QMessageBox.question(None, "Upload group",
-                                               "A group with the same name already exists in the catalog.\n"
-                                               "Do you want to overwrite it?",
-                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                                               QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.No:
-                return
-            cat.delete(catgroup)
-        gslayers= [layer.name for layer in cat.get_layers()]
-        missing = []
-        overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))
-        for layer in group:
-            if layer.name() not in gslayers or overwrite:
-                missing.append(layer)
         toUpdate = set()
         toUpdate.add(tree.findAllItems(cat)[0])
 
-        if missing:
-            catalogs = dict([(k ,v) for k, v in explorer.catalogs().iteritems() if v == cat])
-            dlg = PublishLayersDialog(catalogs, missing)
-            dlg.exec_()
-            toPublish  = dlg.topublish
-            if toPublish is None:
-                return
+        overwrite = bool(QSettings().value(
+            "/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))
+
+        dlg = PublishLayerGroupDialog(cat, groupname, grouplyrs, overwrite)
+        dlg.exec_()
+        grpName = dlg.definedname
+        catgroup = cat.get_layergroup(grpName)
+        toPublish = dlg.topublish
+        if grpName is None:  # toPublish can be empty list
+            return
+
+        names = []
+        if toPublish:
             explorer.setProgressMaximum(len(toPublish), "Publish layers")
             progress = 0
-            for layer, catalog, workspace in toPublish:
+            layernames = []
+            for layer, catalog, workspace, layername in toPublish:
+                layernames.append(layername)
                 explorer.setProgress(progress)
                 ogcat = OGCatalog(catalog)
                 if not explorer.run(ogcat.publishLayer,
-                         None,
-                         [],
-                         layer, workspace, True):
+                                    None,
+                                    [],
+                                    layer, workspace, True, layername):
                     explorer.setProgress(0)
                     return
                 progress += 1
                 explorer.setProgress(progress)
             explorer.resetActivity()
-        names = [layer.name() for layer in reversed(group)]
-        def _createGroup():
-            layergroup = cat.create_layergroup(groupname, names, names)
-            cat.save(layergroup)
-        explorer.run(_createGroup, "Create layer group from group '" + groupname + "'",
-                     toUpdate)
+            names = reversed(layernames)
+
+        if catgroup:
+            cat.delete(catgroup)
+
+        #TODO calculate bounds
+        bbox = None
+        group = UnsavedLayerGroup(cat, grpName, names, names, bbox)
+
+        explorer.run(cat.save,
+                     "Create layer group from group '" + groupname + "'",
+                     toUpdate,
+                     group)
 
 
 class QgsStyleItem(QgsTreeItem):

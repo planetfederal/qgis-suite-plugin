@@ -137,10 +137,11 @@ class PublishLayerDialog(QtGui.QDialog):
         
 class PublishLayersDialog(QtGui.QDialog):
 
-    def __init__(self, catalogs, layers, parent = None):
+    def __init__(self, catalogs, layers, overwrite=False, parent = None):
         super(PublishLayersDialog, self).__init__(parent)
         self.catalogs = catalogs        
         self.layers = layers
+        self.overwrite = overwrite
         self.showCatalogCol = len(self.catalogs) > 1
         self.columns = []
         self.nameBoxes = []
@@ -213,7 +214,7 @@ class PublishLayersDialog(QtGui.QDialog):
                 nameregex=xmlNameRegex(),
                 nameregexmsg=xmlNameRegexMsg(),
                 names=catlayers,
-                unique=False)
+                unique=not self.overwrite)
             self.table.setCellWidget(idx, self.getColumn(self.name), nameBox)
 
             self.nameBoxes.append(nameBox)
@@ -283,9 +284,9 @@ class PublishLayersDialog(QtGui.QDialog):
                 valid = False
                 break
         self.okButton.setEnabled(valid)
-    
-    def okPressed(self):
-        self.topublish = []        
+
+    def layersToPublish(self):
+        topublish = []
         for idx, layer in enumerate(self.layers):
             nameBox = self.table.cellWidget(idx, self.getColumn(self.name))
             layername = nameBox.definedName()
@@ -295,13 +296,17 @@ class PublishLayersDialog(QtGui.QDialog):
                 workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))
                 workspaces = catalog.get_workspaces()
                 workspace = workspaces[workspaceBox.currentIndex()]
-                self.topublish.append((layer, catalog, workspace, layername))
+                topublish.append((layer, catalog, workspace, layername))
             else:
                 catalog = self.catalogs.values()[0]
                 workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))
                 workspaces = catalog.get_workspaces()
                 workspace = workspaces[workspaceBox.currentIndex()]
-                self.topublish.append((layer, catalog, workspace, layername))
+                topublish.append((layer, catalog, workspace, layername))
+        return topublish
+    
+    def okPressed(self):
+        self.topublish = self.layersToPublish()
         self.close()
 
     def cancelPressed(self):

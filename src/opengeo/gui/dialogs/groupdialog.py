@@ -1,8 +1,10 @@
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from layerdialog import PublishLayersDialog
 from geoserver.layergroup import UnsavedLayerGroup
-from opengeo.gui.gsnameutils import GSNameWidget, xmlNameRegexMsg, xmlNameRegex
+from opengeo.gui.gsnameutils import GSNameWidget, \
+    xmlNameFixUp, xmlNameRegexMsg, xmlNameRegex
 
 class LayerGroupDialog(QtGui.QDialog):
     def __init__(self, catalog, previousgroup = None):
@@ -158,4 +160,85 @@ class LayerGroupDialog(QtGui.QDialog):
         for i in range(len(self.layernames)):
             widget = self.table.cellWidget(i, 0)
             widget.setChecked(checked)
-            
+
+
+# noinspection PyPep8Naming
+class PublishLayerGroupDialog(QtGui.QDialog):
+    def __init__(self, catalog, groupname, layers,
+                 overwritelyrs=False, parent = None):
+        QtGui.QDialog.__init__(self)
+        self.catalog = catalog  # GS catalog
+        self.groupname = groupname
+        self.layers = layers
+        self.overwritelyrs = overwritelyrs
+        self.groupnames = [grp.name for grp in catalog.get_layergroups()]
+        self.definedname = None
+        self.topublish = None
+        self.setModal(True)
+        self.setupUi()
+
+    # noinspection PyAttributeOutsideInit
+    def setupUi(self):
+        self.resize(600, 350)
+        self.setWindowTitle("Publish Group")
+        vertlayout = QtGui.QVBoxLayout(self)
+        vertlayout.setSpacing(2)
+        vertlayout.setMargin(6)
+        horizlayout = QtGui.QHBoxLayout(self)
+        # horizlayout.setSpacing(30)
+        horizlayout.setMargin(0)
+        self.nameLabel = QtGui.QLabel("Group name")
+        self.nameLabel.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
+                              QtGui.QSizePolicy.Preferred))
+        self.nameBox = GSNameWidget(
+            name=xmlNameFixUp(self.groupname),
+            nameregex=xmlNameRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=self.groupnames,
+            unique=False)
+        self.nameBox.setSizePolicy(
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
+                              QtGui.QSizePolicy.Preferred))
+        horizlayout.addWidget(self.nameLabel)
+        horizlayout.addWidget(self.nameBox)
+        vertlayout.addLayout(horizlayout)
+
+        self.lyrstable = PublishLayersDialog(
+            {0: self.catalog}, self.layers, self.overwritelyrs)
+        self.lyrstable.buttonBox.setVisible(False)
+        vertlayout.addWidget(self.lyrstable)
+
+        self.buttonBox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
+        self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
+        vertlayout.addWidget(self.buttonBox)
+
+        self.setLayout(vertlayout)
+
+        self.buttonBox.accepted.connect(self.okPressed)
+        self.buttonBox.rejected.connect(self.cancelPressed)
+
+        self.nameBox.nameValidityChanged.connect(self.okButton.setEnabled)
+        self.nameBox.overwritingChanged.connect(self.updateButtons)
+        self.okButton.setEnabled(self.nameBox.isValid())
+        self.updateButtons(self.nameBox.overwritingName())
+
+
+    @QtCore.pyqtSlot(bool)
+    def updateButtons(self, overwriting):
+        txt = "Overwrite" if overwriting else "OK"
+        self.okButton.setText(txt)
+        self.okButton.setDefault(not overwriting)
+        self.cancelButton.setDefault(overwriting)
+
+    def okPressed(self):
+        self.definedname = self.nameBox.definedName()
+        self.topublish = self.lyrstable.layersToPublish()
+        self.close()
+
+    def cancelPressed(self):
+        self.definedname = None
+        self.topublish = None
+        self.close()

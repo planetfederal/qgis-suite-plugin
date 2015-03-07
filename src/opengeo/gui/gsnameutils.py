@@ -27,6 +27,11 @@ def xmlNameRegex():
 
 
 # noinspection PyPep8Naming
+def xmlNameEmptyRegex():
+    return r'^(?!XML|\d|\W)[a-z]?\S*'
+
+
+# noinspection PyPep8Naming
 def xmlNameRegexMsg():
     return (
         'Text must be a valid XML name:\n\n'
@@ -45,7 +50,7 @@ class GSNameWidget(QtGui.QWidget):
 
     def __init__(self, name='', namemsg='', nameregex='', nameregexmsg='',
                  names=None, unique=False,
-                 maxlength=0, parent=None):
+                 maxlength=0, allowempty=False, parent=None):
         super(GSNameWidget, self).__init__(parent)
         self.name = name
         self.namemsg = namemsg
@@ -56,6 +61,7 @@ class GSNameWidget(QtGui.QWidget):
         self.unique = self.hasnames and unique
         self.overwriting = False
         self.maxlength = maxlength if maxlength >= 0 else 0  # no negatives
+        self.allowempty = allowempty
         self.valid = True  # False will not trigger signal for setEnabled slots
         self.initGui()
         self.validateName()
@@ -78,6 +84,8 @@ class GSNameWidget(QtGui.QWidget):
         self.nameBox.lineEdit().setText(self.name)
         self.nameBox.lineEdit().textChanged.connect(self.validateName)
         self.nameValidityChanged.connect(self.highlightName)
+        phtxt = "Optional" if self.allowempty else "Required"
+        self.nameBox.lineEdit().setPlaceholderText(phtxt)
         layout.addWidget(self.nameBox)
 
         tip = 'Define a{0}{1} name'.format(' valid' if self.nameregex else '',
@@ -153,8 +161,7 @@ class GSNameWidget(QtGui.QWidget):
         curvalid = self.valid
         curoverwriting = self.overwriting
 
-        # no zero char names allowed
-        valid = len(name) > 0
+        valid = True if self.allowempty else len(name) > 0
 
         # check if character limit reached
         if valid and self.maxlength > 0:

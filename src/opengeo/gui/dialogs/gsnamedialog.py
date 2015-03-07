@@ -125,6 +125,9 @@ def getGSLayerName(**kwargs):
 def getGSStoreName(**kwargs):
     return getGSXmlName('data store', **kwargs)
 
+def getGSLayerGroupName(**kwargs):
+    return getGSXmlName('layer group', **kwargs)
+
 
 if __name__ == '__main__':
     from opengeo.gui.gsnameutils import \

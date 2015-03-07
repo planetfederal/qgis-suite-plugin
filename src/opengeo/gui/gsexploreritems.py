@@ -12,6 +12,7 @@ from geoserver.layer import Layer
 from dialogs.styledialog import AddStyleToLayerDialog, StyleFromLayerDialog
 from opengeo.qgis.catalog import OGCatalog
 from opengeo.gui.exploreritems import TreeItem
+from dialogs.gsnamedialog import getGSLayerGroupName
 from dialogs.groupdialog import LayerGroupDialog
 from dialogs.workspacedialog import DefineWorkspaceDialog
 from geoserver.layergroup import UnsavedLayerGroup
@@ -28,7 +29,7 @@ from opengeo.gui.parametereditor import ParameterEditor
 from dialogs.sldeditor import SldEditorDialog
 from opengeo.gui.gwcexploreritems import GwcLayersItem
 from opengeo import config
-from opengeo.qgis.utils import tempFilename
+from opengeo.qgis.utils import tempFilename, UserCanceledOperation
 from opengeo.qgis.sldadapter import adaptGsToQgs, getGeomTypeFromSld,\
     getGsCompatibleSld
 from opengeo.geoserver.util import getLayerFromStyle
@@ -878,10 +879,12 @@ class GsLayerItem(GsTreeItem):
                      layer)
 
     def createGroupFromLayers(self, selected, tree, explorer):
-        name, ok = QtGui.QInputDialog.getText(None, "Group name", "Enter the name of the group to create")
-        if not ok:
-            return
         catalog = self.element.catalog
+        groupnames = [grp.name for grp in catalog.get_layergroups()]
+        try:
+            name = getGSLayerGroupName(names=groupnames, unique=True)
+        except UserCanceledOperation:
+            return
         catalogItem = tree.findAllItems(catalog)[0]
         if catalogItem:
             groupsItem = catalogItem.groupsItem
@@ -892,7 +895,7 @@ class GsLayerItem(GsTreeItem):
         layerNames = [layer.name for layer in layers]
         #TODO calculate bounds
         bbox = None
-        group =  UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
+        group = UnsavedLayerGroup(catalog, name, layerNames, styles, bbox)
 
         explorer.run(self.parentCatalog().save,
                      "Create group '" + name + "'",

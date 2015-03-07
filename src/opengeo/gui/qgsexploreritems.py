@@ -349,10 +349,10 @@ class QgsGroupItem(QgsTreeItem):
         dlg = PublishLayerGroupDialog(cat, groupname, grouplyrs, overwrite)
         dlg.exec_()
         grpName = dlg.definedname
-        catgroup = cat.get_layergroup(grpName)
         toPublish = dlg.topublish
         if grpName is None:  # toPublish can be empty list
             return
+        catgroup = cat.get_layergroup(grpName)
 
         names = []
         if toPublish:

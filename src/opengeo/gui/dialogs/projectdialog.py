@@ -1,4 +1,6 @@
 from PyQt4 import QtGui, QtCore
+from opengeo.gui.gsnameutils import GSNameWidget, \
+    xmlNameEmptyRegex, xmlNameRegexMsg
 
 class PublishProjectDialog(QtGui.QDialog):
     
@@ -7,12 +9,10 @@ class PublishProjectDialog(QtGui.QDialog):
         self.catalogs = catalogs            
         self.catalog = None
         self.workspace = None
-        self.text = None
+        self.groupName = None
         self.initGui()
-        
-        
-    def initGui(self):   
-                              
+
+    def initGui(self):
         layout = QtGui.QVBoxLayout()                                                
         self.setWindowTitle('Publish project')
                                  
@@ -58,8 +58,13 @@ class PublishProjectDialog(QtGui.QDialog):
         horizontalLayout.setSpacing(30)
         horizontalLayout.setMargin(0)        
         groupLabel = QtGui.QLabel('Global group name')
-        self.groupNameBox = QtGui.QLineEdit()        
-        self.groupNameBox.setPlaceholderText("[leave empty if no global group should be created]")
+        groupnames = [grp.name for grp in cat.get_layergroups()]
+        self.groupNameBox = GSNameWidget(
+            nameregex=xmlNameEmptyRegex(),
+            nameregexmsg=xmlNameRegexMsg(),
+            names=groupnames,
+            unique=True,
+            allowempty=True)
         horizontalLayout.addWidget(groupLabel)
         horizontalLayout.addWidget(self.groupNameBox)
         verticalLayout.addLayout(horizontalLayout)
@@ -70,13 +75,20 @@ class PublishProjectDialog(QtGui.QDialog):
         layout.addWidget(self.destGroupBox)
         layout.addWidget(self.groupGroupBox)
         
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)                     
+        self.buttonBox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)
+        self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
+        self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Close)
         layout.addWidget(self.buttonBox)
         
         self.setLayout(layout)
 
         self.buttonBox.accepted.connect(self.okPressed)
         self.buttonBox.rejected.connect(self.cancelPressed)
+
+        self.groupNameBox.nameValidityChanged.connect(self.validateGroupName)
+        # set initial enabled state of Ok button
+        self.validateGroupName()
         
         self.resize(400,200) 
         
@@ -93,19 +105,27 @@ class PublishProjectDialog(QtGui.QDialog):
         self.workspaceBox.clear()        
         self.workspaceBox.addItems(workspaceNames)
         if defaultName is not None:
-            self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))            
-    
+            self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
+
+        groupnames = [grp.name for grp in catalog.get_layergroups()]
+        self.groupNameBox.setNames(groupnames)
+
+    @QtCore.pyqtSlot()
+    def validateGroupName(self):
+        self.okButton.setEnabled(self.groupNameBox.isValid())
+
+    @QtCore.pyqtSlot()
     def okPressed(self):                
         self.catalog = self.catalogs[self.catalogBox.currentText()]
         self.workspace = self.workspaces[self.workspaceBox.currentIndex()]
-        self.groupName = self.groupNameBox.text()
+        self.groupName = self.groupNameBox.definedName()
         if self.groupName.strip() == "":
             self.groupName = None
         self.close()
 
+    @QtCore.pyqtSlot()
     def cancelPressed(self):
         self.catalog = None        
         self.workspace = None
-        self.text = None
-        self.close()          
-        
+        self.groupName = None
+        self.close()

@@ -14,55 +14,114 @@ from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo import config
 from geoserver.catalog import ConflictingDataError
 from geoserver.layergroup import UnsavedLayerGroup
-from opengeo.gui.confirm import publishLayer
 from opengeo.gui.dialogs.metatoolseditor import MetatoolsEditor
 from opengeo.metadata.metadata_provider import MetadataProvider
 from qgis.core import *
+
 
 class QgsTreeItem(TreeItem):
 
     def iconPath(self):
         return os.path.dirname(__file__) + "/../images/qgis.png"
 
+
 def publishProject(tree, explorer):
     layers = qgislayers.getAllLayers()
+    if not layers:
+        return
+
     dlg = PublishProjectDialog(explorer.catalogs())
     dlg.exec_()
-    catalog  = dlg.catalog
+    catalog = dlg.catalog
     if catalog is None:
         return
     workspace = dlg.workspace
     groupName = dlg.groupName
-    explorer.setProgressMaximum(len(layers), "Publish layers")
-    progress = 0
     ogcat = OGCatalog(catalog)
-    for layer in layers:
-        explorer.setProgress(progress)
-        if not explorer.run(publishLayer,
-                 None,
-                 [],
-                 ogcat, layer, workspace, True):
-            explorer.setProgress(0)
-            return
-        progress += 1
-        explorer.setProgress(progress)
-    explorer.resetActivity()
+
     groups = qgislayers.getGroups()
+    grouplyrs = []
     for group in groups:
-        names = [layer.name() for layer in groups[group]]
-        try:
-            layergroup = catalog.create_layergroup(group, names, names)
-            explorer.run(catalog.save, "Create layer group '" + group + "'",
-                 [], layergroup)
-        except ConflictingDataError, e:
-            explorer.setWarning(str(e))
+        grouplyrs.extend([layer for layer in groups[group]])
+
+    ungroupedlyrs = [layer for layer in layers if layer not in grouplyrs]
+    publishedLyrs = []
+
+    if ungroupedlyrs:
+        lyrsdlg = PublishLayersDialog(
+            {0: catalog}, ungroupedlyrs, workspace=workspace, overwrite=False)
+        lyrsdlg.exec_()
+        toPublish = lyrsdlg.topublish
+        if toPublish is None:
+            return
+
+        explorer.setProgressMaximum(len(toPublish), "Publish ungrouped layer")
+        progress = 0
+        for layer, catalog, workspace, layername in toPublish:
+            publishedLyrs.append(layername)
+            explorer.setProgress(progress)
+            if not explorer.run(ogcat.publishLayer,
+                                None,
+                                [],
+                                layer, workspace, True, layername):
+                explorer.setProgress(0)
+                return
+            progress += 1
+            explorer.setProgress(progress)
+        explorer.resetActivity()
+
+    for group in groups:
+        grouplyrs = [layer for layer in groups[group]]
+        if not grouplyrs:
+            continue  # don't publish empty groups, when publishing project
+
+        dlg = PublishLayerGroupDialog(catalog, group, grouplyrs,
+                                      workspace=workspace,
+                                      overwritegroup=False,
+                                      overwritelayers=False)
+        dlg.exec_()
+        grpName = dlg.definedname
+        toPublish = dlg.topublish
+        if grpName is None:  # toPublish can be empty list
+            return
+
+        explorer.setProgressMaximum(len(toPublish), "Publish grouped layer")
+        progress = 0
+        layernames = []
+        for layer, catalog, workspace, layername in toPublish:
+            layernames.append(layername)
+            publishedLyrs.append(layername)
+            explorer.setProgress(progress)
+            if not explorer.run(ogcat.publishLayer,
+                                None,
+                                [],
+                                layer, workspace, True, layername):
+                explorer.setProgress(0)
+                return
+            progress += 1
+            explorer.setProgress(progress)
+        explorer.resetActivity()
+        names = reversed(layernames)
+
+        layergroup = catalog.create_layergroup(grpName, names, names)
+        if not explorer.run(catalog.save,
+                            "Create layer group from group '" + group + "'",
+                            [],
+                            layergroup):
+            return
 
     if groupName is not None:
-        names = [layer.name() for layer in layers]
+        names = reversed(publishedLyrs)
         layergroup = catalog.create_layergroup(groupName, names, names)
-        explorer.run(catalog.save, "Create global layer group",
-                 [], layergroup)
+        if not explorer.run(catalog.save,
+                            "Create global layer group",
+                            [],
+                            layergroup):
+            return
+
     tree.findAllItems(catalog)[0].refreshContent(explorer)
+    explorer.setInfo("Project published")
+
 
 class QgsProjectItem(QgsTreeItem):
     def __init__(self):
@@ -213,7 +272,7 @@ class QgsLayerItem(QgsTreeItem):
         layers = [item.element for item in selected]
         dlg = PublishLayersDialog(explorer.catalogs(), layers)
         dlg.exec_()
-        toPublish  = dlg.topublish
+        toPublish = dlg.topublish
         if toPublish is None:
             return
         explorer.setProgressMaximum(len(toPublish), "Publish layers")
@@ -346,7 +405,9 @@ class QgsGroupItem(QgsTreeItem):
         overwrite = bool(QSettings().value(
             "/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))
 
-        dlg = PublishLayerGroupDialog(cat, groupname, grouplyrs, overwrite)
+        dlg = PublishLayerGroupDialog(cat, groupname, grouplyrs,
+                                      overwritegroup=True,
+                                      overwritelayers=overwrite)
         dlg.exec_()
         grpName = dlg.definedname
         toPublish = dlg.topublish

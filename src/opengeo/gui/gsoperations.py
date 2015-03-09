@@ -3,9 +3,13 @@ from PyQt4.QtCore import *
 from qgis.core import *            
 from opengeo.qgis import layers
 from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
-from opengeo.gui.confirm import publishLayer
 from opengeo.gui.qgsexploreritems import QgsStyleItem
-            
+from opengeo.gui.gsnameutils import xmlNameEmptyRegex, xmlNameFixUp, \
+    xmlNameRegex, xmlNameRegexMsg
+from opengeo.qgis.utils import UserCanceledOperation
+from opengeo.gui.dialogs.gsnamedialog import getGSLayerName
+
+
 def publishDraggedGroup(explorer, groupItem, catalog, workspace):        
     groupName = groupItem.element
     groups = layers.getGroups()   
@@ -35,14 +39,21 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace):
              [], layergroup)       
 
 def publishDraggedLayer(explorer, layer, workspace):
-    cat = workspace.catalog  
-    ogcat = OGCatalog(cat)                                
-    ret = explorer.run(publishLayer,
-             "Publish layer from layer '" + layer.name() + "'",
-             [],
-             ogcat, layer, workspace, True)    
-    return ret
-    
+    cat = workspace.catalog
+    ogcat = OGCatalog(cat)
+    gslayers = [lyr.name for lyr in cat.get_layers()]
+    try:
+        lyrname = getGSLayerName(name=xmlNameFixUp(layer.name()),
+                                 names=gslayers,
+                                 unique=False)
+    except UserCanceledOperation:
+        return False
+
+    return explorer.run(ogcat.publishLayer,
+                        "Publish layer from layer '" + lyrname + "'",
+                        [],
+                        layer, workspace, True, lyrname)
+
 def publishDraggedTable(explorer, table, workspace):    
     cat = workspace.catalog                          
     return explorer.run(publishTable,

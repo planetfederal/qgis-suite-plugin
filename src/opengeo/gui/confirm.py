@@ -9,14 +9,7 @@ def _confirmationBox(title, msg):
     ret = QtGui.QMessageBox.warning(None, title, msg,
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
     QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-    return ret == QtGui.QMessageBox.Yes         
-    
-    
-def publishLayer (catalog, layer, workspace=None, overwrite=True, name=None):
-    name = name if name is not None else layer.name()
-    gslayers = [lyr.name for lyr in catalog.catalog.get_layers()]
-    lyrname = getGSLayerName(name=name, names=gslayers, unique=not overwrite)
-    catalog.publishLayer(layer, workspace, overwrite, lyrname)
+    return ret == QtGui.QMessageBox.Yes
 
 
 def confirmDelete():

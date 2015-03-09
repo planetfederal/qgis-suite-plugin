@@ -132,17 +132,27 @@ class PublishLayerDialog(QtGui.QDialog):
         self.workspace = None
         self.layername = None
         self.close()          
-        
-        
-        
+
+
 class PublishLayersDialog(QtGui.QDialog):
 
-    def __init__(self, catalogs, layers, overwrite=False, parent = None):
+    itemValidityChanged = QtCore.pyqtSignal(bool)  # pragma: no cover
+
+    def __init__(self, catalogs, layers, workspace=None,
+                 overwrite=True, parent=None):
         super(PublishLayersDialog, self).__init__(parent)
         self.catalogs = catalogs        
         self.layers = layers
+        self.workspace = workspace
         self.overwrite = overwrite
         self.showCatalogCol = len(self.catalogs) > 1
+
+        # parameter sanity checks
+        if self.showCatalogCol:
+            assert(workspace is None)
+        if workspace is not None:
+            assert(not self.showCatalogCol)
+
         self.columns = []
         self.nameBoxes = []
         self.topublish = None
@@ -153,15 +163,15 @@ class PublishLayersDialog(QtGui.QDialog):
         self.name = "Name"
         self.initGui()
         
-        
     def initGui(self):
         self.resize(760, 400)
         layout = QtGui.QVBoxLayout()                                               
         self.setWindowTitle('Publish layers')         
         self.table = QtGui.QTableWidget(None)
 
-        self.columns = [self.lyr, self.cat, self.wrksp, self.ow, self.name] if self.showCatalogCol \
-            else [self.lyr, self.wrksp, self.ow, self.name]
+        self.columns = [self.lyr, self.cat, self.wrksp, self.ow, self.name] \
+            if self.showCatalogCol else \
+            [self.lyr, self.wrksp, self.ow, self.name]
 
         self.table.setColumnCount(len(self.columns))
         self.table.horizontalHeader().setDefaultSectionSize(120)
@@ -176,13 +186,18 @@ class PublishLayersDialog(QtGui.QDialog):
         self.table.setHorizontalHeaderLabels(self.columns)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setMinimumSectionSize(25)
-        self.table.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        self.setTableContent()        
+        self.table.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                                 QtGui.QSizePolicy.Expanding)
+        self.setTableContent()
+
+        if not self.overwrite:
+            self.table.hideColumn(self.getColumn(self.ow))
 
         self.table.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         layout.addWidget(self.table)
         
-        self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.buttonBox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
         self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
         layout.addWidget(self.buttonBox)
@@ -241,13 +256,17 @@ class PublishLayersDialog(QtGui.QDialog):
             workspaceBox.setSizePolicy(
                 QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum,
                                   QtGui.QSizePolicy.Fixed))
-            workspaces = cat.get_workspaces()
-            try:
-                defaultWorkspace = cat.get_default_workspace()
-                defaultWorkspace.fetch()
-                defaultName = defaultWorkspace.dom.find('name').text
-            except:
-                defaultName = None  
+            if self.workspace is not None:
+                workspaces = [self.workspace]
+                defaultName = None
+            else:
+                workspaces = cat.get_workspaces()
+                try:
+                    defaultWorkspace = cat.get_default_workspace()
+                    defaultWorkspace.fetch()
+                    defaultName = defaultWorkspace.dom.find('name').text
+                except:
+                    defaultName = None
             workspaceNames = [w.name for w in workspaces]        
             workspaceBox.addItems(workspaceNames)
             if defaultName is not None: 
@@ -277,13 +296,19 @@ class PublishLayersDialog(QtGui.QDialog):
         if defaultName is not None:
             workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
 
-    def validateNames(self):
+    def layerNamesValid(self):
         valid = True
         for namebox in self.nameBoxes:
             if not namebox.isValid():
                 valid = False
                 break
-        self.okButton.setEnabled(valid)
+        # TODO: cross-check for duplicates in already defined names
+        return valid
+
+    def validateNames(self):
+        namesvalid = self.layerNamesValid()
+        self.itemValidityChanged.emit(namesvalid)
+        self.okButton.setEnabled(namesvalid)
 
     def layersToPublish(self):
         topublish = []
@@ -300,8 +325,11 @@ class PublishLayersDialog(QtGui.QDialog):
             else:
                 catalog = self.catalogs.values()[0]
                 workspaceBox = self.table.cellWidget(idx, self.getColumn(self.wrksp))
-                workspaces = catalog.get_workspaces()
-                workspace = workspaces[workspaceBox.currentIndex()]
+                if self.workspace is not None:
+                    workspace = self.workspace
+                else:
+                    workspaces = catalog.get_workspaces()
+                    workspace = workspaces[workspaceBox.currentIndex()]
                 topublish.append((layer, catalog, workspace, layername))
         return topublish
     

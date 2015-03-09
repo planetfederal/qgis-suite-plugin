@@ -161,20 +161,25 @@ class GSNameWidget(QtGui.QWidget):
         curvalid = self.valid
         curoverwriting = self.overwriting
 
+        invalidtxt = "Name can not be empty"
         valid = True if self.allowempty else len(name) > 0
 
         # check if character limit reached
         if valid and self.maxlength > 0:
+            invalidtxt = "Name length can not be > {0}".format(self.maxlength)
             valid = len(name) <= self.maxlength
 
         # validate regex, if defined
         if valid and self.nameregex:
             rx = QtCore.QRegExp(self.nameregex, 0)
+            invalidtxt = "Name doesn't match expression {0}"\
+                .format(self.nameregex)
             valid = rx.exactMatch(name)
 
         overwriting = False
         if valid:
             if self.unique:  # crosscheck for unique name
+                invalidtxt = "Name is not unique"
                 valid = name not in self.names
             else:  # crosscheck for overwrite
                 overwriting = name in self.names
@@ -186,6 +191,17 @@ class GSNameWidget(QtGui.QWidget):
         if curvalid != valid:
             self.valid = valid
             self.nameValidityChanged.emit(valid)
+
+        self.nameBox.setToolTip(invalidtxt if not valid else '')
+        if not valid:
+            bxpos = self.nameBox.pos()
+            QtCore.QTimer.singleShot(250, lambda:
+            QtGui.QToolTip.showText(
+                self.mapToGlobal(
+                    QtCore.QPoint(bxpos.x(),
+                                  bxpos.y() + self.nameBox.height()/2)),
+                invalidtxt,
+                self.nameBox))
 
     @QtCore.pyqtSlot()
     def highlightName(self):

@@ -74,6 +74,15 @@ class PublishProjectDialog(QtGui.QDialog):
 
         layout.addWidget(self.destGroupBox)
         layout.addWidget(self.groupGroupBox)
+
+        overwriteLabel = QtGui.QLabel(
+            "Ungrouped layers will be published first.\n"
+            "No GeoServer items will be overwritten.")
+        overwriteLabel.setAlignment(QtCore.Qt.AlignHCenter)
+        f = overwriteLabel.font()
+        f.setItalic(True)
+        overwriteLabel.setFont(f)
+        layout.addWidget(overwriteLabel)
         
         self.buttonBox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Close)

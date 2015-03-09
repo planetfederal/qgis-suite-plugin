@@ -164,13 +164,15 @@ class LayerGroupDialog(QtGui.QDialog):
 
 # noinspection PyPep8Naming
 class PublishLayerGroupDialog(QtGui.QDialog):
-    def __init__(self, catalog, groupname, layers,
-                 overwritelyrs=False, parent = None):
+    def __init__(self, catalog, groupname, layers, workspace=None,
+                 overwritegroup=True, overwritelayers=True, parent = None):
         QtGui.QDialog.__init__(self)
         self.catalog = catalog  # GS catalog
         self.groupname = groupname
         self.layers = layers
-        self.overwritelyrs = overwritelyrs
+        self.workspace = workspace
+        self.overwritegrp = overwritegroup
+        self.overwritelyrs = overwritelayers
         self.groupnames = [grp.name for grp in catalog.get_layergroups()]
         self.definedname = None
         self.topublish = None
@@ -196,7 +198,7 @@ class PublishLayerGroupDialog(QtGui.QDialog):
             nameregex=xmlNameRegex(),
             nameregexmsg=xmlNameRegexMsg(),
             names=self.groupnames,
-            unique=False)
+            unique=not self.overwritegrp)
         self.nameBox.setSizePolicy(
             QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                               QtGui.QSizePolicy.Preferred))
@@ -205,7 +207,8 @@ class PublishLayerGroupDialog(QtGui.QDialog):
         vertlayout.addLayout(horizlayout)
 
         self.lyrstable = PublishLayersDialog(
-            {0: self.catalog}, self.layers, self.overwritelyrs)
+            {0: self.catalog}, self.layers,
+            workspace=self.workspace, overwrite=self.overwritelyrs)
         self.lyrstable.buttonBox.setVisible(False)
         vertlayout.addWidget(self.lyrstable)
 
@@ -225,6 +228,8 @@ class PublishLayerGroupDialog(QtGui.QDialog):
         self.okButton.setEnabled(self.nameBox.isValid())
         self.updateButtons(self.nameBox.overwritingName())
 
+        self.lyrstable.itemValidityChanged.connect(self.okButton.setEnabled)
+        self.okButton.setEnabled(self.lyrstable.layerNamesValid())
 
     @QtCore.pyqtSlot(bool)
     def updateButtons(self, overwriting):

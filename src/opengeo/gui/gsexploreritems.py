@@ -316,8 +316,9 @@ class GsLayersItem(GsTreeItem):
             if catalog is None:
                 return []
             workspace = self.getDefaultWorkspace()
-            publishDraggedGroup(explorer, item, catalog, workspace)
-            return tree.findAllItems(catalog)
+            if publishDraggedGroup(explorer, item, catalog, workspace):
+                return tree.findAllItems(catalog)
+            return []
         elif isinstance(item, QgsLayerItem):
             workspace = self.getDefaultWorkspace()
             toUpdate = []
@@ -325,8 +326,8 @@ class GsLayersItem(GsTreeItem):
             if catalog is None:
                 return []
             if workspace is not None:
-                publishDraggedLayer(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])
+                if publishDraggedLayer(explorer, item.element, workspace):
+                    toUpdate.append(tree.findAllItems(catalog)[0])
             return toUpdate
         elif isinstance(item, PgTableItem):
             workspace = self.getDefaultWorkspace()
@@ -335,8 +336,8 @@ class GsLayersItem(GsTreeItem):
             if catalog is None:
                 return []
             if workspace is not None:
-                publishDraggedTable(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])
+                if publishDraggedTable(explorer, item.element, workspace):
+                    toUpdate.append(tree.findAllItems(catalog)[0])
             return toUpdate
         else:
             return []

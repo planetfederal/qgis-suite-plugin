@@ -315,8 +315,7 @@ class GsLayersItem(GsTreeItem):
             catalog = self.parentCatalog()
             if catalog is None:
                 return []
-            workspace = self.getDefaultWorkspace()
-            if publishDraggedGroup(explorer, item, catalog, workspace):
+            if publishDraggedGroup(explorer, item, catalog):
                 return tree.findAllItems(catalog)
             return []
         elif isinstance(item, QgsLayerItem):
@@ -364,8 +363,6 @@ class GsGroupsItem(GsTreeItem):
             if catalog is None:
                 return
             workspace = self.parentWorkspace()
-            if workspace is None:
-                workspace = self.getDefaultWorkspace()
             publishDraggedGroup(explorer, item, catalog, workspace)
             return tree.findAllItems(catalog)
         else:
@@ -414,8 +411,7 @@ class GsWorkspacesItem(GsTreeItem):
             catalog = self.parentCatalog()
             if catalog is None:
                 return
-            workspace = self.getDefaultWorkspace()
-            publishDraggedGroup(explorer, item, catalog, workspace)
+            publishDraggedGroup(explorer, item, catalog)
             return tree.findAllItems(catalog)
         elif isinstance(item, QgsLayerItem):
             catalog = self.parentCatalog()
@@ -612,8 +608,7 @@ class GsCatalogItem(GsTreeItem):
             return [self]
         elif isinstance(item, QgsGroupItem):
             catalog = self.element
-            workspace = self.getDefaultWorkspace()
-            publishDraggedGroup(explorer, item, catalog, workspace)
+            publishDraggedGroup(explorer, item, catalog)
             return [self]
         elif isinstance(item, QgsLayerItem):
             catalog = self.element
@@ -1230,8 +1225,6 @@ class GsWorkspaceItem(GsTreeItem):
             if catalog is None:
                 return
             workspace = self.parentWorkspace()
-            if workspace is None:
-                workspace = self.getDefaultWorkspace()
             publishDraggedGroup(explorer, item, catalog, workspace)
             return tree.findAllItems(catalog)
         elif isinstance(item, QgsLayerItem):

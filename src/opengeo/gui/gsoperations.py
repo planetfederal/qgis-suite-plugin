@@ -1,42 +1,69 @@
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtCore import *
-from qgis.core import *            
-from opengeo.qgis import layers
+from qgis.core import *
+from geoserver.layergroup import LayerGroup, UnsavedLayerGroup
+from opengeo.qgis import layers as qgislayers
 from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
 from opengeo.gui.qgsexploreritems import QgsStyleItem
 from opengeo.gui.gsnameutils import xmlNameEmptyRegex, xmlNameFixUp, \
     xmlNameRegex, xmlNameRegexMsg
 from opengeo.qgis.utils import UserCanceledOperation
 from opengeo.gui.dialogs.gsnamedialog import getGSLayerName
+from opengeo.gui.dialogs.groupdialog import PublishLayerGroupDialog
 
 
-def publishDraggedGroup(explorer, groupItem, catalog, workspace):        
-    groupName = groupItem.element
-    groups = layers.getGroups()   
-    group = groups[groupName]           
-    gslayers= [layer.name for layer in catalog.get_layers()]
-    missing = []         
-    overwrite = bool(QSettings().value("/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool)) 
-    for layer in group:            
-        if layer.name() not in gslayers or overwrite:
-            missing.append(layer)         
-    if missing:
-        explorer.setProgressMaximum(len(missing), "Publish layers")
+def publishDraggedGroup(explorer, groupItem, catalog, workspace=None):
+    groupname = groupItem.element
+    groups = qgislayers.getGroups()
+    grouplyrs = groups[groupname]
+
+    overwrite = bool(QSettings().value(
+        "/OpenGeo/Settings/GeoServer/OverwriteGroupLayers", True, bool))
+    try:
+        dlg = PublishLayerGroupDialog(catalog, groupname, grouplyrs,
+                                      workspace=workspace,
+                                      overwritegroup=True,
+                                      overwritelayers=overwrite)
+        dlg.exec_()
+    except UserCanceledOperation:
+        return False
+    grpName = dlg.definedname
+    toPublish = dlg.topublish
+    if grpName is None:  # toPublish can be empty list
+        return False
+    catgroup = catalog.get_layergroup(grpName)
+
+    names = []
+    if toPublish:
+        explorer.setProgressMaximum(len(toPublish), "Publish layers")
         progress = 0
-        ogcat = OGCatalog(catalog)                  
-        for layer in missing:
-            explorer.setProgress(progress)                                           
-            explorer.run(ogcat.publishLayer,
-                     None,
-                     [],
-                     layer, workspace, True)
-            progress += 1                                                            
+        layernames = []
+        for layer, catalog, workspc, layername in toPublish:
+            layernames.append(layername)
+            explorer.setProgress(progress)
+            ogcat = OGCatalog(catalog)
+            if not explorer.run(ogcat.publishLayer,
+                                None,
+                                [],
+                                layer, workspc, True, layername):
+                explorer.setProgress(0)
+                return
+            progress += 1
             explorer.setProgress(progress)
         explorer.resetActivity()
-    names = [layer.name() for layer in group]      
-    layergroup = catalog.create_layergroup(groupName, names, names)
-    explorer.run(catalog.save, "Create layer group from group '" + groupName + "'", 
-             [], layergroup)       
+        names = reversed(layernames)
+
+    if catgroup:
+        catalog.delete(catgroup)
+
+    #TODO calculate bounds
+    bbox = None
+    group = UnsavedLayerGroup(catalog, grpName, names, names, bbox)
+
+    return explorer.run(catalog.save,
+                        "Create layer group from group '" + groupname + "'",
+                        [],
+                        group)
 
 def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog

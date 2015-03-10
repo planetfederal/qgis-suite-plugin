@@ -156,6 +156,10 @@ class ExplorerTreeWidget(QtGui.QTreeWidget):
         #=======================================================================
         return allItems
 
+    def findFirstItem(self, element):
+        items = self.findAllItems(element)
+        return None if not items else items[0]
+
     def _selectionChanged(self, explorer):
         items = self.selectedItems()
         # see also: self.treeItemClicked about single selection workaround

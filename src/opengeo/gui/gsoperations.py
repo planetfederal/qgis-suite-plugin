@@ -8,7 +8,7 @@ from opengeo.gui.qgsexploreritems import QgsStyleItem
 from opengeo.gui.gsnameutils import xmlNameEmptyRegex, xmlNameFixUp, \
     xmlNameRegex, xmlNameRegexMsg
 from opengeo.qgis.utils import UserCanceledOperation
-from opengeo.gui.dialogs.gsnamedialog import getGSLayerName
+from opengeo.gui.dialogs.gsnamedialog import getGSLayerName, getGSStyleName
 from opengeo.gui.dialogs.groupdialog import PublishLayerGroupDialog
 
 
@@ -109,12 +109,20 @@ def publishTable(table, catalog = None, workspace = None):
         catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
 
 def publishDraggedStyle(explorer, layerName, catalogItem):
-    ogcat = OGCatalog(catalogItem.element)
-    toUpdate = [catalogItem.stylesItem]                    
-    explorer.run(ogcat.publishStyle,
-             "Publish style from layer '" + layerName + "'",
-             toUpdate,
-             layerName, True, layerName)
+    catalog = catalogItem.element
+    ogcat = OGCatalog(catalog)
+    toUpdate = [catalogItem.stylesItem]
+    styles = [style.name for style in catalog.get_styles()]
+    try:
+        lyrname = getGSStyleName(name=xmlNameFixUp(layerName),
+                                 names=styles,
+                                 unique=False)
+    except UserCanceledOperation:
+        return False
+    return explorer.run(ogcat.publishStyle,
+                        "Publish style from layer '" + layerName + "'",
+                        toUpdate,
+                        layerName, True, lyrname)
 
 def addDraggedLayerToGroup(explorer, layer, groupItem):
     group = groupItem.element

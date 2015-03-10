@@ -595,7 +595,7 @@ class GsCatalogItem(GsTreeItem):
         if not self.isConnected:
             return []
         if isinstance(item, QgsStyleItem):
-            if publishDraggedStyle(item.element.name(), self):
+            if publishDraggedStyle(explorer, item.element.name(), self):
                 return [self]
         elif isinstance(item, QgsGroupItem):
             catalog = self.element

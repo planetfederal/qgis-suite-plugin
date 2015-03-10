@@ -106,7 +106,7 @@ class GsTreeItem(TreeItem):
                 return
             toDelete = set()
             for e in dependent:
-                items = tree.findAllItems(e);
+                items = tree.findAllItems(e)
                 toUpdate.update(set(item.parent() for item in items))
                 toDelete.update(items)
             toUpdate = toUpdate - toDelete
@@ -123,7 +123,7 @@ class GsTreeItem(TreeItem):
             elements.extend(uniqueStyles)
             stylesEntriesToUpdate = set()
             for e in uniqueStyles:
-                items = tree.findAllItems(e);
+                items = tree.findAllItems(e)
                 for item in items:
                     #the item representing the layer we are deleting will be here, but we have to ignore it
                     #and update only the "styles" item
@@ -183,7 +183,7 @@ class GsTreeItem(TreeItem):
                         if layer == element.name:
                             dependent.append(group)
                             break
-                catItem = tree.findAllItems(element.catalog)[0];
+                catItem = tree.findFirstItem(element.catalog)
                 gwcItem = catItem.gwcItem
                 possibleGwcLayers = []
                 for idx in xrange(gwcItem.childCount()):
@@ -266,7 +266,7 @@ class GsCatalogsItem(GsTreeItem):
                                     "or unidentified version of GeoServer.\n"
                                     "That might cause unexpected behaviour.\nDo you want to add the catalog anyway?",
                                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                                    QtGui.QMessageBox.No);
+                                    QtGui.QMessageBox.No)
                     if ret == QtGui.QMessageBox.No:
                         return
                     QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
@@ -539,7 +539,7 @@ class GsCatalogItem(GsTreeItem):
             self.geonode = Geonode(geonodeUrl)
             QtGui.QApplication.restoreOverrideCursor()
             if authid is not None:
-                authtype = QgsAuthManager.instance().configProviderType(authid);
+                authtype = QgsAuthManager.instance().configProviderType(authid)
                 if authtype == QgsAuthType.None or authtype == QgsAuthType.Unknown:
                     raise Exception("Cannot restore catalog. Invalid or missing auth information")
                 if authtype == QgsAuthType.Basic:
@@ -564,7 +564,7 @@ class GsCatalogItem(GsTreeItem):
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:
             dlg = QtGui.QProgressDialog("Retrieving catalog information", None, 0, 0  , config.iface.mainWindow())
-            dlg.setWindowModality(Qt.WindowModal);
+            dlg.setWindowModality(Qt.WindowModal)
             dlg.setMinimumDuration(1)
             dlg.showNormal()
             QtGui.QApplication.processEvents()
@@ -653,8 +653,8 @@ class GsCatalogItem(GsTreeItem):
             del explorer.catalogs()[name]
         settings = QSettings()
         settings.beginGroup("/OpenGeo/GeoServer/" + name)
-        settings.remove("");
-        settings.endGroup();
+        settings.remove("")
+        settings.endGroup()
         parent = self.parent()
         parent.takeChild(self.parent().indexOfChild(self))
         tree.setItemSelected(parent, True)
@@ -1068,7 +1068,7 @@ class GsGroupItem(GsTreeItem):
         return [deleteSelectedAction]
 
     def deleteLayerGroup(self, tree, explorer):
-        self.deleteElements([self], tree, explorer);
+        self.deleteElements([self], tree, explorer)
 
     def editLayerGroup(self, explorer):
         cat = self.parentCatalog()

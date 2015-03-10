@@ -46,6 +46,7 @@ def xmlNameRegexMsg():
 class GSNameWidget(QtGui.QWidget):
 
     nameValidityChanged = QtCore.pyqtSignal(bool)  # pragma: no cover
+    invalidTextChanged = QtCore.pyqtSignal(str)  # pragma: no cover
     overwritingChanged = QtCore.pyqtSignal(bool)  # pragma: no cover
 
     def __init__(self, name='', namemsg='', nameregex='', nameregexmsg='',
@@ -84,6 +85,7 @@ class GSNameWidget(QtGui.QWidget):
         self.nameBox.lineEdit().setText(self.name)
         self.nameBox.lineEdit().textChanged.connect(self.validateName)
         self.nameValidityChanged.connect(self.highlightName)
+        self.invalidTextChanged.connect(self.showInvalidToolTip)
         phtxt = "Optional" if self.allowempty else "Required"
         self.nameBox.lineEdit().setPlaceholderText(phtxt)
         layout.addWidget(self.nameBox)
@@ -121,6 +123,17 @@ class GSNameWidget(QtGui.QWidget):
         return self.overwriting
 
     @QtCore.pyqtSlot(str)
+    def showInvalidToolTip(self, txt):
+        bxpos = self.nameBox.pos()
+        QtCore.QTimer.singleShot(250, lambda:
+        QtGui.QToolTip.showText(
+            self.mapToGlobal(
+                QtCore.QPoint(bxpos.x(),
+                              bxpos.y() + self.nameBox.height()/2)),
+            txt,
+            self.nameBox))
+
+    @QtCore.pyqtSlot(str)
     def setName(self, txt):
         self.nameBox.lineEdit().setText(txt)
 
@@ -128,11 +141,15 @@ class GSNameWidget(QtGui.QWidget):
     def setNames(self, names):
         curname = self.nameBox.currentText()
         self.names = names
+
+        self.blockSignals(True)
         self.nameBox.clear()
         if self.name and self.name not in self.names:
             self.nameBox.addItem(self.name)
         if len(names) > 0:
             self.nameBox.addItems(names)
+        self.blockSignals(False)
+
         if curname != self.nameBox.currentText():
             self.setName(curname)  # validates
         else:
@@ -191,14 +208,7 @@ class GSNameWidget(QtGui.QWidget):
 
         self.nameBox.setToolTip(invalidtxt if not valid else '')
         if not valid:
-            bxpos = self.nameBox.pos()
-            QtCore.QTimer.singleShot(250, lambda:
-            QtGui.QToolTip.showText(
-                self.mapToGlobal(
-                    QtCore.QPoint(bxpos.x(),
-                                  bxpos.y() + self.nameBox.height()/2)),
-                invalidtxt,
-                self.nameBox))
+            self.invalidTextChanged.emit(invalidtxt)
 
     @QtCore.pyqtSlot()
     def highlightName(self):

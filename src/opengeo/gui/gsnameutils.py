@@ -159,7 +159,6 @@ class GSNameWidget(QtGui.QWidget):
         if name is None:
             name = self.nameBox.lineEdit().text()
         curvalid = self.valid
-        curoverwriting = self.overwriting
 
         invalidtxt = "Name can not be empty"
         valid = True if self.allowempty else len(name) > 0
@@ -176,15 +175,13 @@ class GSNameWidget(QtGui.QWidget):
                 .format(self.nameregex)
             valid = rx.exactMatch(name)
 
-        overwriting = False
         if valid:
+            overwriting = False
             if self.unique:  # crosscheck for unique name
                 invalidtxt = "Name is not unique"
                 valid = name not in self.names
             else:  # crosscheck for overwrite
                 overwriting = name in self.names
-
-        if curoverwriting != overwriting:
             self.overwriting = overwriting
             self.overwritingChanged.emit(overwriting)
 

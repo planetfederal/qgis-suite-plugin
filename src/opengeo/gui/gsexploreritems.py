@@ -316,30 +316,24 @@ class GsLayersItem(GsTreeItem):
             if catalog is None:
                 return []
             if publishDraggedGroup(explorer, item, catalog):
-                return tree.findAllItems(catalog)
-            return []
+                return [tree.findFirstItem(catalog)]
         elif isinstance(item, QgsLayerItem):
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             catalog = self.parentCatalog()
             if catalog is None:
                 return []
             if workspace is not None:
                 if publishDraggedLayer(explorer, item.element, workspace):
-                    toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
+                    return [tree.findFirstItem(catalog)]
         elif isinstance(item, PgTableItem):
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             catalog = self.parentCatalog()
             if catalog is None:
                 return []
             if workspace is not None:
                 if publishDraggedTable(explorer, item.element, workspace):
-                    toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
-        else:
-            return []
+                    return [tree.findFirstItem(catalog)]
+        return []
 
     def acceptDroppedUris(self, tree, explorer, uris):
         return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.getDefaultWorkspace(), explorer, tree)
@@ -361,12 +355,11 @@ class GsGroupsItem(GsTreeItem):
         if isinstance(item, QgsGroupItem):
             catalog = self.parentCatalog()
             if catalog is None:
-                return
+                return []
             workspace = self.parentWorkspace()
-            publishDraggedGroup(explorer, item, catalog, workspace)
-            return tree.findAllItems(catalog)
-        else:
-            return []
+            if publishDraggedGroup(explorer, item, catalog, workspace):
+                return [tree.findFirstItem(catalog)]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
@@ -410,27 +403,26 @@ class GsWorkspacesItem(GsTreeItem):
         if isinstance(item, QgsGroupItem):
             catalog = self.parentCatalog()
             if catalog is None:
-                return
-            publishDraggedGroup(explorer, item, catalog)
-            return tree.findAllItems(catalog)
+                return []
+            if publishDraggedGroup(explorer, item, catalog):
+                return [tree.findFirstItem(catalog)]
         elif isinstance(item, QgsLayerItem):
             catalog = self.parentCatalog()
+            if catalog is None:
+                return []
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             if workspace is not None:
                 if publishDraggedLayer(explorer, item.element, workspace):
-                    toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
+                    return [tree.findFirstItem(catalog)]
         elif isinstance(item, PgTableItem):
             catalog = self.parentCatalog()
+            if catalog is None:
+                return []
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             if workspace is not None:
-                publishDraggedTable(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
-        else:
-            return []
+                if publishDraggedTable(explorer, item.element, workspace):
+                    return [tree.findFirstItem(catalog)]
+        return []
 
     def acceptDroppedUris(self, tree, explorer, uris):
         return addDraggedUrisToWorkspace(uris, self.parentCatalog(), self.getDefaultWorkspace(), explorer, tree)
@@ -467,15 +459,14 @@ class GsStylesItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, QgsStyleItem):
             catalog = self.parentCatalog()
+            if catalog is None:
+                return []
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             if workspace is not None:
-                catalogItem = tree.findAllItems(catalog)[0]
-                publishDraggedStyle(explorer, item.element.name(), catalogItem)
-                toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
-        else:
-            return []
+                catalogItem = tree.findFirstItem(catalog)
+                if publishDraggedStyle(explorer, item.element.name(), catalogItem):
+                    return [catalogItem]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/add.png")
@@ -490,7 +481,7 @@ class GsStylesItem(GsTreeItem):
 
     def consolidateStyles(self, tree, explorer):
         catalog = self.parentCatalog()
-        catalogItem = tree.findAllItems(catalog)[0]
+        catalogItem = tree.findFirstItem(catalog)
         ogcat = OGCatalog(self.catalog)
         explorer.run(ogcat.consolidateStyles, "Consolidate styles", [self, catalogItem.layersItem])
 
@@ -604,26 +595,21 @@ class GsCatalogItem(GsTreeItem):
         if not self.isConnected:
             return []
         if isinstance(item, QgsStyleItem):
-            publishDraggedStyle(item.element.name(), self)
-            return [self]
+            if publishDraggedStyle(item.element.name(), self):
+                return [self]
         elif isinstance(item, QgsGroupItem):
             catalog = self.element
-            publishDraggedGroup(explorer, item, catalog)
-            return [self]
+            if publishDraggedGroup(explorer, item, catalog):
+                return [self]
         elif isinstance(item, QgsLayerItem):
-            catalog = self.element
             workspace = self.getDefaultWorkspace()
             if publishDraggedLayer(explorer, item.element, workspace):
                 return [self]
-            else:
-                return []
         elif isinstance(item, PgTableItem):
-            catalog = self.element
             workspace = self.getDefaultWorkspace()
-            publishDraggedTable(explorer, item.element, workspace)
-            return [self]
-        else:
-            return []
+            if publishDraggedTable(explorer, item.element, workspace):
+                return [self]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -709,25 +695,24 @@ class GsLayerItem(GsTreeItem):
 
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, (GsStyleItem, QgsStyleItem)):
-            addDraggedStyleToLayer(tree, explorer, item, self)
-            return [self]
+            if addDraggedStyleToLayer(tree, explorer, item, self):
+                return [self]
         elif isinstance(item, GsLayerItem):
             destinationItem = self.parent()
-            toUpdate = []
+            if destinationItem is None:
+                return []
             if isinstance(destinationItem, GsGroupItem):
-                addDraggedLayerToGroup(explorer, item.element, destinationItem)
-                toUpdate.append(destinationItem)
-            return toUpdate
+                if addDraggedLayerToGroup(explorer, item.element, destinationItem):
+                    return [destinationItem]
         elif isinstance(item, QgsLayerItem):
             catalog = self.parentCatalog()
+            if catalog is None:
+                return []
             workspace = self.getDefaultWorkspace()
-            toUpdate = []
             if workspace is not None:
                 if publishDraggedLayer(explorer, item.element, workspace):
-                    toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
-        else:
-            return []
+                    return [tree.findFirstItem(catalog)]
+        return []
 
     def _getDescriptionHtml(self, tree, explorer):
         html = ""
@@ -881,7 +866,7 @@ class GsLayerItem(GsTreeItem):
             name = getGSLayerGroupName(names=groupnames, unique=True)
         except UserCanceledOperation:
             return
-        catalogItem = tree.findAllItems(catalog)[0]
+        catalogItem = tree.findFirstItem(catalog)
         if catalogItem:
             groupsItem = catalogItem.groupsItem
         else:
@@ -1040,12 +1025,9 @@ class GsGroupItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, GsLayerItem):
             if self != item.parent():
-                addDraggedLayerToGroup(explorer, item.element, self)
-                return [self]
-            else:
-                return []
-        else:
-            return []
+                if addDraggedLayerToGroup(explorer, item.element, self):
+                    return [self]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/edit.png")
@@ -1122,17 +1104,18 @@ class GsStyleItem(GsTreeItem):
         if isinstance(item, (GsStyleItem, QgsStyleItem)):
             if isinstance(self.parent(), GsLayerItem):
                 destinationItem = self.parent()
-                addDraggedStyleToLayer(tree, explorer, item, destinationItem)
-                return [destinationItem]
+                if destinationItem is None:
+                    return []
+                if addDraggedStyleToLayer(tree, explorer, item, destinationItem):
+                    return [destinationItem]
             elif isinstance(self.parent(), GsStylesItem) and isinstance(item, QgsStyleItem):
                 catalog = self.parentCatalog()
-                catalogItem = tree.findAllItems(catalog)[0]
-                publishDraggedStyle(explorer, item.element.name(), catalogItem)
-                return [catalogItem]
-            else:
-                return []
-        else:
-            return []
+                if catalog is None:
+                    return []
+                catalogItem = tree.findFirstItem(catalog)
+                if publishDraggedStyle(explorer, item.element.name(), catalogItem):
+                    return [catalogItem]
+        return []
 
     def multipleSelectionContextMenuActions(self, tree, explorer, selected):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -1223,25 +1206,22 @@ class GsWorkspaceItem(GsTreeItem):
         if isinstance(item, QgsGroupItem):
             catalog = self.parentCatalog()
             if catalog is None:
-                return
+                return []
             workspace = self.parentWorkspace()
-            publishDraggedGroup(explorer, item, catalog, workspace)
-            return tree.findAllItems(catalog)
+            if publishDraggedGroup(explorer, item, catalog, workspace):
+                return [tree.findFirstItem(catalog)]
         elif isinstance(item, QgsLayerItem):
             if publishDraggedLayer(explorer, item.element, self.element):
-                return tree.findAllItems(self.element.catalog)
-            else:
-                return []
+                return [tree.findAllItems(self.element.catalog)[0]]
         elif isinstance(item, PgTableItem):
             catalog = self.parentCatalog()
+            if catalog is None:
+                return []
             workspace = self.element
-            toUpdate = []
             if workspace is not None:
-                publishDraggedTable(explorer, item.element, workspace)
-                toUpdate.append(tree.findAllItems(catalog)[0])
-            return toUpdate
-        else:
-            return []
+                if publishDraggedTable(explorer, item.element, workspace):
+                    return [tree.findFirstItem(catalog)]
+        return []
 
 
     def contextMenuActions(self, tree, explorer):
@@ -1313,11 +1293,8 @@ class GsStoreItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, QgsLayerItem):
             if publishDraggedLayer(explorer, item.element, self.element.workspace):
-                return tree.findAllItems(self.element.catalog)
-            else:
-                return []
-        else:
-            return []
+                return [tree.findFirstItem(self.element.catalog)]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")
@@ -1346,11 +1323,8 @@ class GsResourceItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, QgsLayerItem):
             if publishDraggedLayer(explorer, item.element, self.element.workspace):
-                return tree.findAllItems(self.element.catalog)
-            else:
-                return []
-        else:
-            return []
+                return [tree.findFirstItem(self.element.catalog)]
+        return []
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/delete.gif")

@@ -139,6 +139,26 @@ class GsTreeItem(TreeItem):
             #we now want to delete. It is deleted already anyway, so we should not raise any exception
             #TODO: this might swallow other type of exceptions. Should implement a more fine-grained error handling
             try:
+                if isinstance(element, Style):
+                    layersToUpdate = []
+                    layers = element.catalog.get_layers()
+                    for layer in layers:
+                        styles = layer.styles
+                        if not styles:
+                            continue
+                        if layer.default_style.name == element.name:
+                            layersToUpdate.append(layer)
+                        else:
+                            for style in styles:
+                                if style.name == element.name:
+                                    layersToUpdate.append(layer)
+                                    break
+                    for layer in layersToUpdate:
+                        styles = layer.styles
+                        styles = [style for style in styles if style.name != element.name]
+                        layer.styles = styles
+                        element.catalog.save(layer)
+                        toUpdate.add(tree.findAllItems(layer)[0])
                 element.catalog.delete(element, recurse = recurse, purge = True)
             except:
                 pass
@@ -205,10 +225,13 @@ class GsTreeItem(TreeItem):
             elif isinstance(element, Style):
                 layers = element.catalog.get_layers()
                 for layer in layers:
+                    styles = layer.styles
+                    if styles:
+                        continue
                     if layer.default_style.name == element.name:
                         dependent.append(layer)
                     else:
-                        for style in layer.styles:
+                        for style in styles:
                             if style.name == element.name:
                                 dependent.append(layer)
                                 break

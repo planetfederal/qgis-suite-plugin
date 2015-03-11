@@ -37,7 +37,7 @@ from opengeo.geoserver.geonode import Geonode
 from opengeo.gui.gsoperations import publishDraggedGroup, publishDraggedLayer,\
     addDraggedUrisToWorkspace, publishDraggedTable, publishDraggedStyle,\
     addDraggedStyleToLayer, addDraggedLayerToGroup
-from opengeo.gui.confirm import confirmDelete
+from opengeo.gui.confirm import confirmDelete, DeleteDependentsDialog
 from opengeo.geoserver.pki import PKICatalog
 from _ssl import SSLError
 from opengeo.geoserver import pem
@@ -95,14 +95,8 @@ class GsTreeItem(TreeItem):
         progress = 0
         dependent = self.getDependentElements(elements, tree)
         if dependent:
-            msg = "The following elements depend on the elements to delete\nand will be deleted as well:\n\n"
-            names = set(["-" + e.name + "(" + e.__class__.__name__ + ")" for e in dependent])
-            msg += " \n\n".join(names)
-            msg += "\n\nDo you really want to delete all these elements?"
-            reply = QtGui.QMessageBox.question(None, "Delete confirmation",
-                                               msg, QtGui.QMessageBox.Yes |
-                                               QtGui.QMessageBox.No, QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.No:
+            depdlg = DeleteDependentsDialog(dependent)
+            if not depdlg.exec_():
                 return
             toDelete = set()
             for e in dependent:

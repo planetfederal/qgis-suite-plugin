@@ -108,21 +108,24 @@ def publishTable(table, catalog = None, workspace = None):
     if store is not None:
         catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
 
-def publishDraggedStyle(explorer, layerName, catalogItem):
+def publishDraggedStyle(explorer, layerName, catalogItem, name=None):
     catalog = catalogItem.element
     ogcat = OGCatalog(catalog)
     toUpdate = [catalogItem.stylesItem]
-    styles = [style.name for style in catalog.get_styles()]
-    try:
-        lyrname = getGSStyleName(name=xmlNameFixUp(layerName),
-                                 names=styles,
-                                 unique=False)
-    except UserCanceledOperation:
-        return False
+    if name is not None:
+        stylename = name
+    else:
+        styles = [style.name for style in catalog.get_styles()]
+        try:
+            stylename = getGSStyleName(name=xmlNameFixUp(layerName),
+                                       names=styles,
+                                       unique=False)
+        except UserCanceledOperation:
+            return False
     return explorer.run(ogcat.publishStyle,
                         "Publish style from layer '" + layerName + "'",
                         toUpdate,
-                        layerName, True, lyrname)
+                        layerName, True, stylename)
 
 def addDraggedLayerToGroup(explorer, layer, groupItem):
     group = groupItem.element
@@ -138,23 +141,35 @@ def addDraggedLayerToGroup(explorer, layer, groupItem):
                  group)
     
 def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
-    catalog = layerItem.element.catalog  
+    catalog = layerItem.element.catalog
+    toUpdate = [layerItem]
     if isinstance(styleItem, QgsStyleItem):
-        styleName = styleItem.element.name()                   
-        catalogItem = tree.findAllItems(catalog)[0]
-        publishDraggedStyle(explorer, styleName, catalogItem)     
-        style = catalog.get_style(styleName)
+        styleName = styleItem.element.name()  # = layer name
+        catalogItem = tree.findFirstItem(catalog)
+        styles = [style.name for style in catalog.get_styles()]
+        try:
+            stylname = getGSStyleName(name=xmlNameFixUp(styleName),
+                                      names=styles,
+                                      unique=False)
+        except UserCanceledOperation:
+            return False
+        if not publishDraggedStyle(explorer, styleName, catalogItem,
+                                   name=stylname):
+            return False
+        style = catalog.get_style(stylname)
+        toUpdate.append(catalogItem.stylesItem)
     else:         
-        style = styleItem.element            
+        style = styleItem.element
     layer = layerItem.element
-    styles = layer.styles                            
+    styles = layer.styles
     styles.append(style)
     layer.styles = styles
                             
-    explorer.run(catalog.save, 
-             "Add style '" + style.name + "' to layer '" + layer.name + "'",
-             [layerItem],
-             layer)  
+    return explorer.run(
+        catalog.save,
+        "Add style '" + style.name + "' to layer '" + layer.name + "'",
+        toUpdate,
+        layer)
 
 def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):    
     if uris:      

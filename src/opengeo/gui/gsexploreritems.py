@@ -42,6 +42,7 @@ from opengeo.gui.confirm import confirmDelete, DeleteDependentsDialog
 from opengeo.geoserver.pki import PKICatalog
 from _ssl import SSLError
 from opengeo.geoserver import pem
+from opengeo.geoserver.retry import RetryCatalog
 
 class GsTreeItem(TreeItem):
 
@@ -272,7 +273,7 @@ class GsCatalogsItem(GsTreeItem):
                 if dlg.certfile is not None:
                     cat = PKICatalog(dlg.url, dlg.keyfile, dlg.certfile, dlg.cafile)
                 else:
-                    cat = Catalog(dlg.url, dlg.username, dlg.password)
+                    cat = RetryCatalog(dlg.url, dlg.username, dlg.password)
                 cat.authid = dlg.authid
                 v = cat.gsversion()
                 supported = (v.startswith("2.3") or v.startswith("2.4")
@@ -552,7 +553,7 @@ class GsCatalogItem(GsTreeItem):
                     QgsAuthManager.instance().loadAuthenticationConfig(authid, configbasic, True)
                     password = configbasic.password()
                     username = configbasic.username()
-                    self.catalog = Catalog(url, username, password)
+                    self.catalog = RetryCatalog(url, username, password)
                 elif authtype in [QgsAuthType.PkiPaths, QgsAuthType.PkiPkcs12]:
                     certfile, keyfile, cafile = pem.getPemPkiPaths(authid, authtype)
                     self.catalog = PKICatalog(url, keyfile, certfile, cafile)
@@ -564,7 +565,7 @@ class GsCatalogItem(GsTreeItem):
                                           QtGui.QLineEdit.Password)
                 if not ok:
                     return
-                self.catalog = Catalog(url, username, password)
+                self.catalog = RetryCatalog(url, username, password)
             self.catalog.authid = authid
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(Qt.WaitCursor))
         try:

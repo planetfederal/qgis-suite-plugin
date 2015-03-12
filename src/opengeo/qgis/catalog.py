@@ -23,6 +23,7 @@ from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
 from opengeo.geoserver.pki import PKICatalog, PKIClient
+from opengeo.gui.gsnameutils import xmlNameFixUp
 from opengeo.gui.dialogs.gsnamedialog import getGSStoreName
 from opengeo.gui.dialogs.pgconnectiondialog import getUserPassword
 from opengeo.qgis.utils import UserCanceledOperation
@@ -360,20 +361,20 @@ class OGCatalog(object):
         if name not in groups:
             raise Exception("The specified group does not exist")
 
-        destName = destName if destName is not None else name
+        destName = xmlNameFixUp(destName) if destName is not None \
+            else xmlNameFixUp(name)
         gsgroup = self.catalog.get_layergroup(destName)
         if gsgroup is not None and not overwrite:
             return
 
-
         group = groups[name]
-
         for layer in group:
-            gslayer = self.catalog.get_layer(layer.name())
+            lyrname = xmlNameFixUp(layer.name())
+            gslayer = self.catalog.get_layer(lyrname)
             if gslayer is None or overwriteLayers:
-                self.publishLayer(layer, workspace, True)
+                self.publishLayer(layer, workspace, True, lyrname)
 
-        names = [layer.name() for layer in group]
+        names = [xmlNameFixUp(layer.name()) for layer in group]
 
         layergroup = self.catalog.create_layergroup(destName, names, names)
         self.catalog.save(layergroup)

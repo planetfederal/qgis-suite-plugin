@@ -151,10 +151,10 @@ class GsTreeItem(TreeItem):
                                     break
                     for layer in layersToUpdate:
                         styles = layer.styles
-                        styles = [style for style in styles if style.name != element.name]
-                        layer.styles = styles
+                        newStyles = [style for style in styles if style.name != element.name]
+                        layer.styles = newStyles
                         element.catalog.save(layer)
-                        toUpdate.add(tree.findAllItems(layer)[0])
+                        toUpdate.update(tree.findAllItems(layer.catalog))
                 element.catalog.delete(element, recurse = recurse, purge = True)
             except:
                 pass

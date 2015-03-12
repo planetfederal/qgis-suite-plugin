@@ -33,9 +33,35 @@ class DeleteDependentsDialog(QtGui.QDialog):
         self.title = "Confirm Deletion"
         self.msg = "The following elements depend on the elements to delete " \
                    "and will be deleted as well:"
-        names = set(["<b>- (" + e.__class__.__name__ + ")</b> &nbsp;" + e.name
-                     for e in dependent])
-        self.deletes = "<br><br>".join(names)
+        typeorder = ['LayerGroup', 'Layer', 'GwcLayer', 'Other']
+        names = dict()
+        for dep in dependent:
+            cls = dep.__class__.__name__
+            name = dep.name
+            title = ''
+            if hasattr(dep, 'resource'):
+                if hasattr(dep.resource, 'title'):
+                    if dep.resource.title != name:
+                        title = dep.resource.title
+            desc = "<b>- {0}:</b> &nbsp;{1}{2}".format(
+                cls,
+                name,
+                " ({0})".format(title) if title else ''
+            )
+            if cls in names:
+                names[cls].append(desc)
+            else:
+                if cls in typeorder:
+                    names[cls] = [desc]
+                else:
+                    if 'Other' in names:
+                        names['Other'].append(desc)
+                    else:
+                        names['Other'] = [desc]
+
+        self.deletes = "<br><br>".join(
+            ["<br><br>".join(sorted(list(set(names[typ]))))
+             for typ in typeorder if typ in names])
         self.question = "Do you really want to delete all these elements?"
         self.buttonBox = None
         self.initGui()
@@ -49,7 +75,8 @@ class DeleteDependentsDialog(QtGui.QDialog):
         layout.addWidget(msgLabel)
 
         deletesView = QtGui.QTextEdit()
-        deletesView.append(unicode(self.deletes))
+        deletesView.setText(unicode(self.deletes))
+        deletesView.setReadOnly(True)
         deletesView.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         layout.addWidget(deletesView)
 

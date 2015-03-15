@@ -398,14 +398,14 @@ class OGCatalog(object):
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)
 
-        name = name if name is not None else layer.name()
+        name = xmlNameFixUp(name) if name is not None \
+            else xmlNameFixUp(layer.name())
 
         gslayer = self.catalog.get_layer(name)
         if gslayer is not None and not overwrite:
             return
 
         title = name
-        name = name.replace(" ", "_")
 
         sld = self.publishStyle(layer, overwrite, name)
 

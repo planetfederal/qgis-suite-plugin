@@ -143,10 +143,11 @@ class GSNameWidget(QtGui.QWidget):
                 QtCore.QPoint(bxpos.x(),
                               bxpos.y() + self.nameBox.height()/2)),
             txt,
-            self.nameBox))
+            self.nameBox) if self.nameBox else None)
 
     @QtCore.pyqtSlot(str)
     def setName(self, txt):
+        self.name = txt
         self.nameBox.lineEdit().setText(txt)
 
     @QtCore.pyqtSlot(list)

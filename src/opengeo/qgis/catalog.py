@@ -24,9 +24,6 @@ from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
 from opengeo.geoserver.pki import PKICatalog, PKIClient
 from opengeo.gui.gsnameutils import xmlNameFixUp
-from opengeo.gui.dialogs.gsnamedialog import getGSStoreName
-from opengeo.gui.dialogs.pgconnectiondialog import getUserPassword
-from opengeo.qgis.utils import UserCanceledOperation
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -178,40 +175,20 @@ class OGCatalog(object):
         return data
 
 
-    def _publishExisting(self, layer, workspace, overwrite, name):
+    def _publishExisting(self, layer, workspace, overwrite,
+                         name, storename=None):
         uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
-        user = uri.username()
-        passwd = uri.password()
-        # GeoServer's PG connector apparently requires a username.
-        # Username is not required to be defined for a QGIS PG layer (e.g. user can
-        # rely upon PG's default). Username and/or password might be saved in QGIS,
-        # though the user has to choose the option to have them saved
-        if not user or (user and not passwd):
-            newu, newp = getUserPassword(user=user, passwd=passwd)
-            if newu:
-                user = newu
-                passwd = newp
-            else:
-                raise UserCanceledOperation
-
-        connName = self.getConnectionNameFromLayer(layer)
-        storenames = [s.name for s in self.catalog.get_stores(workspace)]
-        storename = getGSStoreName(
-            name=connName,
-            namemsg='Sample is generated from PostgreSQL connection name.',
-            names=storenames,
-            unique=not overwrite)
-
+        storename = storename or self.getConnectionNameFromLayer(layer)
         store = createPGFeatureStore(self.catalog,
-                                     storename,
+                                     xmlNameFixUp(storename),
                                      workspace = workspace,
                                      overwrite = overwrite,
                                      host = uri.host(),
                                      database = uri.database(),
                                      schema = uri.schema(),
                                      port = uri.port(),
-                                     user = user,
-                                     passwd = passwd)
+                                     user = uri.username(),
+                                     passwd = uri.password())
         if store is not None:
             self.catalog.publish_featuretype(name, store, layer.crs().authid())
 

@@ -1,7 +1,7 @@
 import unittest
 from qgis.core import *
 from PyQt4.QtCore import *
-from PyQt4.QtGui import QApplication, QWidget, QHBoxLayout, QToolTip
+from PyQt4.QtGui import QApplication, QWidget, QHBoxLayout, QToolTip, QCursor
 from PyQt4.QtTest import QTest
 from opengeo.gui.dialogs.catalogdialog import DefineCatalogDialog
 from opengeo.gui.explorer import OpenGeoExplorer
@@ -16,7 +16,7 @@ from opengeo.qgis import layers
 from opengeo.gui.dialogs.importvector import ImportIntoPostGISDialog
 from opengeo.postgis.schema import Schema
 from opengeo.gui.gsnameutils import GSNameWidget, xmlNameRegex, \
-    xmlNameRegexMsg, xmlNameFixUp
+    xmlNameRegexMsg, xmlNameEmptyRegex, xmlNameIsValid, xmlNameFixUp
 from opengeo.gui.dialogs.gsnamedialog import GSNameDialog
 from opengeo.gui.contextualhelp import InfoIcon
 
@@ -149,8 +149,10 @@ class LayerDialogTests(unittest.TestCase):
         cleanCatalog(cls.cat)
             
     def testPublishLayerDialog(self):        
-        dialog = PublishLayerDialog(self.catalogs)        
+        dialog = PublishLayerDialog(self.catalogs)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
+        self.assertFalse(okWidget.isEnabled())  # needs layer name
+        dialog.nameBox.setName('valid_name')
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertIsNotNone(dialog.catalog)
         self.assertIsNotNone(dialog.workspace)
@@ -175,10 +177,10 @@ class LayerDialogTests(unittest.TestCase):
             if ws.name == WORKSPACEB:
                 wsIdxB = idx                
         dialog = PublishLayersDialog(self.catalogs, [pt1,pt2])
-        self.assertEquals(1, dialog.table.columnCount())
+        self.assertEquals(4, dialog.table.columnCount())
         self.assertEquals(2, dialog.table.rowCount())   
-        dialog.table.cellWidget(0,0).setCurrentIndex(wsIdx)
-        dialog.table.cellWidget(1,0).setCurrentIndex(wsIdxB)            
+        dialog.table.cellWidget(0, 1).setCurrentIndex(wsIdx)
+        dialog.table.cellWidget(1, 1).setCurrentIndex(wsIdxB)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertIsNotNone(dialog.topublish)
@@ -186,10 +188,10 @@ class LayerDialogTests(unittest.TestCase):
         self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
                 
         dialog = PublishLayersDialog({"catalog": cat, "catalog2:": cat}, [pt1,pt2])
-        self.assertEquals(2, dialog.table.columnCount())
+        self.assertEquals(5, dialog.table.columnCount())
         self.assertEquals(2, dialog.table.rowCount())
-        dialog.table.cellWidget(0,1).setCurrentIndex(wsIdx)
-        dialog.table.cellWidget(1,1).setCurrentIndex(wsIdxB)
+        dialog.table.cellWidget(0, 2).setCurrentIndex(wsIdx)
+        dialog.table.cellWidget(1, 2).setCurrentIndex(wsIdxB)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertIsNotNone(dialog.topublish)
@@ -269,7 +271,13 @@ class GsNameUtilsTest(unittest.TestCase):
 
     def testGSNameStaticUtils(self):
         n = xmlNameFixUp('My PG connection')
-        self.assertTrue(n == 'my_pg_connection')
+        self.assertTrue(n == 'My_PG_connection')
+        n = xmlNameFixUp('0Name_with_number')
+        self.assertTrue(n == '_0Name_with_number')
+        n = xmlNameFixUp('xml_starts_name')
+        self.assertTrue(n == '_xml_starts_name')
+        n = xmlNameFixUp(':Name_startswith_punctuation')
+        self.assertTrue(n == '_:Name_startswith_punctuation')
         nr = xmlNameRegex()
         self.assertTrue(QRegExp(nr, 0).isValid())
         nrm = xmlNameRegexMsg()
@@ -284,7 +292,7 @@ class GsNameUtilsTest(unittest.TestCase):
             names=['name_one', 'name_two', 'name_three'],
             unique=False,
             maxlength=10)
-        self.assertEqual(nw.nameBox.count(), 3)
+        self.assertEqual(nw.nameBox.count(), 4)  # name is prepended to list
 
     def testGSNameWidgetValidName(self):
         nw = GSNameWidget(name='my_pg_connection')
@@ -297,15 +305,26 @@ class GsNameUtilsTest(unittest.TestCase):
         nw.highlightName()
         self.assertEqual(nw.nameBox.lineEdit().styleSheet(), '')
 
+        validnames = ['name_8291', 'name.with.dots', 'name:with::colons',
+                      '_name_with_underscore']
+
         # XML valid name
         nw.setNameRegex(xmlNameRegex(), xmlNameRegexMsg())
         self.assertTrue(nw.isValid())
-        nw.setName('name_8291')
+        for vname in validnames:
+            nw.setName(vname)
+            self.assertTrue(nw.isValid())
+
+        # empty name regex
+        nw.setName('')
+        nw.setNameRegex(xmlNameEmptyRegex(), xmlNameRegexMsg())
         self.assertTrue(nw.isValid())
-        nw.setName('name.with.dots')
+        nw.setAllowEmpty(True)
         self.assertTrue(nw.isValid())
-        nw.setName('name:with::colons')
-        self.assertTrue(nw.isValid())
+        self.assertEqual(nw.definedName(), '')
+        for vname in validnames:
+            nw.setName(vname)
+            self.assertTrue(nw.isValid())
 
     def testGSNameWidgetInvalidName(self):
         # base invalid name is empty
@@ -317,17 +336,25 @@ class GsNameUtilsTest(unittest.TestCase):
         nw.highlightName()
         self.assertNotEqual(nw.nameBox.lineEdit().styleSheet(), '')
 
+        invalidnames = ['xMl_name', 'name with spaces', '9starts_with_number',
+                        ':starts_with_punctuation']
+
         # XML invalid name
         nw.setNameRegex(xmlNameRegex(), xmlNameRegexMsg())
-        nw.setName('xMl_name')
         self.assertFalse(nw.isValid())
         self.assertIsNone(nw.definedName())
-        nw.setName('name with spaces')
-        self.assertFalse(nw.isValid())
-        nw.setName('9starts_with_number')
-        self.assertFalse(nw.isValid())
-        nw.setName(':starts_with_punctuation')
-        self.assertFalse(nw.isValid())
+        for ivname in invalidnames:
+            nw.setName(ivname)
+            self.assertFalse(nw.isValid())
+
+        # empty name regex
+        nw.setName('')
+        nw.setNameRegex(xmlNameEmptyRegex(), xmlNameRegexMsg())
+        self.assertTrue(nw.isValid())
+        self.assertEqual(nw.definedName(), '')
+        for ivname in invalidnames:
+            nw.setName(ivname)
+            self.assertFalse(nw.isValid())
 
         # custom regex invalid name
         nw.setNameRegex(r'^(?!XML|\d|\W)[a-z](\S(?!::))*', 'regex message')
@@ -359,22 +386,22 @@ class GsNameUtilsTest(unittest.TestCase):
 
         nw.setNames(['name_four', 'name_five'])
         self.assertTrue(nw.isValid())
-        self.assertEqual(nw.nameBox.count(), 2)
+        self.assertEqual(nw.nameBox.count(), 3)  # 'name_one' prepended to list
         self.assertEqual(nw.definedName(), 'name_one')
         nw.setName('name_four')
         self.assertFalse(nw.isValid())
         self.assertIsNone(nw.definedName())
 
-        nw.setName('name_one')
+        nw.setName('name')
         nw.setNames(['name_one', 'name_two', 'name_three'])
-        self.assertFalse(nw.isValid())
-        self.assertEqual(nw.nameBox.count(), 3)
-        self.assertIsNone(nw.definedName())
+        self.assertTrue(nw.isValid())
+        self.assertEqual(nw.nameBox.count(), 4)  # 'name' is prepended to list
+        self.assertEqual(nw.definedName(), 'name')
 
         nw.setNames([])
         self.assertTrue(nw.isValid())
-        self.assertEqual(nw.nameBox.count(), 0)
-        self.assertEqual(nw.definedName(), 'name_one')
+        self.assertEqual(nw.nameBox.count(), 1)  # 'name' is prepended to list
+        self.assertEqual(nw.definedName(), 'name')
 
     def testGSNameWidgetMaxLenName(self):
         nw = GSNameWidget(
@@ -445,13 +472,20 @@ class InfoIconTest(unittest.TestCase):
     def testInfoIcon(self):
         iw = QWidget()
         layout = QHBoxLayout()
-        layout.setMargin(0)
+        layout.setMargin(100)
         ii = InfoIcon('hover popup text', iw)
         layout.addWidget(ii)
         iw.setLayout(layout)
+        iw.setWindowModality(Qt.ApplicationModal)
         iw.show()
+        QTest.mouseMove(iw, iw.pos())
         self.assertEqual(QToolTip.text(), '')
         QTest.mouseMove(ii)
+
+        # why is this necessary?
+        QTest.qWait(250)
+        QTest.mouseMove(ii)
+
         QTest.qWait(2000)
         self.assertEqual(QToolTip.text(), 'hover popup text')
 

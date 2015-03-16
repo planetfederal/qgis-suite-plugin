@@ -73,6 +73,8 @@ class GSNameWidget(QtGui.QWidget):
         self.overwriting = False
         self.maxlength = maxlength if maxlength >= 0 else 0  # no negatives
         self.allowempty = allowempty
+        if nameregex == xmlNameEmptyRegex():
+            self.allowempty = True
         self.valid = True  # False will not trigger signal for setEnabled slots
         self.initGui()
         self.validateName()
@@ -169,11 +171,18 @@ class GSNameWidget(QtGui.QWidget):
     def setNameRegex(self, regex, regexmsg):
         self.nameregex = regex
         self.nameregexmsg = regexmsg
+        if regex == xmlNameEmptyRegex():
+            self.allowempty = True
         self.validateName()
 
     @QtCore.pyqtSlot(int)
     def setMaxLength(self, num):
         self.maxlength = num
+        self.validateName()
+
+    @QtCore.pyqtSlot(bool)
+    def setAllowEmpty(self, empty):
+        self.allowempty = empty
         self.validateName()
 
     @QtCore.pyqtSlot(bool)

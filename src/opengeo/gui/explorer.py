@@ -15,10 +15,9 @@ from opengeo.qgis.utils import UserCanceledOperation
 
 class OpenGeoExplorer(QtGui.QDockWidget):
 
-    objectName = 'OpenGeoExplorer'
-
     def __init__(self, parent = None, singletab = True):
         super(OpenGeoExplorer, self).__init__()
+        self.setObjectName('OpenGeoExplorer')
         self.singletab = singletab
         self.initGui()
 

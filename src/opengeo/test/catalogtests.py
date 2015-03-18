@@ -7,13 +7,14 @@ from PyQt4.QtCore import *
 from opengeo.test import utils
 from opengeo.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
     GEOLOGY_GROUP, GEOFORMS, LANDUSE, HOOK, WORKSPACE
+import sys
 
 class CatalogTests(unittest.TestCase):
     '''
     Tests for the OGCatalog class that provides additional capabilities to a gsconfig catalog
     Requires a Geoserver catalog running on localhost:8080 with default credentials
-    It also requires a running PostGIS on localhost:54321 with default credentials (postgres/postgres) 
-    and a database named "opengeo"    
+    It also requires a running PostGIS on localhost:54321 with default credentials (postgres/postgres)
+    and a database named "opengeo"
     '''
 
     @classmethod
@@ -24,39 +25,46 @@ class CatalogTests(unittest.TestCase):
         cls.cat.catalog.create_workspace(WORKSPACE, "http://boundlessgeo.com")
         cls.ws = cls.cat.catalog.get_workspace(WORKSPACE)
         assert cls.ws is not None
-        
+
     @classmethod
     def tearDownClass(cls):
-        utils.cleanCatalog(cls.cat.catalog)        
-        
-        
+        utils.cleanCatalog(cls.cat.catalog)
+
+
     def testVectorLayerRoundTrip(self):
         self.cat.publishLayer(PT1, self.ws, name = PT1)
-        self.assertIsNotNone(self.cat.catalog.get_layer(PT1))        
+        self.assertIsNotNone(self.cat.catalog.get_layer(PT1))
         self.cat.addLayerToProject(PT1, PT1)
         layer = layers.resolveLayer(PT1)
         QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse = True)
         #TODO: more checking to ensure that the layer in the project is correct
-                
-    def testRasterLayerRoundTrip(self):        
+
+    def testRasterLayerRoundTrip(self):
         self.cat.publishLayer(DEM, self.ws, name = DEM)
-        self.assertIsNotNone(self.cat.catalog.get_layer(DEM))               
+        self.assertIsNotNone(self.cat.catalog.get_layer(DEM))
         self.cat.addLayerToProject(DEM, DEM2)
-        layer = layers.resolveLayer(DEM2)            
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())       
-        self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True) 
-        
+        layer = layers.resolveLayer(DEM2)
+        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
+        self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
+
     def testVectorLayerUncompatibleFormat(self):
         self.cat.publishLayer(PT1JSON, self.ws, name = PT1JSON)
         self.assertIsNotNone(self.cat.catalog.get_layer(PT1JSON))
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1JSON), recurse = True)
-    
+
     def testRasterLayerUncompatibleFormat(self):
         self.cat.publishLayer(DEMASCII, self.ws, name = DEMASCII)
         self.assertIsNotNone(self.cat.catalog.get_layer(DEMASCII))
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEMASCII), recurse = True)
-    
+
+    def compareSld(self, a, b):
+        a = a.replace("\r", "").replace("\n", "").replace(" ", "")
+        b = b.replace("\r", "").replace("\n", "").replace(" ", "")
+        print a
+        print b
+        return a == b
+
     def testVectorStylingUpload(self):
         self.cat.publishLayer(PT1, self.ws, name = PT1)
         self.assertIsNotNone(self.cat.catalog.get_layer(PT1))
@@ -64,9 +72,9 @@ class CatalogTests(unittest.TestCase):
         with open(sldfile, 'r') as f:
             sld = f.read()
         gssld = self.cat.catalog.get_style(PT1).sld_body
-        self.assertEqual(sld, gssld)
+        self.assertTrue(self.compareSld(sld, gssld))
         self.cat.catalog.delete(self.cat.catalog.get_layer(PT1), recurse = True)
-        
+
     def testRasterStylingUpload(self):
         self.cat.publishLayer(DEM, self.ws, name = DEM)
         self.assertIsNotNone(self.cat.catalog.get_layer(DEM))
@@ -74,9 +82,9 @@ class CatalogTests(unittest.TestCase):
         with open(sldfile, 'r') as f:
             sld = f.read()
         gssld = self.cat.catalog.get_style(DEM).sld_body
-        self.assertEqual(sld, gssld)
+        self.assertEqual(self.compareSld(sld, gssld))
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
-        
+
     def testGroup(self):
         self.cat.publishGroup(GEOLOGY_GROUP, workspace = self.ws)
         group = self.cat.catalog.get_layergroup(GEOLOGY_GROUP)
@@ -89,7 +97,7 @@ class CatalogTests(unittest.TestCase):
         self.cat.catalog.delete(self.cat.catalog.get_layergroup(GEOLOGY_GROUP))
         self.cat.catalog.delete(self.cat.catalog.get_layer(GEOFORMS), recurse = True)
         self.cat.catalog.delete(self.cat.catalog.get_layer(LANDUSE), recurse = True)
-        
+
     def testPreuploadVectorHook(self):
         if not catalog.processingOk:
             print 'skipping testPreuploadVectorHook, processing not installed'
@@ -97,17 +105,21 @@ class CatalogTests(unittest.TestCase):
         settings = QSettings()
         oldHookFile = str(settings.value("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", ""))
         hookFile = os.path.join(os.path.dirname(__file__), "resources", "vector_hook.py")
-        settings.setValue("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", hookFile)        
+        settings.setValue("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", hookFile)
         self.cat.publishLayer(PT1, self.ws, name = HOOK)
         self.assertIsNotNone(self.cat.catalog.get_layer(HOOK))
         self.cat.addLayerToProject(HOOK)
         layer = layers.resolveLayer(HOOK)
         self.assertEqual(1, layer.featureCount())
-        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())         
+        QgsMapLayerRegistry.instance().removeMapLayer(layer.id())
         settings.setValue("/OpenGeo/Settings/GeoServer/PreuploadVectorHook", oldHookFile)
-        self.cat.catalog.delete(self.cat.catalog.get_layer(HOOK), recurse = True)   
+        self.cat.catalog.delete(self.cat.catalog.get_layer(HOOK), recurse = True)
 
 
 def suite():
     suite = unittest.makeSuite(CatalogTests, 'test')
     return suite
+
+def run_tests():
+    demo_test = unittest.TestLoader().loadTestsFromTestCase(CatalogTests)
+    unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(demo_test)

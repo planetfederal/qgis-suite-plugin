@@ -8,7 +8,7 @@ from functools import partial
 
 
 class PublishLayerDialog(QtGui.QDialog):
-    
+
     def __init__(self, catalogs, layer=None, parent = None):
         super(PublishLayerDialog, self).__init__(parent)
         self.catalogs = catalogs
@@ -17,12 +17,12 @@ class PublishLayerDialog(QtGui.QDialog):
         self.workspace = None
         self.layername = None
         self.initGui()
-        
-        
-    def initGui(self):                                             
+
+
+    def initGui(self):
         self.setWindowTitle('Publish layer')
-        layout = QtGui.QVBoxLayout()                                
-         
+        layout = QtGui.QVBoxLayout()
+
         gridLayout = QtGui.QGridLayout()
         gridLayout.setSpacing(10)
         gridLayout.setMargin(10)
@@ -42,16 +42,16 @@ class PublishLayerDialog(QtGui.QDialog):
                               QtGui.QSizePolicy.Fixed))
         gridLayout.addWidget(workspaceLabel, 1, 0)
         self.workspaceBox = QtGui.QComboBox()
-        cat = self.catalogs[self.catalogs.keys()[0]]      
+        cat = self.catalogs[self.catalogs.keys()[0]]
         self.workspaces = cat.get_workspaces()
         try:
             defaultWorkspace = cat.get_default_workspace()
             defaultWorkspace.fetch()
             defaultName = defaultWorkspace.dom.find('name').text
         except:
-            defaultName = None  
-        workspaceNames = [w.name for w in self.workspaces]        
-        self.workspaceBox.addItems(workspaceNames)        
+            defaultName = None
+        workspaceNames = [w.name for w in self.workspaces]
+        self.workspaceBox.addItems(workspaceNames)
         if defaultName is not None:
             self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
         gridLayout.addWidget(self.workspaceBox, 1, 1)
@@ -63,21 +63,21 @@ class PublishLayerDialog(QtGui.QDialog):
         gridLayout.addWidget(nameLabel, 2, 0)
         gslayers = [lyr.name for lyr in cat.get_layers()]
         self.nameBox = GSNameWidget(
-            name=xmlNameFixUp(self.layer.name()),
+            name=xmlNameFixUp(self.layer.name() if self.layer is not None else ""),
             nameregex=xmlNameRegex(),
             nameregexmsg=xmlNameRegexMsg(),
             names=gslayers,
             unique=False)
         gridLayout.addWidget(self.nameBox, 2, 1)
-        
+
         self.destGroupBox = QtGui.QGroupBox()
         self.destGroupBox.setLayout(gridLayout)
-        
+
         layout.addWidget(self.destGroupBox)
-        
+
         self.spacer = QtGui.QSpacerItem(20,40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         layout.addItem(self.spacer)
-                      
+
         self.buttonBox = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
         self.cancelButton = self.buttonBox.button(QtGui.QDialogButtonBox.Cancel)
@@ -93,20 +93,20 @@ class PublishLayerDialog(QtGui.QDialog):
         # respond to intial validation
         self.okButton.setEnabled(self.nameBox.isValid())
         self.updateButtons(self.nameBox.overwritingName())
-        
-        self.resize(400,160) 
-        
+
+        self.resize(400,160)
+
     def catalogHasChanged(self):
         catalog = self.catalogs[self.catalogBox.currentText()]
-        self.workspaces = catalog.get_workspaces()        
-        self.workspaceBox.clear()        
+        self.workspaces = catalog.get_workspaces()
+        self.workspaceBox.clear()
         try:
             defaultWorkspace = catalog.get_default_workspace()
             defaultWorkspace.fetch()
             defaultName = defaultWorkspace.dom.find('name').text
         except:
-            defaultName = None                  
-        workspaceNames = [w.name for w in self.workspaces]        
+            defaultName = None
+        workspaceNames = [w.name for w in self.workspaces]
         self.workspaceBox.addItems(workspaceNames)
         if defaultName is not None:
             self.workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
@@ -120,18 +120,18 @@ class PublishLayerDialog(QtGui.QDialog):
         self.okButton.setText(txt)
         self.okButton.setDefault(not overwriting)
         self.cancelButton.setDefault(overwriting)
-    
-    def okPressed(self):                
+
+    def okPressed(self):
         self.catalog = self.catalogs[self.catalogBox.currentText()]
         self.workspace = self.workspaces[self.workspaceBox.currentIndex()]
         self.layername = unicode(self.nameBox.definedName())
         self.close()
 
     def cancelPressed(self):
-        self.catalog = None        
+        self.catalog = None
         self.workspace = None
         self.layername = None
-        self.close()          
+        self.close()
 
 
 class PublishLayersDialog(QtGui.QDialog):
@@ -141,7 +141,7 @@ class PublishLayersDialog(QtGui.QDialog):
     def __init__(self, catalogs, layers, workspace=None,
                  overwrite=True, parent=None):
         super(PublishLayersDialog, self).__init__(parent)
-        self.catalogs = catalogs        
+        self.catalogs = catalogs
         self.layers = layers
         self.workspace = workspace
         self.overwrite = overwrite
@@ -162,11 +162,11 @@ class PublishLayersDialog(QtGui.QDialog):
         self.ow = "OW"
         self.name = "Name"
         self.initGui()
-        
+
     def initGui(self):
         self.resize(760, 400)
-        layout = QtGui.QVBoxLayout()                                               
-        self.setWindowTitle('Publish layers')         
+        layout = QtGui.QVBoxLayout()
+        self.setWindowTitle('Publish layers')
         self.table = QtGui.QTableWidget(None)
 
         self.columns = [self.lyr, self.cat, self.wrksp, self.ow, self.name] \
@@ -195,7 +195,7 @@ class PublishLayersDialog(QtGui.QDialog):
 
         self.table.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         layout.addWidget(self.table)
-        
+
         self.buttonBox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         self.okButton = self.buttonBox.button(QtGui.QDialogButtonBox.Ok)
@@ -212,7 +212,7 @@ class PublishLayersDialog(QtGui.QDialog):
         if name not in self.columns:
             return None
         return self.columns.index(name)
-        
+
     def setTableContent(self):
         self.table.setRowCount(len(self.layers))
         cat = self.catalogs.values()[0]
@@ -267,9 +267,9 @@ class PublishLayersDialog(QtGui.QDialog):
                     defaultName = defaultWorkspace.dom.find('name').text
                 except:
                     defaultName = None
-            workspaceNames = [w.name for w in workspaces]        
+            workspaceNames = [w.name for w in workspaces]
             workspaceBox.addItems(workspaceNames)
-            if defaultName is not None: 
+            if defaultName is not None:
                 workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
             self.table.setCellWidget(idx, self.getColumn(self.wrksp), workspaceBox)
 
@@ -287,12 +287,12 @@ class PublishLayersDialog(QtGui.QDialog):
             defaultWorkspace.fetch()
             defaultName = defaultWorkspace.dom.find('name').text
         except:
-            defaultName = None  
-        workspaces = cat.get_workspaces()        
-        workspaceNames = [w.name for w in workspaces]        
+            defaultName = None
+        workspaces = cat.get_workspaces()
+        workspaceNames = [w.name for w in workspaces]
         workspaceBox = self.table.cellWidget(row, self.getColumn(self.wrksp))
         workspaceBox.clear()
-        workspaceBox.addItems(workspaceNames)             
+        workspaceBox.addItems(workspaceNames)
         if defaultName is not None:
             workspaceBox.setCurrentIndex(workspaceNames.index(defaultName))
 
@@ -332,11 +332,11 @@ class PublishLayersDialog(QtGui.QDialog):
                     workspace = workspaces[workspaceBox.currentIndex()]
                 topublish.append((layer, catalog, workspace, layername))
         return topublish
-    
+
     def okPressed(self):
         self.topublish = self.layersToPublish()
         self.close()
 
     def cancelPressed(self):
-        self.topublish = None                
+        self.topublish = None
         self.close()

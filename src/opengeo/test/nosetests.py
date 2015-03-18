@@ -17,7 +17,7 @@ If you want to see the test output once the test suite has been run, set the 'op
 when calling the test runner
 
     run_nose(open=True)
-    
+
 After running, two browser windows should open with the test + coverage results.
 
 If you want to include/exclude specific modules/tests within opengeo.test:

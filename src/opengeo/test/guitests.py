@@ -19,14 +19,15 @@ from opengeo.gui.gsnameutils import GSNameWidget, xmlNameRegex, \
     xmlNameRegexMsg, xmlNameEmptyRegex, xmlNameIsValid, xmlNameFixUp
 from opengeo.gui.dialogs.gsnamedialog import GSNameDialog
 from opengeo.gui.contextualhelp import InfoIcon
+import sys
 
 class CreateCatalogDialogTests(unittest.TestCase):
-    
+
     explorer = OpenGeoExplorer(singletab = True)
 
-    def setUp(self):        
+    def setUp(self):
         self.cat = getGeoServerCatalog()
-            
+
     def testCreateCatalogDialog(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("name")
@@ -42,7 +43,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
         settings = QSettings()
         settings.endGroup()
-        settings.beginGroup("/OpenGeo/GeoServer/name") 
+        settings.beginGroup("/OpenGeo/GeoServer/name")
         settings.remove("")
         settings.endGroup()
 
@@ -61,10 +62,10 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
         settings = QSettings()
         settings.endGroup()
-        settings.beginGroup("/OpenGeo/GeoServer/name") 
+        settings.beginGroup("/OpenGeo/GeoServer/name")
         settings.remove("")
         settings.endGroup()
-        
+
     def testCreateCatalogDialogUsingExistingName(self):
         self.explorer.catalogs()["name"] = self.cat
         dialog = DefineCatalogDialog(self.explorer)
@@ -73,15 +74,15 @@ class CreateCatalogDialogTests(unittest.TestCase):
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertEquals("name_2", dialog.name)
         settings = QSettings()
-        settings.beginGroup("/OpenGeo/GeoServer/name") 
+        settings.beginGroup("/OpenGeo/GeoServer/name")
         settings.remove("")
         settings.endGroup()
-        settings.beginGroup("/OpenGeo/GeoServer/name_2") 
+        settings.beginGroup("/OpenGeo/GeoServer/name_2")
         settings.remove("")
         settings.endGroup()
         del self.explorer.catalogs()["name"]
-        
-    def testLastCatalogNameIsShownByDefault(self):        
+
+    def testLastCatalogNameIsShownByDefault(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("catalogname")
         dialog.urlBox.setText("localhost:8081/geoserver")
@@ -90,21 +91,21 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertTrue(dialog.ok)
         self.assertEquals("catalogname", dialog.name)
         self.assertEquals("http://localhost:8081/geoserver/rest", dialog.url)
-        dialog = DefineCatalogDialog(self.explorer)                
+        dialog = DefineCatalogDialog(self.explorer)
         self.assertEquals("catalogname", dialog.nameBox.text())
         self.assertEquals("localhost:8081/geoserver", dialog.urlBox.text())
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         settings = QSettings()
         settings.endGroup()
-        settings.beginGroup("/OpenGeo/GeoServer/catalogname") 
+        settings.beginGroup("/OpenGeo/GeoServer/catalogname")
         settings.remove("")
         settings.endGroup()
-     
+
 class GroupDialogTests(ExplorerIntegrationTest):
-    
+
     explorer = OpenGeoExplorer(singletab = True)
-                                        
+
     def testGroupDialogWithEmptyName(self):
         dialog = LayerGroupDialog(self.cat)
         dialog.nameBox.setName("")
@@ -117,16 +118,16 @@ class GroupDialogTests(ExplorerIntegrationTest):
         dialog.table.cellWidget(0, 0).setChecked(True)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         self.assertFalse(okWidget.isEnabled())
-    
+
     def testSelectAllButton(self):
-        dialog = LayerGroupDialog(self.cat)        
+        dialog = LayerGroupDialog(self.cat)
         QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
         for i in range(dialog.table.rowCount()):
             self.assertTrue(dialog.table.cellWidget(i, 0).isChecked())
         QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
         for i in range(dialog.table.rowCount()):
-            self.assertFalse(dialog.table.cellWidget(i, 0).isChecked())            
-                
+            self.assertFalse(dialog.table.cellWidget(i, 0).isChecked())
+
     def testCannotEditName(self):
         group = self.cat.get_layergroup(GROUP)
         self.assertIsNotNone(group)
@@ -134,21 +135,21 @@ class GroupDialogTests(ExplorerIntegrationTest):
         self.assertFalse(dialog.nameBox.isEnabled())
 
 class LayerDialogTests(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         cls.explorer = OpenGeoExplorer(singletab = True)
         cls.cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver")
-        cls.catalogs = {"catalog": cls.cat} 
+        cls.catalogs = {"catalog": cls.cat}
         cleanCatalog(cls.cat)
         cls.cat.create_workspace(WORKSPACE, "http://test1.com")
-        cls.cat.create_workspace(WORKSPACEB, "http://test2.com")     
-        
+        cls.cat.create_workspace(WORKSPACEB, "http://test2.com")
+
     @classmethod
     def tearDownClass(cls):
         cleanCatalog(cls.cat)
-            
-    def testPublishLayerDialog(self):        
+
+    def testPublishLayerDialog(self):
         dialog = PublishLayerDialog(self.catalogs)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         self.assertFalse(okWidget.isEnabled())  # needs layer name
@@ -156,12 +157,12 @@ class LayerDialogTests(unittest.TestCase):
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertIsNotNone(dialog.catalog)
         self.assertIsNotNone(dialog.workspace)
-        dialog = PublishLayerDialog(self.catalogs)        
+        dialog = PublishLayerDialog(self.catalogs)
         cancelWidget = dialog.buttonBox.button(dialog.buttonBox.Cancel)
         QTest.mouseClick(cancelWidget, Qt.LeftButton)
         self.assertIsNone(dialog.catalog)
         self.assertIsNone(dialog.workspace)
-         
+
     def testPublishLayersDialog(self):
         pt1 = layers.resolveLayer(PT1)
         pt2 = layers.resolveLayer(PT2)
@@ -169,16 +170,16 @@ class LayerDialogTests(unittest.TestCase):
         cancelWidget = dialog.buttonBox.button(dialog.buttonBox.Cancel)
         QTest.mouseClick(cancelWidget, Qt.LeftButton)
         self.assertIsNone(dialog.topublish)
-        
+
         cat = self.catalogs.values()[0]
         for idx, ws in enumerate(cat.get_workspaces()):
             if ws.name == WORKSPACE:
                 wsIdx = idx
             if ws.name == WORKSPACEB:
-                wsIdxB = idx                
+                wsIdxB = idx
         dialog = PublishLayersDialog(self.catalogs, [pt1,pt2])
         self.assertEquals(4, dialog.table.columnCount())
-        self.assertEquals(2, dialog.table.rowCount())   
+        self.assertEquals(2, dialog.table.rowCount())
         dialog.table.cellWidget(0, 1).setCurrentIndex(wsIdx)
         dialog.table.cellWidget(1, 1).setCurrentIndex(wsIdxB)
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
@@ -186,7 +187,7 @@ class LayerDialogTests(unittest.TestCase):
         self.assertIsNotNone(dialog.topublish)
         self.assertEquals(WORKSPACE, dialog.topublish[0][2].name)
         self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
-                
+
         dialog = PublishLayersDialog({"catalog": cat, "catalog2:": cat}, [pt1,pt2])
         self.assertEquals(5, dialog.table.columnCount())
         self.assertEquals(2, dialog.table.rowCount())
@@ -199,16 +200,16 @@ class LayerDialogTests(unittest.TestCase):
         self.assertEquals(WORKSPACEB, dialog.topublish[1][2].name)
 
 class ImportVectorDialogTest(unittest.TestCase):
-    
+
     @classmethod
-    def setUpClass(cls):        
+    def setUpClass(cls):
         cls.explorer = OpenGeoExplorer(singletab = True)
         cls.conn1 = getPostgresConnection("conn1")
         cls.conn2 = getPostgresConnection("conn2")
-        cls.toImport = [layers.resolveLayer(PT1)]             
-               
-    def testImportVectorDialog(self):        
-        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)        
+        cls.toImport = [layers.resolveLayer(PT1)]
+
+    def testImportVectorDialog(self):
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)
         self.assertEquals(2, dlg.connectionBox.count())
         self.assertTrue(dlg.connectionBox.isEnabled())
         self.assertTrue(dlg.schemaBox.isEnabled())
@@ -217,9 +218,9 @@ class ImportVectorDialogTest(unittest.TestCase):
         self.assertTrue(dlg.ok)
         self.assertEquals(1, len(dlg.toImport))
         self.assertIsNone(dlg.tablename)
-        
-    def testImportVectorDialogWithTablename(self):        
-        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)        
+
+    def testImportVectorDialogWithTablename(self):
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)
         self.assertEquals(2, dlg.connectionBox.count())
         self.assertTrue(dlg.connectionBox.isEnabled())
         self.assertTrue(dlg.schemaBox.isEnabled())
@@ -228,23 +229,23 @@ class ImportVectorDialogTest(unittest.TestCase):
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertTrue(dlg.ok)
         self.assertEquals(1, len(dlg.toImport))
-        self.assertEquals("tablename", dlg.tablename)        
-        
-    def testImportVectorDialogCancelClicked(self):        
-        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)                
+        self.assertEquals("tablename", dlg.tablename)
+
+    def testImportVectorDialogCancelClicked(self):
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], toImport = self.toImport)
         cancelWidget = dlg.buttonBox.button(dlg.buttonBox.Cancel)
         QTest.mouseClick(cancelWidget, Qt.LeftButton)
         self.assertFalse(dlg.ok)
-        
-    def testImportVectorDialogNothingToImport(self):        
-        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2],)                
+
+    def testImportVectorDialogNothingToImport(self):
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2],)
         okWidget = dlg.buttonBox.button(dlg.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
-        self.assertFalse(dlg.ok)     
-        
-    def testImportVectorDialogUsingConnection(self):        
+        self.assertFalse(dlg.ok)
+
+    def testImportVectorDialogUsingConnection(self):
         dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], connection = self.conn1,
-                                       toImport = self.toImport)        
+                                       toImport = self.toImport)
         self.assertEquals(2, dlg.connectionBox.count())
         self.assertFalse(dlg.connectionBox.isEnabled())
         self.assertTrue(dlg.schemaBox.isEnabled())
@@ -252,11 +253,11 @@ class ImportVectorDialogTest(unittest.TestCase):
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertTrue(dlg.ok)
         self.assertEquals(1, len(dlg.toImport))
-        self.assertIsNone(dlg.tablename)   
-        
-    def testImportVectorDialogUsingSchema(self):        
-        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], connection = self.conn1, 
-                                      schema = Schema(self.conn1, PUBLIC_SCHEMA), toImport = self.toImport)        
+        self.assertIsNone(dlg.tablename)
+
+    def testImportVectorDialogUsingSchema(self):
+        dlg = ImportIntoPostGISDialog([self.conn1, self.conn2], connection = self.conn1,
+                                      schema = Schema(self.conn1, PUBLIC_SCHEMA), toImport = self.toImport)
         self.assertEquals(2, dlg.connectionBox.count())
         self.assertFalse(dlg.connectionBox.isEnabled())
         self.assertFalse(dlg.schemaBox.isEnabled())
@@ -495,5 +496,11 @@ def suite():
     suite.addTests(unittest.makeSuite(CreateCatalogDialogTests, 'test'))
     suite.addTests(unittest.makeSuite(GroupDialogTests, 'test'))
     suite.addTests(unittest.makeSuite(LayerDialogTests, 'test'))
+    suite.addTests(unittest.makeSuite(ImportVectorDialogTest, 'test'))
+    suite.addTests(unittest.makeSuite(GsNameUtilsTest, 'test'))
+    suite.addTests(unittest.makeSuite(GSNameDialogTest, 'test'))
+    suite.addTests(unittest.makeSuite(InfoIconTest, 'test'))
     return suite
 
+def run_tests():
+    unittest.TextTestRunner(verbosity=3, stream=sys.stdout).run(suite())

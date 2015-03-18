@@ -32,7 +32,7 @@ DB_CONFIG = dict(
     USER = 'postgres',
     PASSWORD = 'postgres',
     HOST = 'localhost',
-    PORT = '54321',
+    PORT = '5432',
 )
 DB_CONFIG.update([ (k,os.getenv('Q%s' % k)) for k in DB_CONFIG if 'Q%s' % k in os.environ])
 
@@ -65,25 +65,25 @@ def getGeoServerCatalog():
 
 
 def cleanCatalog(cat):
-       
+
     for groupName in [GROUP, GEOLOGY_GROUP]:
         group = cat.get_layergroup(groupName)
         if group is not None:
             cat.delete(group)
             group = cat.get_layergroup(groupName)
             assert group is None
-        
+
     toDelete = []
     for layer in cat.get_layers():
         if layer.name.startswith(PREFIX):
-            toDelete.append(layer)    
+            toDelete.append(layer)
     for style in cat.get_styles():
         if style.name.startswith(PREFIX):
-            toDelete.append(style)                            
-    
-    for e in toDelete:        
+            toDelete.append(style)
+
+    for e in toDelete:
         cat.delete(e, purge = True)
-        
+
     for ws in cat.get_workspaces():
         if not ws.name.startswith(PREFIX):
             continue
@@ -94,12 +94,12 @@ def cleanCatalog(cat):
                         cat.delete(resource)
                     except:
                         pass
-                cat.delete(store)    
+                cat.delete(store)
             cat.delete(ws)
             ws = cat.get_workspace(ws.name)
-            assert ws is None        
+            assert ws is None
 
-    
+
 def populateCatalog(cat):
     cleanCatalog(cat)
     cat.create_workspace(WORKSPACE, "http://test.com")
@@ -118,9 +118,9 @@ def populateCatalog(cat):
     cat.save(group)
     cat.create_workspace(WORKSPACEB, "http://testb.com")
     cat.set_default_workspace(WORKSPACE)
-    
 
-def cleanDatabase(conn):    
+
+def cleanDatabase(conn):
     schema = Schema(conn, PUBLIC_SCHEMA)
     for table in schema.tables():
         if table.name.startswith(PREFIX):

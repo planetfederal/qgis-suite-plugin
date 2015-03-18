@@ -27,17 +27,17 @@ class ExplorerIntegrationTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         utils.cleanCatalog(cls.cat)
-        utils.cleanDatabase(cls.conn) 
-        
+        utils.cleanDatabase(cls.conn)
+
     def _getItemUnder(self, parent, name):
         for idx in range(parent.childCount()):
-            item = parent.child(idx)            
+            item = parent.child(idx)
             if item.text(0) == name:
                 return item
 
     def getStoreItem(self, ws, name):
         return self._getItemUnder(self.getWorkspaceItem(ws), name)
-    
+
     def getWorkspaceItem(self, name):
         return self._getItemUnder(self.getWorkspacesItem(), name)
 
@@ -64,14 +64,14 @@ class ExplorerIntegrationTest(unittest.TestCase):
 
     def getPGConnectionsItem(self):
         return self.explorer.explorerWidget.pgItem
-    
+
     def getPGConnectionItem(self):
         return self.pgItem
-    
+
     def getPGSchemaItem(self, name):
         return self._getItemUnder(self.getPGConnectionItem(), name)
-    
-    def getPGTableItem(self, table, schema = "public"):       
+
+    def getPGTableItem(self, table, schema = "public"):
         return self._getItemUnder(self.getPGSchemaItem(schema), table)
 
     def getQgsLayersItem(self):
@@ -91,11 +91,11 @@ class ExplorerIntegrationTest(unittest.TestCase):
 
     def getQgsStyleItem(self, name):
         return self._getItemUnder(self.getQgsStylesItem(), "Style of layer '%s'" % name)
-    
+
     def getGWCLayersItem(self):
         return self.catalogItem.child(4)
-    
+
     def getGWCLayerItem(self, name):
         return self._getItemUnder(self.getGWCLayersItem(), name)
 
-  
+

@@ -126,7 +126,7 @@ def publishProject(tree, explorer):
 class QgsProjectItem(QgsTreeItem):
     def __init__(self):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/qgis.png")
-        TreeItem.__init__(self, None, icon, "QGIS project")
+        TreeItem.__init__(self, None, icon, "QGIS Project")
 
     def populate(self):
         layersItem = QgsLayersItem()

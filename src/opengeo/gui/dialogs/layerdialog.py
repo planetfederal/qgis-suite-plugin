@@ -67,6 +67,8 @@ class PublishLayerDialog(QtGui.QDialog):
         if self.layer is not None and hasattr(self.layer, 'name'):
             name = self.layer.name() if hasattr(self.layer.name, '__call__') \
                 else self.layer.name
+        if layers.isPostGisLayer(self.layer):
+            name += "_table"
         self.nameBox = GSNameWidget(
             name=xmlNameFixUp(name),
             nameregex=xmlNameRegex(),
@@ -229,8 +231,12 @@ class PublishLayersDialog(QtGui.QDialog):
             lyritem.setFlags(QtCore.Qt.ItemIsEnabled)
             self.table.setItem(idx, self.getColumn("Layer"), lyritem)
 
+            lyrname = layer.name()
+            if layers.isPostGisLayer(layer):
+                lyrname += "_table"
+
             nameBox = GSNameWidget(
-                name=xmlNameFixUp(layer.name()),
+                name=xmlNameFixUp(lyrname),
                 nameregex=xmlNameRegex(),
                 nameregexmsg=xmlNameRegexMsg(),
                 names=catlayers,

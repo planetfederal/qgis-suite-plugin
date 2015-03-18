@@ -69,8 +69,11 @@ def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog
     ogcat = OGCatalog(cat)
     gslayers = [lyr.name for lyr in cat.get_layers()]
+    layername = layer.name()
+    if qgislayers.isPostGisLayer(layer):
+        layername += "_table"
     try:
-        lyrname = getGSLayerName(name=xmlNameFixUp(layer.name()),
+        lyrname = getGSLayerName(name=xmlNameFixUp(layername),
                                  names=gslayers,
                                  unique=False)
     except UserCanceledOperation:

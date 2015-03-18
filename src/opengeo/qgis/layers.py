@@ -34,6 +34,11 @@ def getVectorLayers(shapetype=-1):
                     vector.append(layer)
     return vector
 
+
+def isPostGisLayer(layer):
+    return layer.type() == layer.VectorLayer and \
+           layer.providerType() == "postgres"
+
 def getAllLayers():
     layers = []
     layers += getRasterLayers();

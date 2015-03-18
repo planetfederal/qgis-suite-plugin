@@ -482,6 +482,8 @@ class PgTableItem(PgTreeItem):
 
     def publishPgTable(self, tree, explorer):
         dlg = PublishLayerDialog(explorer.catalogs(), self.element)
+        dlg.nameBox.nameBox.setEditText(
+            dlg.nameBox.nameBox.currentText() + "_table")
         dlg.exec_()
         if dlg.catalog is None:
             return

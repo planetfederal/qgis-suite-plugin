@@ -23,7 +23,7 @@ from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
 from opengeo.geoserver.pki import PKICatalog, PKIClient
-from opengeo.gui.gsnameutils import xmlNameFixUp
+from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -178,9 +178,30 @@ class OGCatalog(object):
     def _publishExisting(self, layer, workspace, overwrite,
                          name, storename=None):
         uri = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
-        storename = storename or self.getConnectionNameFromLayer(layer)
+
+        # check for table.name conflict in existing layer names where the
+        # table.name is not the same as the user-chosen layer name,
+        # i.e. unintended overwrite
+        resource = self.catalog.get_resource(uri.table())
+        if resource is not None and uri.table() != name:
+            raise Exception("QGIS PostGIS layer has table name conflict with "
+                            "existing GeoServer layer name: {0}"
+                            .format(uri.table()))
+
+        conname = self.getConnectionNameFromLayer(layer)
+        storename = xmlNameFixUp(storename or conname)
+
+        if not xmlNameIsValid(storename):
+            raise Exception("Database connection name is invalid XML and can "
+                            "not be auto-fixed: {0} -> {1}"
+                            .format(conname, storename))
+
+        if not uri.username():
+            raise Exception("GeoServer requires database connection's username "
+                            "to be defined")
+
         store = createPGFeatureStore(self.catalog,
-                                     xmlNameFixUp(storename),
+                                     storename,
                                      workspace = workspace,
                                      overwrite = overwrite,
                                      host = uri.host(),
@@ -190,7 +211,12 @@ class OGCatalog(object):
                                      user = uri.username(),
                                      passwd = uri.password())
         if store is not None:
-            self.catalog.publish_featuretype(name, store, layer.crs().authid())
+            ftype = self.catalog.publish_featuretype(uri.table(), store,
+                                                     layer.crs().authid())
+            # once table-based layer created, switch name to user-chosen
+            if uri.table() != name:
+                ftype.dirty["name"] = name
+                self.catalog.save(ftype)
 
 
     def _uploadRest(self, layer, workspace, overwrite, name):
@@ -233,15 +259,18 @@ class OGCatalog(object):
         session.commit()
 
 
-    def upload(self, layer, workspace=None, overwrite=True, name=None):
+    def upload(self, layer, workspace=None, overwrite=True, name=None,
+               storename=None, title=None):
         '''uploads the specified layer'''
 
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)
 
-        name = name if name is not None else layer.name()
-        title = name
-        name = name.replace(" ", "_")
+        name = name or layer.name()
+        title = title or name  # name is usually xml-fixed-up by now
+        name = xmlNameFixUp(name)
+        if storename is not None:
+            storename = xmlNameFixUp(storename)
 
         settings = QSettings()
         restApi = bool(settings.value("/OpenGeo/Settings/GeoServer/UseRestApi", True, bool))
@@ -253,7 +282,8 @@ class OGCatalog(object):
         provider = layer.dataProvider()
         try:
             if provider.name() == 'postgres':
-                self._publishExisting(layer, workspace, overwrite, name)
+                self._publishExisting(layer, workspace, overwrite, name,
+                                      storename=storename)
             elif restApi:
                 self._uploadRest(layer, workspace, overwrite, name)
             else:
@@ -282,7 +312,7 @@ class OGCatalog(object):
             msg = ('could not create layer %s.' % name)
             raise Exception(msg)
 
-        if title != name:
+        if title != name or title != resource.title:
             resource.dirty["title"] = title
             self.catalog.save(resource)
         if resource.latlon_bbox is None:
@@ -356,7 +386,8 @@ class OGCatalog(object):
         layergroup = self.catalog.create_layergroup(destName, names, names)
         self.catalog.save(layergroup)
 
-    def publishLayer (self, layer, workspace=None, overwrite=True, name=None):
+    def publishLayer (self, layer, workspace=None, overwrite=True, name=None,
+                      storename=None, title=None):
         '''
         Publishes a QGIS layer.
         It creates the corresponding store and the layer itself.
@@ -370,24 +401,30 @@ class OGCatalog(object):
         name: the name for the published layer. Uses the QGIS layer name if not passed
         or None
 
+        storename: the name for layer's store, if different than layer name, e.g.
+        when creating a PG data store
+
         '''
 
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)
 
-        name = xmlNameFixUp(name) if name is not None \
-            else xmlNameFixUp(layer.name())
+        name = name or layer.name()
+        title = title or name
+        name = xmlNameFixUp(name)
 
         gslayer = self.catalog.get_layer(name)
         if gslayer is not None and not overwrite:
             return
 
-        title = name
-
         sld = self.publishStyle(layer, overwrite, name)
 
         layer = self.preprocess(layer)
-        self.upload(layer, workspace, overwrite, title)
+
+        if storename is not None:
+            storename = xmlNameFixUp(storename)
+        self.upload(layer, workspace, overwrite, name,
+                    storename=storename, title=title)
 
         if sld is not None:
             #assign style to created store
@@ -485,7 +522,7 @@ class OGCatalog(object):
         else:
             raise Exception("Cannot add layer. Unsupported layer type.")
 
-def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
+def createPGFeatureStore(catalog, name, workspace=None, overwrite=True,
     host="localhost", port=5432, database="db", schema="public", user="postgres", passwd=""):
     try:
         store = catalog.get_store(name, workspace)
@@ -508,6 +545,11 @@ def createPGFeatureStore(catalog, name, workspace=None, overwrite=False,
                 msg += " in '" + str(workspace) + "'"
             msg += ': connection info is different'
             raise ConflictingDataError(msg)
+    else:
+        msg = "There is already a store named " + str(name)
+        if workspace is not None:
+            msg += " in " + str(workspace)
+        raise ConflictingDataError(msg)
 
     store.connection_parameters.update(
         host=host, port=str(port), database=database, user=user, schema=schema,

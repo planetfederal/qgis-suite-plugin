@@ -488,10 +488,13 @@ class PgTableItem(PgTreeItem):
         cat = dlg.catalog
         catItem = tree.findAllItems(cat)[0]
         toUpdate = [catItem]
+        if int(self.element.srid) == 0:
+            explorer.setWarning("PostGIS table '{0}' has no SRID; ESPG:4326 "
+                                "will be assigned.".format(self.element.name))
         explorer.run(publishTable,
                  "Publish table '" + self.element.name + "'",
                  toUpdate,
-                 self.element, cat, dlg.workspace)
+                 self.element, cat, dlg.workspace, True, dlg.layername)
 
     def populate(self):
         pass

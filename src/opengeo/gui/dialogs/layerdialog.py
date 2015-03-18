@@ -62,8 +62,13 @@ class PublishLayerDialog(QtGui.QDialog):
                               QtGui.QSizePolicy.Fixed))
         gridLayout.addWidget(nameLabel, 2, 0)
         gslayers = [lyr.name for lyr in cat.get_layers()]
+        name = ''
+        # handle PG Table, whose name attribute is not callable
+        if self.layer is not None and hasattr(self.layer, 'name'):
+            name = self.layer.name() if hasattr(self.layer.name, '__call__') \
+                else self.layer.name
         self.nameBox = GSNameWidget(
-            name=xmlNameFixUp(self.layer.name() if self.layer is not None else ""),
+            name=xmlNameFixUp(name),
             nameregex=xmlNameRegex(),
             nameregexmsg=xmlNameRegexMsg(),
             names=gslayers,

@@ -5,8 +5,7 @@ from geoserver.layergroup import LayerGroup, UnsavedLayerGroup
 from opengeo.qgis import layers as qgislayers
 from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
 from opengeo.gui.qgsexploreritems import QgsStyleItem
-from opengeo.gui.gsnameutils import xmlNameEmptyRegex, xmlNameFixUp, \
-    xmlNameRegex, xmlNameRegexMsg
+from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 from opengeo.qgis.utils import UserCanceledOperation
 from opengeo.gui.dialogs.gsnamedialog import getGSLayerName, getGSStyleName
 from opengeo.gui.dialogs.groupdialog import PublishLayerGroupDialog
@@ -65,6 +64,7 @@ def publishDraggedGroup(explorer, groupItem, catalog, workspace=None):
                         [],
                         group)
 
+
 def publishDraggedLayer(explorer, layer, workspace):
     cat = workspace.catalog
     ogcat = OGCatalog(cat)
@@ -81,22 +81,58 @@ def publishDraggedLayer(explorer, layer, workspace):
                         [],
                         layer, workspace, True, lyrname)
 
+
 def publishDraggedTable(explorer, table, workspace):    
-    cat = workspace.catalog                          
+    cat = workspace.catalog
+    if int(table.srid) == 0:
+        explorer.setWarning("PostGIS table '{0}' has no SRID; ESPG:4326 will "
+                            "be assigned.".format(table.name))
     return explorer.run(publishTable,
              "Publish table from table '" + table.name + "'",
              [],
-             table, cat, workspace)
+             table, cat, workspace, True)
     
             
-def publishTable(table, catalog = None, workspace = None):
+def publishTable(table, catalog = None, workspace = None, overwrite=True,
+                 name=None, storename=None):
     if catalog is None:
-        pass       
+        pass
+
+    gslayers = [lyr.name for lyr in catalog.get_layers()]
+    if name is None:
+        try:
+            lyrname = getGSLayerName(name=xmlNameFixUp(table.name + "_table"),
+                                     names=gslayers,
+                                     unique=False)
+        except UserCanceledOperation:
+            return False
+    else:
+        lyrname = xmlNameFixUp(name)
+
+    # check for table.name conflict in existing layer names where the table.name
+    # is not the same as the user-chosen layer name, i.e. unintended overwrite
+    resource = catalog.get_resource(table.name)
+    if resource is not None and table.name != lyrname:
+        raise Exception("QGIS PostGIS layer has table name conflict with "
+                        "existing GeoServer layer name: {0}".format(table.name))
+
     workspace = workspace if workspace is not None else catalog.get_default_workspace()
-    connection = table.conn   
-    geodb = connection.geodb     
+    connection = table.conn
+    geodb = connection.geodb
+    conname = "{0}_{1}".format(connection.name, table.schema)
+    storename = xmlNameFixUp(storename or conname)
+
+    if not xmlNameIsValid(storename):
+        raise Exception("Database connection name is invalid XML and can "
+                        "not be auto-fixed: {0} -> {1}"
+                        .format(conname, storename))
+
+    if not geodb.user:
+        raise Exception("GeoServer requires database connection's username "
+                        "to be defined")
+
     store = createPGFeatureStore(catalog,
-                         connection.name,
+                         storename,
                          workspace = workspace,
                          overwrite = True,
                          host = geodb.host,
@@ -106,7 +142,15 @@ def publishTable(table, catalog = None, workspace = None):
                          user = geodb.user,
                          passwd = geodb.passwd)
     if store is not None:
-        catalog.publish_featuretype(table.name, store, "EPSG:" + str(table.srid))
+        epsg = table.srid if int(table.srid) != 0 else 4326
+        ftype = catalog.publish_featuretype(table.name, store,
+                                            "EPSG:" + str(epsg))
+        # once table-based layer created, switch name to user-chosen
+        if table.name != lyrname:
+            ftype.dirty["name"] = lyrname
+            ftype.dirty["title"] = lyrname
+            catalog.save(ftype)
+
 
 def publishDraggedStyle(explorer, layerName, catalogItem, name=None):
     catalog = catalogItem.element
@@ -170,6 +214,7 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
         "Add style '" + style.name + "' to layer '" + layer.name + "'",
         toUpdate,
         layer)
+
 
 def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):    
     if uris:      

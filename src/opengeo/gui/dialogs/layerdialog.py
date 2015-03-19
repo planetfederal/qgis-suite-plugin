@@ -3,6 +3,7 @@ from PyQt4 import QtGui, QtCore
 from opengeo.qgis import layers
 from opengeo.gui.gsnameutils import GSNameWidget, xmlNameFixUp, \
     xmlNameRegexMsg, xmlNameRegex
+from opengeo.postgis.table import Table
 
 from functools import partial
 
@@ -65,10 +66,12 @@ class PublishLayerDialog(QtGui.QDialog):
         name = ''
         # handle PG Table, whose name attribute is not callable
         if self.layer is not None and hasattr(self.layer, 'name'):
-            name = self.layer.name() if hasattr(self.layer.name, '__call__') \
-                else self.layer.name
-        if layers.isPostGisLayer(self.layer):
-            name += "_table"
+            if isinstance(self.layer, Table):
+                name = self.layer.name + "_table"
+            else:  # QgsMapLayer
+                name = self.layer.name()
+                if layers.isPostGisLayer(self.layer):
+                        name += "_table"
         self.nameBox = GSNameWidget(
             name=xmlNameFixUp(name),
             nameregex=xmlNameRegex(),

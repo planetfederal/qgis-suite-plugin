@@ -1,6 +1,8 @@
+from functools import wraps
 from geoserver.catalog import Catalog
 
 def retryMethodDecorator(func):
+    @wraps(func)
     def decorator(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
@@ -14,8 +16,9 @@ def retryMethodDecorator(func):
 
 class RetryCatalog(Catalog):
     def __getattribute__(self, attr_name):
-        obj = super(Catalog, self).__getattribute__(attr_name)
-        if hasattr(obj, '__call__'):
-            return retryMethodDecorator(obj)
+        obj = super(RetryCatalog, self).__getattribute__(attr_name)
+        if hasattr(obj, '__call__') and hasattr(obj, '__name__'):
+            if not obj.__name__.startswith('__'):
+                return retryMethodDecorator(obj)
         return obj
 

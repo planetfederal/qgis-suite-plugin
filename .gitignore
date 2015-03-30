@@ -10,3 +10,4 @@ ext-src
 build
 opengeo.zip
 .coverage
+.env

@@ -259,7 +259,7 @@ class MetatoolsEditor(QMainWindow, Ui_MetatoolsEditor):
                     self.labelWarning.setText("The existing value is not a correct option: " + item.value)
                     self.labelWarning.setVisible(True)
                 self.comboValue.setVisible(True)
-            elif item.scheme.endswith("Date"):
+            elif item.scheme.endswith("Date") or item.scheme.endswith("DateTime"):
                 self.dateValue.setVisible(True)
                 try:
                     date = dateutil.parser.parse(item.value)

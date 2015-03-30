@@ -10,7 +10,7 @@ from dialogs.pgconnectiondialog import NewPgConnectionDialog
 from dialogs.createtable import DlgCreateTable
 from opengeo.gui.qgsexploreritems import QgsLayerItem
 from opengeo.gui.pgoperations import importToPostGIS
-from opengeo.gui.gsoperations import publishTable
+from opengeo.gui.gsoperations import publishTable, noDefaultStyleError
 from opengeo.gui.confirm import confirmDelete
 from db_manager.db_plugins.postgis.plugin import PostGisDBPlugin, PGTable
 from db_manager.dlg_sql_window import DlgSqlWindow
@@ -486,15 +486,27 @@ class PgTableItem(PgTreeItem):
         if dlg.catalog is None:
             return
         cat = dlg.catalog
-        catItem = tree.findAllItems(cat)[0]
+        catItem = tree.findFirstItem(cat)
         toUpdate = [catItem]
         if int(self.element.srid) == 0:
             explorer.setWarning("PostGIS table '{0}' has no SRID; ESPG:4326 "
                                 "will be assigned.".format(self.element.name))
-        explorer.run(publishTable,
-                 "Publish table '" + self.element.name + "'",
-                 toUpdate,
-                 self.element, cat, dlg.workspace, True, dlg.layername)
+        if explorer.run(publishTable,
+                        "Publish table '" + self.element.name + "'",
+                        toUpdate,
+                        self.element, cat, dlg.workspace, True, dlg.layername):
+
+            # add existing style to layer, or later some operations may fail,
+            # like malformed XML when getting capabilities for OWS connections
+            pglyr = cat.get_layer(dlg.layername)
+            pgitem = tree.findFirstItem(pglyr)
+            if pgitem is None:
+                return
+            if not pgitem.addStyleToLayer(explorer):  # handles refresh of item
+                # user cancelled AddStyleToLayerDialog
+                noDefaultStyleError(explorer, dlg.layername)
+            else:
+                catItem.layersItem.refreshContent(explorer)
 
     def populate(self):
         pass

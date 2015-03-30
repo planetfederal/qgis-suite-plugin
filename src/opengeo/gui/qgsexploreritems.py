@@ -193,7 +193,10 @@ class QgsLayerItem(QgsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/layer.png")
         TreeItem.__init__(self, layer, icon)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
-
+        if layer is not None and hasattr(layer, 'name') \
+                and hasattr(layer, 'publicSource'):
+            self.setToolTip(0, "{0}:\n{1}".format(layer.name(),
+                layer.publicSource()))
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")
@@ -451,8 +454,10 @@ class QgsGroupItem(QgsTreeItem):
 class QgsStyleItem(QgsTreeItem):
     def __init__(self, layer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/style.png")
-        TreeItem.__init__(self, layer, icon, "Style of layer '" + layer.name() + "'")
+        label = "Style of layer '" + layer.name() + "'"
+        TreeItem.__init__(self, layer, icon, label)
         self.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
+        self.setToolTip(0, label)
 
     def contextMenuActions(self, tree, explorer):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/publish-to-geoserver.png")

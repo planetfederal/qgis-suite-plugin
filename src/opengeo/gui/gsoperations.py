@@ -237,10 +237,10 @@ def addDraggedLayerToGroup(explorer, layer, groupItem):
     
 def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
     catalog = layerItem.element.catalog
-    toUpdate = [layerItem]
+    catItem = tree.findFirstItem(catalog)
+    toUpdate = [catItem.layersItem]
     if isinstance(styleItem, QgsStyleItem):
         styleName = styleItem.element.name()  # = layer name
-        catalogItem = tree.findFirstItem(catalog)
         styles = [style.name for style in catalog.get_styles()]
         try:
             stylname = getGSStyleName(name=xmlNameFixUp(styleName),
@@ -248,18 +248,25 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
                                       unique=False)
         except UserCanceledOperation:
             return False
-        if not publishDraggedStyle(explorer, styleName, catalogItem,
+        if not publishDraggedStyle(explorer, styleName, catItem,
                                    name=stylname):
             return False
         style = catalog.get_style(stylname)
-        toUpdate.append(catalogItem.stylesItem)
-    else:         
+        toUpdate.append(catItem.stylesItem)
+    else:
         style = styleItem.element
     layer = layerItem.element
-    styles = layer.styles
-    styles.append(style)
-    layer.styles = styles
-                            
+
+    if layer.default_style is None:
+        # if default style is missing, make dragged style the layer's default
+        # without a default style, some GeoServer operations may fail
+        layer.default_style = style
+    else:
+        # add to layer's additional styles
+        styles = layer.styles
+        styles.append(style)
+        layer.styles = styles
+
     return explorer.run(
         catalog.save,
         "Add style '" + style.name + "' to layer '" + layer.name + "'",

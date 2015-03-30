@@ -715,7 +715,7 @@ class GsLayerItem(GsTreeItem):
     def acceptDroppedItem(self, tree, explorer, item):
         if isinstance(item, (GsStyleItem, QgsStyleItem)):
             if addDraggedStyleToLayer(tree, explorer, item, self):
-                return [self]
+                return []
         elif isinstance(item, GsLayerItem):
             destinationItem = self.parent()
             if destinationItem is None:
@@ -1131,7 +1131,7 @@ class GsStyleItem(GsTreeItem):
                 if destinationItem is None:
                     return []
                 if addDraggedStyleToLayer(tree, explorer, item, destinationItem):
-                    return [destinationItem]
+                    return []
             elif isinstance(self.parent(), GsStylesItem) and isinstance(item, QgsStyleItem):
                 catalog = self.parentCatalog()
                 if catalog is None:

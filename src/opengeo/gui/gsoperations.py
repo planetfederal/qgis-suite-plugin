@@ -7,6 +7,8 @@ from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
 from opengeo.gui.qgsexploreritems import QgsStyleItem
 from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 from opengeo.qgis.utils import UserCanceledOperation
+from opengeo.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
+    addLayerToGroups
 from opengeo.gui.dialogs.gsnamedialog import getGSLayerName, getGSStyleName
 from opengeo.gui.dialogs.groupdialog import PublishLayerGroupDialog
 
@@ -108,23 +110,16 @@ def publishTable(table, catalog = None, workspace = None, overwrite=True,
     if catalog is None:
         pass
 
-    gslayers = [lyr.name for lyr in catalog.get_layers()]
-    if name is None:
-        try:
-            lyrname = getGSLayerName(name=xmlNameFixUp(table.name + "_table"),
-                                     names=gslayers,
-                                     unique=False)
-        except UserCanceledOperation:
-            return False
-    else:
-        lyrname = xmlNameFixUp(name)
+    lyrname = xmlNameFixUp(name)  # usually fixed up by now
 
     # check for table.name conflict in existing layer names where the table.name
     # is not the same as the user-chosen layer name, i.e. unintended overwrite
     resource = catalog.get_resource(table.name)
     if resource is not None and table.name != lyrname:
-        raise Exception("QGIS PostGIS layer has table name conflict with "
-                        "existing GeoServer layer name: {0}".format(table.name))
+        raise Exception("PostGIS table name conflicts with "
+                        "existing GeoServer layer name: {0}\n"
+                        "You may need to rename GeoServer layer name."
+                        .format(table.name))
 
     workspace = workspace if workspace is not None else catalog.get_default_workspace()
     connection = table.conn
@@ -152,14 +147,34 @@ def publishTable(table, catalog = None, workspace = None, overwrite=True,
                          user = geodb.user,
                          passwd = geodb.passwd)
     if store is not None:
+        rscname = name if table.name != name else table.name
+        grpswlyr = []
+        if overwrite:
+            # See notes about possible issues in OGCatalog._publishExisting()
+            flyr = catalog.get_layer(rscname)
+            if flyr is not None:
+                grpswlyr = groupsWithLayer(catalog, flyr)
+                if grpswlyr:
+                    removeLayerFromGroups(catalog, flyr, grpswlyr)
+                catalog.delete(flyr)
+
+            frsc = store.get_resources(name=rscname)
+            if frsc is not None:
+                catalog.delete(frsc)
+
         epsg = table.srid if int(table.srid) != 0 else 4326
         ftype = catalog.publish_featuretype(table.name, store,
                                             "EPSG:" + str(epsg))
         # once table-based layer created, switch name to user-chosen
-        if table.name != lyrname:
-            ftype.dirty["name"] = lyrname
-            ftype.dirty["title"] = lyrname
+        if table.name != rscname:
+            ftype.dirty["name"] = rscname
+            ftype.dirty["title"] = rscname
             catalog.save(ftype)
+
+        if overwrite and grpswlyr:
+            ftype = catalog.get_resource(rscname)
+            if ftype:
+                addLayerToGroups(catalog, ftype, grpswlyr, workspace=workspace)
 
 
 def publishDraggedStyle(explorer, layerName, catalogItem, name=None):

@@ -11,6 +11,13 @@ from opengeo.gui.dialogs.gsnamedialog import getGSLayerName, getGSStyleName
 from opengeo.gui.dialogs.groupdialog import PublishLayerGroupDialog
 
 
+def noDefaultStyleError(explorer, layername):
+    explorer.setError(
+        "Generated layer '{0}' does not have an assigned default style. "
+        "Without one, some Geoserver operations may fail, "
+        "like OWS capabilities requests.".format(layername))
+
+
 def publishDraggedGroup(explorer, groupItem, catalog, workspace=None):
     groupname = groupItem.element
     groups = qgislayers.getGroups()

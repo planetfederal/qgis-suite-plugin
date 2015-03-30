@@ -40,7 +40,7 @@ def name(named):
             return named.name()    
     else:
         raise ValueError("Can't interpret %s as a name or a configuration object" % named)
-    
+
 def getLayerFromStyle(style):
     '''Tries to find out which layer is using a given style.
     Returns none if cannot find a layer using the style'''
@@ -53,5 +53,43 @@ def getLayerFromStyle(style):
         for alternateStyle in alternateStyles:
             if style.name == alternateStyle.name:
                 return layer
-    
-    
+
+def groupsWithLayer(catalog, layer):
+    grps = catalog.get_layergroups()
+    grpswlyr = []
+    for grp in grps:
+        lyrs = grp.layers
+        if lyrs is None:
+            continue
+        for lyr in lyrs:
+            if layer.name == lyr:
+                grpswlyr.append(grp)
+                break
+    return grpswlyr
+
+def removeLayerFromGroups(catalog, layer, groups=None):
+    grps = groups or catalog.get_layergroups()
+    for grp in grps:
+        lyrs = grp.layers
+        if lyrs is None:
+            continue
+        if layer.name not in lyrs:
+            continue
+        styles = grp.styles
+        idx = lyrs.index(layer.name)
+        del lyrs[idx]
+        del styles[idx]
+        grp.dirty.update(layers=lyrs, styles=styles)
+        catalog.save(grp)
+
+def addLayerToGroups(catalog, layer, groups, workspace=None):
+    '''This assumes the layer style with same name as layer already exists,
+    otherwise None is assigned'''
+    for grp in groups:
+        lyrs = grp.layers
+        styles = grp.styles
+        lyrs.append(layer.name)
+        style = catalog.get_style(layer.name, workspace=workspace)
+        styles.append(style)
+        grp.dirty.update(layers=lyrs, styles=styles)
+        catalog.save(grp)

@@ -994,18 +994,23 @@ class GsLayerItem(GsTreeItem):
         dlg.exec_()
         if dlg.style is not None:
             styles = layer.styles
-            if dlg.default:
-                default = layer.default_style
-                styles.append(default)
-                layer.styles = styles
+            default = layer.default_style
+            if dlg.default or default is None:
+                if default:
+                    # copy it to additional styles
+                    styles.append(default)
+                    layer.styles = styles
                 layer.default_style = dlg.style
             else:
                 styles.append(dlg.style)
                 layer.styles = styles
-            explorer.run(cat.save,
-                     "Add style '" + dlg.style.name + "' to layer '" + layer.name + "'",
-                     [self],
-                     layer)
+            return explorer.run(
+                cat.save,
+                "Add style '" + dlg.style.name + "' to layer '" + layer.name + "'",
+                [self],
+                layer)
+        else:
+            return False
 
     def addLayerToProject(self, explorer):
         #Using threads here freezes the QGIS GUI

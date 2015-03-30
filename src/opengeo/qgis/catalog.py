@@ -23,6 +23,8 @@ from opengeo.qgis import uri as uri_utils
 from opengeo.qgis.utils import tempFilename
 from gsimporter.client import Client
 from opengeo.geoserver.pki import PKICatalog, PKIClient
+from opengeo.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
+    addLayerToGroups
 from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 
 try:
@@ -185,7 +187,8 @@ class OGCatalog(object):
         resource = self.catalog.get_resource(uri.table())
         if resource is not None and uri.table() != name:
             raise Exception("QGIS PostGIS layer has table name conflict with "
-                            "existing GeoServer layer name: {0}"
+                            "existing GeoServer layer name: {0}\n"
+                            "You may need to rename GeoServer layer name."
                             .format(uri.table()))
 
         conname = self.getConnectionNameFromLayer(layer)
@@ -211,12 +214,50 @@ class OGCatalog(object):
                                      user = uri.username(),
                                      passwd = uri.password())
         if store is not None:
+            rscname = name if uri.table() != name else uri.table()
+            grpswlyr = []
+            if overwrite:
+                # TODO: How do we honor *unchecked* user setting of
+                #   "Delete resource when deleting layer" here?
+                #   Is it an issue, if overwrite is expected?
+
+                # We will soon have two layers with slightly different names,
+                # a temp based upon table.name, the other possibly existing
+                # layer with the same custom name, which may belong to group(s).
+                # If so, remove existing layer from any layer group, before
+                # continuing on with layer delete and renaming of new feature
+                # type layer to custom name, then add new resultant layer back
+                # to any layer groups the existing layer belonged to. Phew!
+
+                flyr = self.catalog.get_layer(rscname)
+                if flyr is not None:
+                    grpswlyr = groupsWithLayer(self.catalog, flyr)
+                    if grpswlyr:
+                        removeLayerFromGroups(self.catalog, flyr, grpswlyr)
+                    self.catalog.delete(flyr)
+                # TODO: What about when the layer name is the same, but the
+                #   underlying db connection/store has changed? Not an issue?
+                #   The layer is deleted, which is correct, but the original
+                #   db store and feature type will not be changed. A conflict?
+                frsc = store.get_resources(name=rscname)
+                if frsc is not None:
+                    self.catalog.delete(frsc)
+
+            # for dbs the name has to be the table name, initially
             ftype = self.catalog.publish_featuretype(uri.table(), store,
                                                      layer.crs().authid())
-            # once table-based layer created, switch name to user-chosen
-            if uri.table() != name:
-                ftype.dirty["name"] = name
+
+            # once table-based feature type created, switch name to user-chosen
+            if ftype.name != rscname:
+                ftype.dirty["name"] = rscname
                 self.catalog.save(ftype)
+
+            # now re-add to any previously assigned-to layer groups
+            if overwrite and grpswlyr:
+                ftype = self.catalog.get_resource(rscname)
+                if ftype:
+                    addLayerToGroups(self.catalog, ftype, grpswlyr,
+                                     workspace=workspace)
 
 
     def _uploadRest(self, layer, workspace, overwrite, name):

@@ -94,15 +94,41 @@ def publishDraggedLayer(explorer, layer, workspace):
                         layer, workspace, True, lyrname)
 
 
-def publishDraggedTable(explorer, table, workspace):    
+def publishDraggedTable(tree, explorer, table, workspace):
     cat = workspace.catalog
     if int(table.srid) == 0:
         explorer.setWarning("PostGIS table '{0}' has no SRID; ESPG:4326 will "
                             "be assigned.".format(table.name))
-    return explorer.run(publishTable,
-             "Publish table from table '" + table.name + "'",
-             [],
-             table, cat, workspace, True)
+
+    gslayers = [lyr.name for lyr in cat.get_layers()]
+    try:
+        lyrname = getGSLayerName(name=xmlNameFixUp(table.name + "_table"),
+                                 names=gslayers,
+                                 unique=False)
+    except UserCanceledOperation:
+        return False
+
+    catItem = tree.findFirstItem(cat)
+    toUpdate = [catItem.layersItem]
+    res = explorer.run(publishTable,
+                       "Publish table from table '" + table.name + "'",
+                       toUpdate,
+                       table, cat, workspace, True, lyrname)
+    if res:
+        # add existing style to layer, or later some operations may fail,
+        # like malformed XML when getting capabilities for OWS connections
+        pglyr = cat.get_layer(lyrname)
+        pgitem = tree.findFirstItem(pglyr)
+        if pgitem is None:
+            print "pgitem not found"
+            return False
+        if not pgitem.addStyleToLayer(explorer):  # handles refresh of item
+            # user cancelled AddStyleToLayerDialog
+            noDefaultStyleError(explorer, lyrname)
+            return False
+        else:
+            catItem.layersItem.refreshContent(explorer)
+    return res
     
             
 def publishTable(table, catalog = None, workspace = None, overwrite=True,

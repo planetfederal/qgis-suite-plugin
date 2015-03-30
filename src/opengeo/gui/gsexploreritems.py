@@ -350,7 +350,7 @@ class GsLayersItem(GsTreeItem):
             if catalog is None:
                 return []
             if workspace is not None:
-                if publishDraggedTable(explorer, item.element, workspace):
+                if publishDraggedTable(tree, explorer, item.element, workspace):
                     return [tree.findFirstItem(catalog)]
         return []
 
@@ -439,7 +439,7 @@ class GsWorkspacesItem(GsTreeItem):
                 return []
             workspace = self.getDefaultWorkspace()
             if workspace is not None:
-                if publishDraggedTable(explorer, item.element, workspace):
+                if publishDraggedTable(tree, explorer, item.element, workspace):
                     return [tree.findFirstItem(catalog)]
         return []
 
@@ -626,7 +626,7 @@ class GsCatalogItem(GsTreeItem):
                 return [self]
         elif isinstance(item, PgTableItem):
             workspace = self.getDefaultWorkspace()
-            if publishDraggedTable(explorer, item.element, workspace):
+            if publishDraggedTable(tree, explorer, item.element, workspace):
                 return [self]
         return []
 
@@ -1270,7 +1270,7 @@ class GsWorkspaceItem(GsTreeItem):
                 return []
             workspace = self.element
             if workspace is not None:
-                if publishDraggedTable(explorer, item.element, workspace):
+                if publishDraggedTable(tree, explorer, item.element, workspace):
                     return [tree.findFirstItem(catalog)]
         return []
 

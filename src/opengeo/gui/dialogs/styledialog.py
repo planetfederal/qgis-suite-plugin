@@ -106,7 +106,8 @@ class AddStyleToLayerDialog(QtGui.QDialog):
         self.layer = layer
         styles = layer.styles
         self.layerstyles = [style.name for style in styles]
-        self.layerdefaultstyle = layer.default_style.name
+        self.layerdefaultstyle = layer.default_style.name \
+            if layer.default_style is not None else ''
         self.style = None
         self.default = None
         self.initGui()        
@@ -142,8 +143,11 @@ class AddStyleToLayerDialog(QtGui.QDialog):
         
         horizontalLayout = QtGui.QHBoxLayout()
         horizontalLayout.setMargin(0)
-        self.checkBox = QtGui.QCheckBox("Add as default style")        
-        horizontalLayout.addWidget(self.checkBox)        
+        self.checkBox = QtGui.QCheckBox("Add as default style")
+        if not self.layerdefaultstyle:
+            self.checkBox.setChecked(True)
+            self.checkBox.setEnabled(False)
+        horizontalLayout.addWidget(self.checkBox)
         layout.addLayout(horizontalLayout)
                
         layout.addWidget(buttonBox)

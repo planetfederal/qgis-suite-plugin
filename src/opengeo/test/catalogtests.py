@@ -61,8 +61,6 @@ class CatalogTests(unittest.TestCase):
     def compareSld(self, a, b):
         a = a.replace("\r", "").replace("\n", "").replace(" ", "")
         b = b.replace("\r", "").replace("\n", "").replace(" ", "")
-        print a
-        print b
         return a == b
 
     def testVectorStylingUpload(self):
@@ -82,7 +80,7 @@ class CatalogTests(unittest.TestCase):
         with open(sldfile, 'r') as f:
             sld = f.read()
         gssld = self.cat.catalog.get_style(DEM).sld_body
-        self.assertEqual(self.compareSld(sld, gssld))
+        self.assertTrue(self.compareSld(sld, gssld))
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEM), recurse = True)
 
     def testGroup(self):

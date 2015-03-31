@@ -1,6 +1,5 @@
-from functools import wraps
 from geoserver.catalog import Catalog
-import httplib2 
+import httplib2
 from urlparse import urlparse
 
 def retryMethodDecorator(func):

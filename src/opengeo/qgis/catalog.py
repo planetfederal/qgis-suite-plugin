@@ -30,16 +30,15 @@ from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
     from processing.script.ScriptAlgorithm import ScriptAlgorithm
-    from processing.parameters.ParameterRaster import ParameterRaster
-    from processing.parameters.ParameterVector import ParameterVector
-    from processing.outputs.OutputVector import OutputVector
-    from processing.outputs.OutputRaster import OutputRaster
-    from processing.gui.UnthreadedAlgorithmExecutor import UnthreadedAlgorithmExecutor
-    from processing.core.SilentProgress import SilentProgress
+    from processing.core.parameters import *
+    from processing.core.outputs import *
+    from processing.gui import AlgorithmExecutor
+    from processing.gui.SilentProgress import SilentProgress
     from processing.tools.dataobjects import getObjectFromUri as load
-    from processing.modeler.Providers import Providers
+    from processing.modeler.ModelerUtils import ModelerUtils
     processingOk = True
-except:
+except Exception, e:
+    QgsMessageLog.logMessage(str(e), "a")
     processingOk = False
 
 def createGeoServerCatalog(service_url = "http://localhost:8080/geoserver/rest",
@@ -488,7 +487,7 @@ class OGCatalog(object):
                 if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterRaster)
                     and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputRaster)):
                     alg.parameters[0].setValue(layer)
-                    if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
+                    if AlgorithmExecutor.runalg(alg, SilentProgress()):
                         return load(alg.outputs[0].value)
                     return layer
             except:
@@ -500,7 +499,7 @@ class OGCatalog(object):
                 if (len(alg.parameters) == 1 and isinstance(alg.parameters[0], ParameterVector)
                     and len(alg.outputs) == 1 and isinstance(alg.outputs[0], OutputVector)):
                     alg.parameters[0].setValue(layer)
-                    if UnthreadedAlgorithmExecutor.runalg(alg, SilentProgress()):
+                    if AlgorithmExecutor.runalg(alg, SilentProgress()):
                         return load(alg.outputs[0].value)
                     return layer
             except:
@@ -509,12 +508,12 @@ class OGCatalog(object):
     def getAlgorithmFromHookFile(self, hookFile):
         if hookFile.endswith('py'):
             script = ScriptAlgorithm(hookFile)
-            script.provider = Providers.providers['script']
+            script.provider = ModelerUtils.providers['script']
             return script
         elif hookFile.endswith('model'):
             model = ModelerAlgorithm()
             model.openModel(hookFile)
-            model.provider = Providers.providers['model']
+            model.provider = ModelerUtils.providers['model']
             return model
         else:
             raise Exception ("Wrong hook file")

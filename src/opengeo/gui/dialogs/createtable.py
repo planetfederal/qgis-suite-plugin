@@ -4,18 +4,19 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from opengeo.postgis.postgis_utils import TableField
+from opengeo.gui.gsnameutils import xmlNameIsValid, xmlNameRegex
 
 
 class DlgCreateTable(QDialog):
 	GEOM_TYPES = ["POINT", "LINESTRING", "POLYGON", "MULTIPOINT", "MULTILINESTRING", "MULTIPOLYGON", "GEOMETRYCOLLECTION"]
 
 	def __init__(self, connection, parent=None):
-		QDialog.__init__(self, parent)		
-		self.ok = False		
+		QDialog.__init__(self, parent)
+		self.ok = False
 		self.setupUi()
-		
+
 		self.table.setSelectionBehavior(QAbstractItemView.SelectRows);
-		
+
 		self.fieldTypes = self.GEOM_TYPES
 		self.table.setColumnCount(3)
 		self.table.setColumnWidth(0,140)
@@ -32,77 +33,77 @@ class DlgCreateTable(QDialog):
 		self.updateUi()
 		self.updateUiFields()
 
-	def setupUi(self):		
+	def setupUi(self):
 		self.resize(500, 600)
-		self.gridLayout_2 = QGridLayout(self)		
-		self.gridlayout = QGridLayout()			 
+		self.gridLayout_2 = QGridLayout(self)
+		self.gridlayout = QGridLayout()
 		self.label = QLabel(self)
-		self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)		
+		self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 		self.gridlayout.addWidget(self.label, 1, 0, 1, 2)
-		self.editName = QLineEdit(self)				
+		self.editName = QLineEdit(self)
 		self.gridlayout.addWidget(self.editName, 1, 2, 1, 1)
 		self.gridLayout_2.addLayout(self.gridlayout, 0, 0, 1, 2)
-		self.vboxlayout = QVBoxLayout()		
-		self.btnAddField = QPushButton(self)		
+		self.vboxlayout = QVBoxLayout()
+		self.btnAddField = QPushButton(self)
 		self.vboxlayout.addWidget(self.btnAddField)
-		self.btnDeleteField = QPushButton(self)		
+		self.btnDeleteField = QPushButton(self)
 		self.vboxlayout.addWidget(self.btnDeleteField)
 		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 		self.vboxlayout.addItem(spacerItem)
 		self.gridLayout_2.addLayout(self.vboxlayout, 1, 1, 1, 1)
 		self.hboxlayout = QHBoxLayout()
-		self.hboxlayout.setSpacing(8)		
-		self.label_4 = QLabel(self)		
+		self.hboxlayout.setSpacing(8)
+		self.label_4 = QLabel(self)
 		self.hboxlayout.addWidget(self.label_4)
 		self.cboPrimaryKey = QComboBox(self)
 		sizePolicy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
 		sizePolicy.setHorizontalStretch(0)
 		sizePolicy.setVerticalStretch(0)
 		sizePolicy.setHeightForWidth(self.cboPrimaryKey.sizePolicy().hasHeightForWidth())
-		self.cboPrimaryKey.setSizePolicy(sizePolicy)		
+		self.cboPrimaryKey.setSizePolicy(sizePolicy)
 		self.hboxlayout.addWidget(self.cboPrimaryKey)
 		self.gridLayout_2.addLayout(self.hboxlayout, 2, 0, 1, 2)
-		self.gridLayout = QGridLayout()		
-		self.chkGeomColumn = QCheckBox(self)	   
+		self.gridLayout = QGridLayout()
+		self.chkGeomColumn = QCheckBox(self)
 		self.gridLayout.addWidget(self.chkGeomColumn, 0, 0, 1, 1)
 		self.cboGeomType = QComboBox(self)
-		self.cboGeomType.addItems(self.GEOM_TYPES)		
+		self.cboGeomType.addItems(self.GEOM_TYPES)
 		self.gridLayout.addWidget(self.cboGeomType, 0, 1, 1, 2)
 		self.label_2 = QLabel(self)
-		self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)		
+		self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 		self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
 		self.editGeomColumn = QLineEdit(self)
-		self.editGeomColumn.setText("geom")		
+		self.editGeomColumn.setText("geom")
 		self.gridLayout.addWidget(self.editGeomColumn, 1, 1, 1, 1)
 		self.label_5 = QLabel(self)
-		self.label_5.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)		
+		self.label_5.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 		self.gridLayout.addWidget(self.label_5, 2, 0, 1, 1)
 		self.spinGeomDim = QSpinBox(self)
 		self.spinGeomDim.setMinimum(2)
-		self.spinGeomDim.setMaximum(4)		
+		self.spinGeomDim.setMaximum(4)
 		self.gridLayout.addWidget(self.spinGeomDim, 2, 1, 1, 1)
 		spacerItem1 = QSpacerItem(50, 51, QSizePolicy.Expanding, QSizePolicy.Minimum)
 		self.gridLayout.addItem(spacerItem1, 2, 2, 2, 1)
 		self.label_6 = QLabel(self)
-		self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)		
+		self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 		self.gridLayout.addWidget(self.label_6, 3, 0, 1, 1)
 		self.editGeomSrid = QLineEdit(self)
-		self.editGeomSrid.setText("-1")		
+		self.editGeomSrid.setText("-1")
 		self.gridLayout.addWidget(self.editGeomSrid, 3, 1, 1, 1)
-		self.chkSpatialIndex = QCheckBox(self)		
+		self.chkSpatialIndex = QCheckBox(self)
 		self.gridLayout.addWidget(self.chkSpatialIndex, 4, 0, 1, 1)
 		self.gridLayout_2.addLayout(self.gridLayout, 3, 0, 1, 2)
 		self.buttonBox = QDialogButtonBox(self)
 		self.buttonBox.setOrientation(Qt.Horizontal)
-		self.buttonBox.setStandardButtons(QDialogButtonBox.Close | QDialogButtonBox.Ok)		
+		self.buttonBox.setStandardButtons(QDialogButtonBox.Close | QDialogButtonBox.Ok)
 		self.gridLayout_2.addWidget(self.buttonBox, 4, 0, 1, 2)
-		self.table = QTableWidget(self)		
-		self.table.setColumnCount(3)  		
+		self.table = QTableWidget(self)
+		self.table.setColumnCount(3)
 		self.table.setHorizontalHeaderLabels(["Name", "Type", "Null"])
-		self.table.horizontalHeader().setStretchLastSection(True) 
-		self.table.resizeRowsToContents()  
-		self.gridLayout_2.addWidget(self.table, 1, 0, 1, 1)				
-		QMetaObject.connectSlotsByName(self)		
+		self.table.horizontalHeader().setStretchLastSection(True)
+		self.table.resizeRowsToContents()
+		self.gridLayout_2.addWidget(self.table, 1, 0, 1, 1)
+		QMetaObject.connectSlotsByName(self)
 		self.setTabOrder(self.editName, self.table)
 		self.setTabOrder(self.table, self.btnAddField)
 		self.setTabOrder(self.btnAddField, self.btnDeleteField)
@@ -137,7 +138,7 @@ class DlgCreateTable(QDialog):
 		self.editGeomSrid.setEnabled(useGeom)
 		self.chkSpatialIndex.setEnabled(useGeom)
 
-	def updateUiFields(self):	   
+	def updateUiFields(self):
 		fld = self.selectedField()
 		self.btnDeleteField.setEnabled(fld is not None)
 
@@ -158,8 +159,8 @@ class DlgCreateTable(QDialog):
 
 	def addField(self):
 		self.table.setRowCount(self.table.rowCount()+1)
-		self.table.setRowHeight(self.table.rowCount()-1, 22)	 
-		widget = QLineEdit("new_field")   
+		self.table.setRowHeight(self.table.rowCount()-1, 22)
+		widget = QLineEdit("new_field")
 		widget.textEdited.connect(lambda: self.updatePkeyCombo(None))
 		self.table.setCellWidget(self.table.rowCount()-1, 0, widget)
 		typeCombo = QComboBox()
@@ -170,15 +171,15 @@ class DlgCreateTable(QDialog):
 			"varchar", "varchar(255)", "char(20)", "text", # strings
 			"date", "time", "timestamp"] # date/time
 		)
-		self.table.setCellWidget(self.table.rowCount()-1, 1, typeCombo)		
+		self.table.setCellWidget(self.table.rowCount()-1, 1, typeCombo)
 		nullCombo = QComboBox()
 		nullCombo.addItem("Yes")
 		nullCombo.addItem("No")
 		nullCombo.setCurrentIndex(0)
-		self.table.setCellWidget(self.table.rowCount()-1, 2, nullCombo)   
+		self.table.setCellWidget(self.table.rowCount()-1, 2, nullCombo)
 		if self.table.rowCount() == 1:
 			typeCombo.setCurrentIndex(3) #serial
-		
+
 		self.updatePkeyCombo(0 if self.table.rowCount() == 1 else None)
 
 	def selectedField(self):
@@ -239,9 +240,10 @@ class DlgCreateTable(QDialog):
 
 	def okPressed(self):
 		self.name = unicode(self.editName.text())
-		if len(self.name) == 0:
+		self.editName.setStyleSheet("QLineEdit{background: white}")
+		if not xmlNameIsValid(self.name, xmlNameRegex()):
 			self.editName.setStyleSheet("QLineEdit{background: yellow}")
-			return			  
+			return
 		if self.table.rowCount() == 0:
 			QMessageBox.information(self, self.tr("Sorry"), self.tr("add some fields!"))
 			return
@@ -252,7 +254,7 @@ class DlgCreateTable(QDialog):
 			if len(self.geomColumn) == 0:
 				self.editGeomColumn.setStyleSheet("QLineEdit{background: yellow}")
 				return
-			
+
 			self.geomType = self.GEOM_TYPES[ self.cboGeomType.currentIndex() ]
 			self.geomDim = self.spinGeomDim.value()
 			try:
@@ -264,16 +266,16 @@ class DlgCreateTable(QDialog):
 		self.fields = []
 		for i in xrange(self.table.rowCount()):
 			name = self.table.cellWidget(i, 0).text()
-			type = self.table.cellWidget(i, 1).currentText() 
+			type = self.table.cellWidget(i, 1).currentText()
 			null = self.table.cellWidget(i, 2).currentIndex == 0
 			self.fields.append(TableField(name, type, null))
 		self.pk = self.cboPrimaryKey.currentText()
 		self.ok = True
 		self.close()
-		
+
 	def cancelPressed(self):
 		self.ok = False
 		self.close()
- 
+
 
 

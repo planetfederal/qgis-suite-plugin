@@ -5,7 +5,7 @@ from geoserver.layergroup import LayerGroup, UnsavedLayerGroup
 from opengeo.qgis import layers as qgislayers
 from opengeo.qgis.catalog import OGCatalog, createPGFeatureStore
 from opengeo.gui.qgsexploreritems import QgsStyleItem
-from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
+from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid, xmlNameRegex
 from opengeo.qgis.utils import UserCanceledOperation
 from opengeo.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
     addLayerToGroups
@@ -95,6 +95,12 @@ def publishDraggedLayer(explorer, layer, workspace):
 
 
 def publishDraggedTable(tree, explorer, table, workspace):
+    if not xmlNameIsValid(table.name, xmlNameRegex()):
+        QtGui.QMessageBox.warning(explorer, "Invalid name",
+                                  ("The table name (%s) is not a valid XML name.\n"
+                                  + "This could cause problems when published to GeoServer.\n"
+                                  + "Please rename it and retry publishing.") % table.name)
+        return False
     cat = workspace.catalog
     if int(table.srid) == 0:
         explorer.setWarning("PostGIS table '{0}' has no SRID; ESPG:4326 will "
@@ -129,8 +135,8 @@ def publishDraggedTable(tree, explorer, table, workspace):
         else:
             catItem.layersItem.refreshContent(explorer)
     return res
-    
-            
+
+
 def publishTable(table, catalog = None, workspace = None, overwrite=True,
                  name=None, storename=None):
     if catalog is None:
@@ -234,7 +240,7 @@ def addDraggedLayerToGroup(explorer, layer, groupItem):
                  "Update group '" + group.name + "'",
                  [groupItem],
                  group)
-    
+
 def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
     catalog = layerItem.element.catalog
     catItem = tree.findFirstItem(catalog)
@@ -274,34 +280,34 @@ def addDraggedStyleToLayer(tree, explorer, styleItem, layerItem):
         layer)
 
 
-def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):    
-    if uris:      
-        if len(uris) > 1:  
-            explorer.setProgressMaximum(len(uris))                                     
-        for i, uri in enumerate(uris):  
-            if isinstance(uri, basestring):            
+def addDraggedUrisToWorkspace(uris, catalog, workspace, explorer, tree):
+    if uris:
+        if len(uris) > 1:
+            explorer.setProgressMaximum(len(uris))
+        for i, uri in enumerate(uris):
+            if isinstance(uri, basestring):
                 layerName = QtCore.QFileInfo(uri).completeBaseName()
                 layer = QgsRasterLayer(uri, layerName)
-            else:                                               
-                layer = QgsRasterLayer(uri.uri, uri.name)            
-            if not layer.isValid() or layer.type() != QgsMapLayer.RasterLayer:                                                  
-                if isinstance(uri, basestring):                                    
+            else:
+                layer = QgsRasterLayer(uri.uri, uri.name)
+            if not layer.isValid() or layer.type() != QgsMapLayer.RasterLayer:
+                if isinstance(uri, basestring):
                     layerName = QtCore.QFileInfo(uri).completeBaseName()
                     layer = QgsVectorLayer(uri, layerName, "ogr")
-                else:                                                           
-                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)                
+                else:
+                    layer = QgsVectorLayer(uri.uri, uri.name, uri.providerKey)
                 if not layer.isValid() or layer.type() != QgsMapLayer.VectorLayer:
                     layer.deleteLater()
-                    name = uri if isinstance(uri, basestring) else uri.uri 
+                    name = uri if isinstance(uri, basestring) else uri.uri
                     explorer.setError("Error reading file {} or it is not a valid layer file".format(name))
                 else:
-                    if not publishDraggedLayer(explorer, layer, workspace):                        
-                        return []                    
+                    if not publishDraggedLayer(explorer, layer, workspace):
+                        return []
             else:
-                if not publishDraggedLayer(explorer, layer, workspace):                    
+                if not publishDraggedLayer(explorer, layer, workspace):
                     return []
-            explorer.setProgress(i + 1)        
-        explorer.resetActivity()                
+            explorer.setProgress(i + 1)
+        explorer.resetActivity()
         return [tree.findAllItems(catalog)[0]]
     else:
-        return []  
+        return []

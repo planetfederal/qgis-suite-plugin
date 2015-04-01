@@ -15,6 +15,7 @@ from opengeo.gui.confirm import confirmDelete
 from db_manager.db_plugins.postgis.plugin import PostGisDBPlugin, PGTable
 from db_manager.dlg_sql_window import DlgSqlWindow
 from db_manager.dlg_table_properties import DlgTableProperties
+from opengeo.gui.gsnameutils import xmlNameIsValid, xmlNameRegex
 from opengeo import config
 
 pgIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/postgis.png")
@@ -481,6 +482,12 @@ class PgTableItem(PgTreeItem):
         dlg.exec_()
 
     def publishPgTable(self, tree, explorer):
+        if not xmlNameIsValid(self.element.name, xmlNameRegex()):
+            QtGui.QMessageBox.warning(explorer, "Invalid name",
+                                      ("The table name (%s) is not a valid XML name.\n"
+                                      + "This could cause problems when published to GeoServer.\n"
+                                      + "Please rename it and retry publishing.") % self.element.name)
+            return
         dlg = PublishLayerDialog(explorer.catalogs(), self.element)
         dlg.exec_()
         if dlg.catalog is None:

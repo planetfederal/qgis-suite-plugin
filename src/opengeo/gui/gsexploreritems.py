@@ -277,7 +277,8 @@ class GsCatalogsItem(GsTreeItem):
                 cat.authid = dlg.authid
                 v = cat.gsversion()
                 supported = (v.startswith("2.3") or v.startswith("2.4")
-                            or v.startswith("2.5") or v.startswith("2.6"))
+                             or v.startswith("2.5") or v.startswith("2.6")
+                             or v.startswith("2.7"))
                 if not supported:
                     QtGui.QApplication.restoreOverrideCursor()
                     ret = QtGui.QMessageBox.warning(explorer, "GeoServer catalog definition",

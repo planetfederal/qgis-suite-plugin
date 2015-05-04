@@ -106,6 +106,31 @@ class GSXmlNameDialog(GSNameDialog):
             maxlength=kwargs.get('maxlength', 0),
             parent=kwargs.get('parent', None))
 
+class PostGisTableNameDialog(GSNameDialog):
+
+    def __init__(self, **kwargs):
+        unique = kwargs.get('unique', False)
+        super(PostGisTableNameDialog, self).__init__(
+            boxtitle='Table name',
+            boxmsg='Define valid table name',
+            name=xmlNameFixUp(kwargs.get('name', '')),
+            namemsg=kwargs.get('namemsg', ''),
+            nameregex=kwargs.get('nameregex', xmlNameRegex()),
+            nameregexmsg=kwargs.get('nameregexmsg', xmlNameRegexMsg()),
+            names=kwargs.get('names', None),
+            unique=unique,
+            maxlength=kwargs.get('maxlength', 0),
+            parent=kwargs.get('parent', None))
+
+def getPostGisTableName(**kwargs):
+    dlg = PostGisTableNameDialog(**kwargs)
+    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+    res = dlg.exec_()
+    QtGui.QApplication.restoreOverrideCursor()
+    if res:
+        return dlg.definedName()
+    else:
+        raise UserCanceledOperation()
 
 def getGSXmlName(kind, **kwargs):
     dlg = GSXmlNameDialog(kind=kind, **kwargs)
@@ -117,10 +142,8 @@ def getGSXmlName(kind, **kwargs):
     else:
         raise UserCanceledOperation()
 
-
 def getGSLayerName(**kwargs):
     return getGSXmlName('layer', **kwargs)
-
 
 def getGSStoreName(**kwargs):
     return getGSXmlName('data store', **kwargs)

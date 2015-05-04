@@ -118,6 +118,7 @@ class OpenGeoExplorer(QtGui.QDockWidget):
                 self.setInfo("Operation <i>" + msg + "</i> correctly executed")
         except UserCanceledOperation:
             pass
+            noerror = False
         except Exception, e:
             s = e.message
             if not isinstance(s, unicode):

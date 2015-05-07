@@ -1,7 +1,7 @@
 [general]
 name=OpenGeo Explorer
 description=An interface to easily manage and configure OpenGeo Suite components such a GeoServer and PostGIS
-version=0.7
+version=0.7.1
 qgisMinimumVersion=2.0
 author=Victor Olaya
 email=volayaf@boundlessgeo.org.com

@@ -8,6 +8,8 @@ keyfile = os.path.join(os.path.dirname(__file__), "resources", "rod.key.pem")
 certfile = os.path.join(os.path.dirname(__file__), "resources", "rod.crt.pem")
 cafile =  os.path.join(os.path.dirname(__file__), "resources", "ca.pem")
 
+# FIXME: the params for a PKI URL have changed: should only be 'authcfg=(7 char alpha-numeric)'
+#        the auth config associated with it will need to pre-exist in auth database
 class PKITests(unittest.TestCase):
     '''
     Tests for PKI support in QGIS
@@ -23,7 +25,6 @@ class PKITests(unittest.TestCase):
             'srsname': 'EPSG:4326',
             'certid': certfile,
             'keyid': keyfile,
-            'issuerid': cafile
         }
         uri = 'http://localhost:8443/geoserver/wfs?' +  urllib.unquote(urllib.urlencode(params))
 
@@ -38,7 +39,6 @@ class PKITests(unittest.TestCase):
             'format': 'image/jpeg',
             'certid': certfile,
             'keyid': keyfile,
-            'issuerid': cafile
         }
         uri = 'http://localhost:8443/geoserver/wms?' +  urllib.unquote(urllib.urlencode(params))
         rlayer = QgsRasterLayer(uri, 'Arc_Sample', 'wms')

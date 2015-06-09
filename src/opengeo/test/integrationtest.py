@@ -4,30 +4,14 @@ from opengeo.gui.explorer import OpenGeoExplorer
 from opengeo.test import utils
 from opengeo.gui.gsexploreritems import GsCatalogItem
 from opengeo.gui.pgexploreritems import PgConnectionItem
+import sys
 
 
 
 class ExplorerIntegrationTest(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.explorer = OpenGeoExplorer(singletab = True)
-        cls.cat = utils.getGeoServerCatalog().catalog
-        utils.populateCatalog(cls.cat)
-        cls.catalogItem = GsCatalogItem(cls.cat, "catalog", "")
-        cls.explorer.explorerWidget.gsItem.addChild(cls.catalogItem)
-        cls.catalogItem.populate()
-        cls.tree = cls.explorer.explorerWidget.tree
-        cls.conn = utils.getPostgresConnection()
-        cls.pgItem = PgConnectionItem(cls.conn)
-        cls.explorer.explorerWidget.pgItem.addChild(cls.pgItem)
-        # @TODO - make tests pass using importer
-        cls.useRestApi = QSettings().setValue("/OpenGeo/Settings/GeoServer/UseRestApi", True)
+    __test__ = False
 
-    @classmethod
-    def tearDownClass(cls):
-        utils.cleanCatalog(cls.cat)
-        utils.cleanDatabase(cls.conn)
 
     def _getItemUnder(self, parent, name):
         for idx in range(parent.childCount()):
@@ -97,5 +81,4 @@ class ExplorerIntegrationTest(unittest.TestCase):
 
     def getGWCLayerItem(self, name):
         return self._getItemUnder(self.getGWCLayersItem(), name)
-
 

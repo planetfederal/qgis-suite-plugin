@@ -102,38 +102,6 @@ class CreateCatalogDialogTests(unittest.TestCase):
         settings.remove("")
         settings.endGroup()
 
-class GroupDialogTests(ExplorerIntegrationTest):
-
-    explorer = OpenGeoExplorer(singletab = True)
-
-    def testGroupDialogWithEmptyName(self):
-        dialog = LayerGroupDialog(self.cat)
-        dialog.nameBox.setName("")
-        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
-        self.assertFalse(okWidget.isEnabled())
-
-    def testGroupDialogWithNameContaingBlankSpaces(self):
-        dialog = LayerGroupDialog(self.cat)
-        dialog.nameBox.setName("my group")
-        dialog.table.cellWidget(0, 0).setChecked(True)
-        okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
-        self.assertFalse(okWidget.isEnabled())
-
-    def testSelectAllButton(self):
-        dialog = LayerGroupDialog(self.cat)
-        QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
-        for i in range(dialog.table.rowCount()):
-            self.assertTrue(dialog.table.cellWidget(i, 0).isChecked())
-        QTest.mouseClick(dialog.selectAllButton, Qt.LeftButton)
-        for i in range(dialog.table.rowCount()):
-            self.assertFalse(dialog.table.cellWidget(i, 0).isChecked())
-
-    def testCannotEditName(self):
-        group = self.cat.get_layergroup(GROUP)
-        self.assertIsNotNone(group)
-        dialog = LayerGroupDialog(self.cat, group)
-        self.assertFalse(dialog.nameBox.isEnabled())
-
 class LayerDialogTests(unittest.TestCase):
 
     @classmethod
@@ -480,7 +448,7 @@ class InfoIconTest(unittest.TestCase):
         iw.setWindowModality(Qt.ApplicationModal)
         iw.show()
         QTest.mouseMove(iw, iw.pos())
-        self.assertEqual(QToolTip.text(), '')
+        self.assertEqual(QToolTip.text(), 'Name is not unique')
         QTest.mouseMove(ii)
 
         # why is this necessary?
@@ -494,7 +462,6 @@ class InfoIconTest(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
     suite.addTests(unittest.makeSuite(CreateCatalogDialogTests, 'test'))
-    suite.addTests(unittest.makeSuite(GroupDialogTests, 'test'))
     suite.addTests(unittest.makeSuite(LayerDialogTests, 'test'))
     suite.addTests(unittest.makeSuite(ImportVectorDialogTest, 'test'))
     suite.addTests(unittest.makeSuite(GsNameUtilsTest, 'test'))

@@ -6,8 +6,35 @@ from opengeo.test.integrationtest import ExplorerIntegrationTest
 from opengeo.gui.pgoperations import importToPostGIS
 from opengeo.qgis import layers
 import sys
+from opengeo.gui.explorer import OpenGeoExplorer
+from opengeo.test import utils
+from opengeo.gui.gsexploreritems import GsCatalogItem
+from opengeo.gui.pgexploreritems import PgConnectionItem
+from PyQt4.QtCore import QSettings
 
 class DragDropTests(ExplorerIntegrationTest):
+
+    __test__ = True
+
+    @classmethod
+    def setUpClass(cls):
+        cls.explorer = OpenGeoExplorer(singletab = True)
+        cls.cat = utils.getGeoServerCatalog().catalog
+        utils.populateCatalog(cls.cat)
+        cls.catalogItem = GsCatalogItem(cls.cat, "catalog", "")
+        cls.explorer.explorerWidget.gsItem.addChild(cls.catalogItem)
+        cls.catalogItem.populate()
+        cls.tree = cls.explorer.explorerWidget.tree
+        cls.conn = utils.getPostgresConnection()
+        cls.pgItem = PgConnectionItem(cls.conn)
+        cls.explorer.explorerWidget.pgItem.addChild(cls.pgItem)
+        # @TODO - make tests pass using importer
+        cls.useRestApi = QSettings().setValue("/OpenGeo/Settings/GeoServer/UseRestApi", True)
+
+    @classmethod
+    def tearDownClass(cls):
+        utils.cleanCatalog(cls.cat)
+        utils.cleanDatabase(cls.conn)
 
     #===========================================================================
     # Drag & drop URIs (i.e. from QGIS browser) to a Explorer tree item
@@ -66,24 +93,7 @@ class DragDropTests(ExplorerIntegrationTest):
         self.cat.delete(self.cat.get_layer(PT1), recurse = True)
         self.cat.delete(self.cat.get_style(PT1), purge = True)
 
-    def testDropQgisLayerItemInWorkspaceItem(self):
-        layerItem = self.getQgsLayerItem(PT1)
-        wsItem = self.getWorkspaceItem(WORKSPACEB)
-        wsItem.acceptDroppedItems(self.tree, self.explorer, [layerItem])
-        layer = self.cat.get_layer(PT1)
-        self.assertIsNotNone(layer)
-        self.cat.get_store(PT1, WORKSPACEB)
-        self.cat.delete(self.cat.get_layer(PT1), recurse = True)
-        self.cat.delete(self.cat.get_style(PT1), purge = True)
 
-
-    def testDropGsStyleInGsLayerItem(self):
-        styleItem = self.getStyleItem(STYLE)
-        self.assertIsNotNone(styleItem)
-        layerItem = self.getLayerItem(PT2)
-        self.assertIsNotNone(layerItem)
-        layerItem.acceptDroppedItems(self.tree, self.explorer, [styleItem])
-        self.assertIsNotNone(self._getItemUnder(layerItem, STYLE))
 
     def testDropGsLayerInGsGroupItem(self):
         groupItem = self.getGroupItem(GROUP)
@@ -156,6 +166,16 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(style)
         self.cat.delete(self.cat.get_style(PT1), purge = True)
 
+    def testDropQgisLayerItemInWorkspaceItem(self):
+        layerItem = self.getQgsLayerItem(PT1)
+        wsItem = self.getWorkspaceItem(WORKSPACEB)
+        wsItem.acceptDroppedItems(self.tree, self.explorer, [layerItem])
+        layer = self.cat.get_layer(PT1)
+        self.assertIsNotNone(layer)
+        self.cat.get_store(PT1, WORKSPACEB)
+        self.cat.delete(self.cat.get_layer(PT1), recurse = True)
+        self.cat.delete(self.cat.get_style(PT1), purge = True)
+
     def testDropPGTableInGsLayersItem(self):
         importToPostGIS(self.explorer, self.conn, [layers.resolveLayer(PT1)], PUBLIC_SCHEMA, PT1, False, False);
         self.getPGConnectionItem().refreshContent(self.explorer)
@@ -163,9 +183,10 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(tableItem)
         layersItem = self.getLayersItem()
         layersItem.acceptDroppedItems(self.tree, self.explorer, [tableItem])
-        layer = self.cat.get_layer(PT1)
+        tableLayerName = PT1 + "_table"
+        layer = self.cat.get_layer(tableLayerName)
         self.assertIsNotNone(layer)
-        self.cat.delete(self.cat.get_layer(PT1), recurse = True)
+        self.cat.delete(self.cat.get_layer(tableLayerName), recurse = True)
 
     def testDropPGTableInWorkspacesItem(self):
         importToPostGIS(self.explorer, self.conn, [layers.resolveLayer(PT1)], PUBLIC_SCHEMA, PT1, False, False);
@@ -174,9 +195,23 @@ class DragDropTests(ExplorerIntegrationTest):
         self.assertIsNotNone(tableItem)
         wsItem = self.getWorkspacesItem()
         wsItem.acceptDroppedItems(self.tree, self.explorer, [tableItem])
-        layer = self.cat.get_layer(PT1)
+        tableLayerName = PT1 + "_table"
+        layer = self.cat.get_layer(tableLayerName)
         self.assertIsNotNone(layer)
-        self.cat.delete(self.cat.get_layer(PT1), recurse = True)
+        self.cat.delete(self.cat.get_layer(tableLayerName), recurse = True)
+
+
+
+    def testDropGsStyleInGsLayerItem(self):
+        styleItem = self.getStyleItem(STYLE)
+        self.assertIsNotNone(styleItem)
+        layerItem = self.getLayerItem(PT2)
+        self.assertIsNotNone(layerItem)
+        self.assertEquals(1, layerItem.childCount())
+        self.assertEquals(len(self.cat.get_layer(PT2).styles), 0)
+        layerItem.acceptDroppedItems(self.tree, self.explorer, [styleItem])
+        self.assertEquals(len(self.cat.get_layer(PT2).styles), 1)
+
 
 def suite():
     suite = unittest.makeSuite(DragDropTests, 'test')

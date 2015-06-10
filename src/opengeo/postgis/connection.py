@@ -5,6 +5,8 @@ from PyQt4 import QtCore
 import re
 import subprocess
 import os
+from opengeo.gui.dialogs.gsnamedialog import getPostGisTableName
+from opengeo.gui.gsnameutils import xmlNameIsValid, xmlNameRegex
 
 class PgConnection(object):
 
@@ -36,18 +38,21 @@ class PgConnection(object):
 
     def importFileOrLayer(self, source, schema, tablename, overwrite, singleGeom = False):
 
+        if isinstance(source, basestring):
+            layerName = QtCore.QFileInfo(source).completeBaseName()
+        else:
+            layerName = source.name()
+
+        if tablename is None:
+            tablename = layerName
+
+        if not xmlNameIsValid(tablename, xmlNameRegex()):
+            tablename = getPostGisTableName(name=tablename, names=[], unique=False)
+
         if overwrite:
             pk = "id"
             geom = "geom"
             providerName = "postgres"
-
-            if isinstance(source, basestring):
-                layerName = QtCore.QFileInfo(source).completeBaseName()
-            else:
-                layerName = source.name()
-
-            if tablename is None:
-                tablename = layerName
 
             uri = QgsDataSourceURI()
             uri.setConnection(self.geodb.host, str(self.geodb.port), self.geodb.dbname, self.geodb.user, self.geodb.passwd)

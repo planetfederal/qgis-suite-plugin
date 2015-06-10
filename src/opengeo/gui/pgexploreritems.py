@@ -399,7 +399,7 @@ class PgTableItem(PgTreeItem):
                 if not explorer.run(self.element.conn.importFileOrLayer,
                             "Import into PostGIS table",
                             [],
-                            layer, self.element.schema, self.element.name, False, False):
+                            layer, self.element.schema, self.element.name, True, False):
                     break
 
             explorer.resetActivity()
@@ -421,7 +421,7 @@ class PgTableItem(PgTreeItem):
                 if not explorer.run(self.element.conn.importFileOrLayer,
                                    "Import into PostGIS table",
                                     [],
-                                    filename, self.element.schema, self.element.name, False, False):
+                                    filename, self.element.schema, self.element.name, True, False):
                     break
             explorer.resetActivity()
         return []

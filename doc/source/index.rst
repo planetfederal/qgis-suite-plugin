@@ -12,6 +12,3 @@ This manual describes how to use the OpenGeo Explorer plugin.
    install
    tutorial/index
    actions
-   console
-   developers
-

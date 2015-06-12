@@ -5,10 +5,7 @@ Installation
 
 This section will describe how to install the OpenGeo Explorer plugin.
 
-Installing using the Plugin Manager (recommended)
--------------------------------------------------
-
-The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run. It is recommended to be installed using the QGIS Plugin Manager.
+The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run, and is installed using the QGIS Plugin Manager.
 
 #. In QGIS, navigate to :menuselection:`Plugins --> Manage and Install Plugins`.
 
@@ -44,18 +41,3 @@ The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run. It i
    .. figure:: img/actions/plugin_menu.png
 
       OpenGeo menu
-
-Installing from a ZIP file
---------------------------
-
-If you have a copy of the plugin code in a ZIP file, you can install it by unzipping it into the QGIS plugins folder.
-
-* For Windows, it will be similar to :file:`C:\\Users\\<your_user>\\.qgis2\\python\\plugins`.
-* For Linux/Mac, it will be :file:`~/.qgis2/python/plugins`.
-
-Copy the ``opengeo`` folder in the ZIP file into your ``plugins`` folder. The ``plugin.py`` file should be in that folder. Form there you can enable the plugin as above.
-
-Getting the development version
--------------------------------
-
-The plugin repository (http://qgis.boundlessgeo.com) is updated frequently. However, to be sure that you are using the latest development version, follow the steps described in the :ref:`developers <developers>` section.

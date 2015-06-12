@@ -12,7 +12,8 @@ import zipfile
 def base_excludes():
     return [
         '.DS_Store',  # on Mac
-        '*.pyc'
+        '*.pyc',
+        'gisdata*'
     ]
 
 def full_excludes():

@@ -9,6 +9,23 @@ from paver.doctools import html
 import xmlrpclib
 import zipfile
 
+def base_excludes():
+    return [
+        '.DS_Store',  # on Mac
+        '*.pyc',
+        'gisdata*'
+    ]
+
+def full_excludes():
+    excl = base_excludes()
+    excl.extend([
+        'test',
+        'test-output',
+        'ext-src',
+        'coverage*',
+        'nose*',
+    ])
+    return excl
 
 options(
     plugin = Bunch(
@@ -17,15 +34,8 @@ options(
         ext_src = path('src/opengeo/ext-src'),
         source_dir = path('src/opengeo'),
         package_dir = path('.'),
-        excludes = [
-            '.DS_Store',  # on Mac
-            'test-output',
-            'test',
-            'ext-src',
-            'coverage*',
-            'nose*',
-            '*.pyc'
-        ],
+        base_excludes = base_excludes(),
+        excludes = full_excludes(),
         # skip certain files inadvertently found by exclude pattern globbing
         skip_exclude = ['coverage.xsd']
     ),
@@ -108,20 +118,29 @@ def install(options):
 
 @task
 def package(options):
-    '''create package for plugin'''
+    '''create filtered package for plugin release'''
     package_file = options.plugin.package_dir / ('%s.zip' % options.plugin.name)
     with zipfile.ZipFile(package_file, "w", zipfile.ZIP_DEFLATED) as zip:
         make_zip(zip, options)
     return package_file
 
+@task
+def package_with_tests(options):
+    '''create filtered package for plugin that includes the test suite'''
+    package_file = options.plugin.package_dir / ('%s.zip' % options.plugin.name)
+    with zipfile.ZipFile(package_file, "w", zipfile.ZIP_DEFLATED) as zip:
+        make_zip(zip, options, basefilters=True)
+    return package_file
 
-def make_zip(zip, options):
-
-    excludes = set(options.plugin.excludes)
+def make_zip(zip, options, basefilters=False):
+    excludes = set(
+        options.plugin.base_excludes if basefilters else options.plugin.excludes
+    )
     skips = options.plugin.skip_exclude
 
     src_dir = options.plugin.source_dir
     exclude = lambda p: any([fnmatch.fnmatch(p, e) for e in excludes])
+
     def filter_excludes(root, items):
         if not items: return []
         # to prevent descending into dirs, modify the list in place

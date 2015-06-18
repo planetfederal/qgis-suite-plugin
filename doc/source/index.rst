@@ -8,7 +8,10 @@ This manual describes how to use the OpenGeo Explorer plugin.
 .. toctree::
    :maxdepth: 2
 
-   intro
+   intro/index
    install
+   usage/index
    tutorial/index
    actions
+   config/index
+   caveats/index

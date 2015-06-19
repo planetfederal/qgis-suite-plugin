@@ -26,6 +26,7 @@ from opengeo.geoserver.pki import PKICatalog, PKIClient
 from opengeo.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
     addLayerToGroups
 from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
+import requests
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm
@@ -147,12 +148,32 @@ class OGCatalog(object):
 
         if isinstance(layer, basestring):
             layer = layers.resolveLayer(layer)
-        sld = getGsCompatibleSld(layer)
+        sld, icons = getGsCompatibleSld(layer)
         if sld is not None:
             name = name if name is not None else layer.name()
             name = name.replace(" ", "_")
+            self.uploadIcons(icons)
             self.catalog.create_style(name, sld, overwrite)
         return sld
+
+
+    def uploadIcons(self, icons):
+        url = self.catalog.gs_base_url + "app/api/icons"
+        svgPaths = QgsApplication.svgPaths()
+        for icon in icons:
+            iconPathElements = icon.split("/")
+            for svgPath in svgPaths:
+                iconPath = os.path.join(svgPath, *iconPathElements)
+                if os.path.exists(iconPath):
+                    files = {'file': (iconPathElements[-1], open(iconPath, 'r'), "image/svg+xml")}
+                    print files
+                    r = requests.put(url, files=files)
+                    try:
+                        r.raise_for_status()
+                    except Exception, e:
+                        raise Exception ("Error uploading SVG icon to GeoServer:\n" + str(e))
+                    break
+
 
     def getDataFromLayer(self, layer):
         '''

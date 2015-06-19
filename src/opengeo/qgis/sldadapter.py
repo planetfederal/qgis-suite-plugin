@@ -63,7 +63,14 @@ def adaptQgsToGs(sld, layer):
     for key,value in wknReplacements.iteritems():
         sld = sld.replace("<sld:WellKnownName>%s</sld:WellKnownName>" % key,
                       "<sld:WellKnownName>%s</sld:WellKnownName>" % value)
-    return sld
+
+    p = re.compile(r'<sld:OnlineResource xlink:type=\"simple\" xlink:href=\"(.*?.svg)\"/>')
+    matches = p.findall(sld)
+    icons  = []
+    for match in matches:
+        icons.append(match)
+        sld = sld.replace(match, "file://./" + match.split("/")[-1])
+    return sld, icons
 
 def getLabelingAsSld(layer):
     try:

@@ -1,11 +1,11 @@
-.. _configuration:
+.. _config:
 
 Configuration
 =============
 
 In the OpenGeo menu, along with the entry that starts OpenGeo Explorer, you will find an entry that opens the OpenGeo Explorer configuration dialog called :guilabel:`OpenGeo Explorer settings`.
 
-.. figure:: ../img/actions/plugin_menu.png
+.. figure:: ../actions/img/plugin_menu.png
 
    OpenGeo Explorer menu
 

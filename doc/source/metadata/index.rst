@@ -5,14 +5,11 @@ Editing/viewing layer metadata
 
 Layer metadata can be edited for a given QGIS layer, selecting it in the *QGIS project* element and then selecting the *Edit/view layer metadata* action. This will open the metadata window, which, for a layer that has no previous metadata, looks like this:
 
+.. figure:: img/metadata_window.png
 
-.. image:: img/metadata/metadata_window.png
-	:align: center
-	
 The editor supports metadata in ISO-19115 format, and it can be used for both file-based layers and PostGIS layer. If your layer already has metadata, the metadata editor will open it and display it in a tree, as shown next.
 
-.. image:: img/metadata/metadata_tree.png
-	:align: center
+.. figure:: img/metadata_tree.png
 
 If the metadata is not ISO-19115 or FGDC compliant, and is stored as XML, the tree structure will be created and you will be able to edit the elements it contains, but notice that certain features such as the HTML view or custom input element for certain data types will not be available. Only ISO-19115  format are fully supported. No validation is, however, performed when opening the metadata, even if one a supported format is recognised.
 
@@ -22,16 +19,13 @@ To edit the value of an element, just click on its name in the tree. The panel o
 
 In most cases, the value can be entered as a string in a text box.
 
-.. image:: img/metadata/metadata_string.png
-	:align: center
+.. figure:: img/metadata_string.png
 
 For certain data types, the correctness of the existing value (if it exists) is checked, and a warning message is displayed in case it is not correct, such as, for instance, a code value not included in the list of valid options or a date in a format that is not compliant with ISO-8601.
 
-.. image:: img/metadata/metadata_date_error.png
-	:align: center
+.. figure:: img/metadata_date_error.png
 
-.. image:: img/metadata/metadata_option_error.png
-	:align: center
+.. figure:: img/metadata_option_error.png
 
 Once you have finished editing value elements, select the *File/Save* menu to save the metadata to the layer. Element values are not saved as you edit them, but only when the save command is invoked.
 
@@ -39,13 +33,11 @@ To find a given element, you can use the filter text box. Enter the name of the 
 
 To make it easier to locate the elements that do not have any value yet, you can enable the *Highlight empty fields* entry in the *View* menu.
 
-.. image:: img/metadata/metadata_highlight.png
-	:align: center
+.. figure:: img/metadata_highlight.png
 
 Elements with no value will be displayed in a bold type face.
 
-.. image:: img/metadata/metadata_highlight2.png
-	:align: center
+.. figure:: img/metadata_highlight2.png
 
 Completing metadata using layer properties.
 ********************************************
@@ -80,7 +72,6 @@ Displaying metadata
 
 To show a formatted HTML version of the data, select the HTML view tab in the metadata window. 
 
-.. image:: img/metadata/metadata_view.png
-	:align: center
+.. figure:: img/metadata_view.png
 
 This option is only available for ISO-19115 metadata.

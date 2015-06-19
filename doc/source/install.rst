@@ -18,13 +18,13 @@ The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run, and 
    * **Name**: Boundless plugin repository
    * **URL**: http://qgis.boundlessgeo.com/plugins.xml
 
-   .. figure:: img/actions/plugin_repo.png
+   .. figure:: actions/img/plugin_repo.png
 
       Adding a new plugin repository
 
 #. Click :guilabel:`OK`.
 
-   .. figure:: img/actions/plugin_repo_added.png
+   .. figure:: actions/img/plugin_repo_added.png
 
       New plugin repository added successfully
 
@@ -32,12 +32,12 @@ The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run, and 
 
 #. You should see one titled :guilabel:`OpenGeo Explorer`. Select it and click :guilabel:`Install plugin`.
 
-   .. figure:: img/actions/plugin_install.png
+   .. figure:: actions/img/plugin_install.png
 
       OpenGeo Explorer in the list of plugins
 
 #. The plugin will be installed. To verify that installation was successful, you should see a new menu in the QGIS menu bar called :guilabel:`OpenGeo`.
 
-   .. figure:: img/actions/plugin_menu.png
+   .. figure:: actions/img/plugin_menu.png
 
       OpenGeo menu

@@ -64,13 +64,40 @@ def adaptQgsToGs(sld, layer):
         sld = sld.replace("<sld:WellKnownName>%s</sld:WellKnownName>" % key,
                       "<sld:WellKnownName>%s</sld:WellKnownName>" % value)
 
-    p = re.compile(r'<sld:OnlineResource xlink:type=\"simple\" xlink:href=\"(.*?.svg)\"/>')
-    matches = p.findall(sld)
-    icons  = []
-    for match in matches:
-        icons.append(match)
-        sld = sld.replace(match, "file://./" + match.split("/")[-1])
+
+    renderer = layer.rendererV2()
+    if isinstance(renderer, QgsSingleSymbolRendererV2):
+        icons = getReadyToUploadSvgIcons(renderer.symbol())
+    else:
+        icons = []
+        #TODO:show some warning
+
+
+    for icon in icons:
+        for path in QgsApplication.svgPaths():
+            path = os.path.normpath(path)
+            if path[-1] != os.sep:
+                path += os.sep
+            relPath = os.path.normpath(icon[0]).replace(path, "").replace("\\", "/")
+            sld = sld.replace(relPath, icon[1])
     return sld, icons
+
+def getReadyToUploadSvgIcons(symbol):
+    icons = []
+    for i in xrange(symbol.symbolLayerCount()):
+        sl = symbol.symbolLayer(i)
+        if isinstance(sl, QgsSvgMarkerSymbolLayerV2):
+            props = sl.properties()
+            with open(sl.path()) as f:
+                svg = "".join(f.readlines())
+            svg = re.sub(r'param\(outline\).*?\"', props["outline_color"] + '"', svg)
+            svg = re.sub(r'param\(fill\).*?\"', props["color"] + '"', svg)
+            svg = re.sub(r'param\(outline-width\).*?\"', props["outline_width"] + '"', svg)
+            basename = os.path.basename(sl.path())
+            filename, ext = os.path.splitext(basename)
+            propsHash = hash(frozenset(props.items()))
+            icons.append ([sl.path(), "%s_%s%s" % (filename, propsHash, ext), svg])
+    return icons
 
 def getLabelingAsSld(layer):
     try:
@@ -115,7 +142,7 @@ def getGsCompatibleSld(layer):
     if sld is not None:
         return adaptQgsToGs(sld, layer)
     else:
-        return None
+        return None, None
 
 def getStyleAsSld(layer):
     if layer.type() == layer.VectorLayer:

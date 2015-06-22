@@ -10,8 +10,8 @@ This manual describes how to use the OpenGeo Explorer plugin.
 
    intro/index
    install
-   usage/index
    tutorial/index
+   usage/index
    actions/index
    metadata/index
    config/index

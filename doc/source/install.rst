@@ -40,4 +40,4 @@ The OpenGeo Explorer plugin requires **QGIS version 2.8 or higher** to run, and 
 
    .. figure:: actions/img/plugin_menu.png
 
-      OpenGeo menu
+      OpenGeo Explorer menu

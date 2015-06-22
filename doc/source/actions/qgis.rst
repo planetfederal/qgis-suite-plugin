@@ -5,7 +5,7 @@ QGIS Project actions
 
 The following actions are available for items in the QGIS Project branch.
 
-QGIS project
+QGIS Project
 ------------
 
 .. list-table::
@@ -16,6 +16,8 @@ QGIS project
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the entire QGIS Project tree.
    * - Publish
      - Publishes all the layers in the project. The publish operation is configured through the following dialog:
 
@@ -36,6 +38,8 @@ QGIS Layers
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the list of QGIS layers in the tree.
    * - Publish
      - Publishes the layer to a GeoServer catalog. It creates a store and resource and a layer based on it. If the layer is a vector layer, the corresponding styling defined in QGIS or that layer will be published and used for the layer. The catalog and workspace are selected in a dialog like the one shown below
 
@@ -65,6 +69,8 @@ QGIS Groups
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the list of QGIS groups in the tree.
    * - Publish
      - Publishes the selected group as a layer group. If layers with the names of the layers in the group already exist in the destination catalog, they will be used and the data from the corresponding QGIS layers will not be used (depending on whether :guilabel:`Overwrite layers when uploading group` was checked or not in the :ref:`config`.
 
@@ -83,10 +89,11 @@ QGIS Styles
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the list of QGIS styles in the tree.
    * - Publish
      - Publishes the selected style. The operation is defined in the dialog shown below.
 
        .. image:: img/publish_style.png
 
-       If no name is entered in the textbox, the name of the layer will be used as sytle name. Otherwise, the specified name will be used.
-
+       If no name is entered in the textbox, the name of the layer will be used as style name. Otherwise, the specified name will be used.

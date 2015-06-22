@@ -30,6 +30,8 @@ PostGIS Connections
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the database list.
    * - Add new connection
      - Adds a new PostGIS connection. The connection is not defined through the usual QGIS connection dialog, but a custom one:
 
@@ -48,18 +50,27 @@ PostGIS connection
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the connection entry.
    * - Edit
-     - Edits the connection parameters of the PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for the OpenGeo Explorer. You can also edit this using the :guilabel:`Add PostGIS layers` QGIS command, but the tree will need to be manually refreshed.
+     - Edits the connection parameters of the PostGIS connection. This also alters the definition of the connection in the general list of PostGIS connections kept by QGIS, not just for OpenGeo Explorer. You can also edit this using the :guilabel:`Add PostGIS layers` QGIS command, but the tree will need to be manually refreshed.
 
        When a connection is edited using OpenGeo Explorer, the user name and password are stored. Use the QGIS UI instead if you want to edit the connection but not store the password. You will need to enter it each time you start the Explorer or refresh the PostGIS branch in the OpenGeo Explorer tree.
+   * - Remove
+     - Removes the database from the list.
    * - New schema
      - Creates a new schema. You will be prompted to enter the name for the new schema in an input box.
+   * - Run SQL
+     - Opens the DB manager SQL dialog, where SQL commands can be entered and run.
+
+       .. image:: img/runsql.png
+
    * - Import files
      - Imports a set of files with data into the selected schema. The following window is shown:
 
        .. image:: img/import_postgis.png
 
-       Click on the button in the :guilabel:`Layers` group and select the files you want to import, then select the destination schema and table. You can select the name of a preexisting table or enter a new name. In case of selecting a preexisting table, click the :guilabel:`Add to table` checkbox can append the imported data to the existing content of the table. Otherwise, the table will be deleted and a new one with that name created.
+       Click the button in the :guilabel:`Layers` group and select the files you want to import, then select the destination schema and table. You can select the name of a preexisting table or enter a new name. In case of selecting a preexisting table, click the :guilabel:`Add to table` checkbox can append the imported data to the existing content of the table. Otherwise, the table will be deleted and a new one with that name created.
 
        If you select the :guilabel:`Add to table` box, data will only be imported if the feature type of the file to import matches the table feature type. If not, an error message will be shown in the log window and the corresponding file will not be imported.
 
@@ -73,15 +84,10 @@ PostGIS connection
 
        You can check "Import as single geometries" box to force all geometries to be imported as single geometries instead of multi-geometries. All features with multiple geometries will be automatically converted.
 
-       If the import is done using the :guilabel:`Add to table` option, the import relies on the ``shp2pgsql`` utility, which will need ot be instqalled and on the ``PATH``.
-
-   * - Run SQL
-     - Opens the DB manager SQL dialog, where SQL sentences can be entered and run.
-
-       .. image:: img/runsql.png
+       If the import is done using the :guilabel:`Add to table` option, the import relies on the ``shp2pgsql`` utility, which will need to be installed and on the ``PATH``.
      
-PostGIS Schemas
----------------
+PostGIS schema
+--------------
 
 .. list-table::
    :header-rows: 1
@@ -91,6 +97,8 @@ PostGIS Schemas
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the schema.
    * - New table
      - Creates a new table. The table definition is done in the following dialog:
 
@@ -113,6 +121,10 @@ PostGIS table
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the table.
+   * - Publish
+     - Loads the table as a store and layer in a GeoServer catalog. You can specify the target workspace and the layer name.
    * - Delete
      - Deletes the table.
    * - Rename
@@ -122,5 +134,5 @@ PostGIS table
 
        .. image:: img/edit_table.png
      
-   * - Run vacuum analyze
-     - Vacuums the table
+   * - Vacuum analyze
+     - Performs the SQL VACUUM ANALYZE operation on the table.

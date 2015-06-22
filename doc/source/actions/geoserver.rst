@@ -3,7 +3,7 @@
 GeoServer Catalogs actions
 ==========================
 
-GeoServer catalogs are defined using the :guilabel:`New catalog...` option in the :guilabel:`GeoServer catalogs` item. A catalog is defined using the following dialog:
+GeoServer catalogs are defined using the :guilabel:`New catalog` option in the :guilabel:`GeoServer catalogs` item. A catalog is defined using the following dialog:
 
 .. figure:: ../tutorial/img/create_catalog.png
 
@@ -21,8 +21,8 @@ The list of catalogs is empty by default when you start the OpenGeo Explorer. Se
 
 This is a detailed list of actions available for each item under the :guilabel:`GeoServer` branch.
 
-GeoServer Catalogs
-------------------
+GeoServer catalog
+-----------------
 
 .. list-table::
    :header-rows: 1
@@ -32,26 +32,12 @@ GeoServer Catalogs
 
    * - Action
      - Description
-   * - Clean (remove unused elements)
-     - Cleans all styles in the catalog that are not used by any layer, and all stores that are not published through any layer.
+   * - Refresh
+     - Updates the contents of the catalog.
    * - Remove
      - Removes the catalog from the list of connected ones. This also removes it from the list that is stored between sessions :ref:`if enabled <gs_connections>`, so it will not appear the next time QGIS is started and OpenGeo Explorer is run.
-
-GeoServer Featuretype/Coverage
-------------------------------
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 20 80
-   :class: non-responsive
-
-   * - Action
-     - Description
-   * - Add to QGIS project
-     - Creates a new layer based on the resource. It will create a layer in the current QGIS project which is connected to the GeoServer layer, and will set it with the default QGIS rendering style for the corresponding data type.
-
-       If a vector layer, it will be connected to the GeoServer resource using the WFS endpoint. If raster layer, it will be connected via WCS. In all cases, no data is downloaded, but a connection is created instead. 
+   * - Clean (remove unused elements)
+     - Cleans all styles in the catalog that are not used by any layer, and all stores that are not published through any layer.
 
 GeoServer Workspaces
 --------------------
@@ -64,12 +50,30 @@ GeoServer Workspaces
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of all workspaces.
    * - New workspace
      - Adds a new workspace.
-   * - Clean (remove unused stores)
-     - Removes all data stores that are not published through any layer in the catalog.
+
+GeoServer workspace
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
+   :class: non-responsive
+
+   * - Action
+     - Description
+   * - Refresh
+     - Updates the contents of the workspace.
    * - Set as default workspace
      - Sets this workspace as the default one.
+   * - Delete
+     - Deletes the workspace from the catalog.
+   * - Clean (remove unused resources)
+     - Removes all data stores that are not published through any layer in the catalog.
 
 GeoServer Layers
 ----------------
@@ -82,24 +86,11 @@ GeoServer Layers
 
    * - Action
      - Description
-   * - Add layer to QGIS project
-     - Similar to the :guilabel:`Add to QGIS project` command for feature types or coverages, but it also uses the style information in the case of vector layers. Style is downloaded as an SLD file and configured for the corresponding QGIS layer. In the case of raster layers, there is no support for SLD styles, and for this reason the layer will use a default style.
-   * - Delete
-     - Deletes the layer from the catalog. The associated style or resource may also be deleted; See the :ref:`config` section for more about how to set those parameters.
-   * - Add style to layer
-     - Adds a new style to the layer from the list of available ones in the catalog. The style is selected from the dialog:
+   * - Refresh
+     - Updates the contents of the layer list.
 
-       .. image:: img/add_style.png
-
-       If the layer is under a layer group item, the available commands can be used to re--order layers in the group or remove them.
-
-       .. image:: img/order_in_group.png
-      
-   * - Publish to GeoNode
-     - Publishes the layer to the associated GeoNode connection that was defined when connecting to the catalog.
-
-GeoServer Layer Groups
-----------------------
+GeoServer layer
+---------------
 
 .. list-table::
    :header-rows: 1
@@ -109,11 +100,58 @@ GeoServer Layer Groups
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the layer.
+   * - Add style to layer
+     - Adds a new style to the layer from the list of available ones in the catalog. The style is selected from the dialog:
+
+       .. image:: img/add_style.png
+
+       If the layer is under a layer group item, the available commands can be used to re--order layers in the group or remove them.
+
+       .. image:: img/order_in_group.png
+
+   * - Delete
+     - Deletes the layer from the catalog. The associated style or resource may also be deleted; see the :ref:`config` section for more about how to set those parameters.
+   * - Add to current QGIS project
+     - Adds to the current project, and includes the style information in the case of vector layers. Style is downloaded as an SLD file and configured for the corresponding QGIS layer. In the case of raster layers, there is no support for SLD styles, and for this reason the layer will use a default style.
+   * - Publish to GeoNode
+     - Publishes the layer to the associated GeoNode connection that was defined when connecting to the catalog.
+
+GeoServer Groups
+----------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
+   :class: non-responsive
+
+   * - Action
+     - Description
+   * - Refresh
+     - Updates the contents of the layer group list.
+
+GeoServer group
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
+   :class: non-responsive
+
+   * - Action
+     - Description
+   * - Refresh
+     - Updates the contents of the layer group.
    * - Edit
      - Layers in a group can be configured through the following dialog:
 
        .. image:: img/define_group.png
-  
+
+   * - Delete
+     - Deletes the group from the catalog.
 
 GeoServer Styles
 ----------------
@@ -149,6 +187,8 @@ GeoServer style
 
    * - Action
      - Description
+   * - Delete
+     - Deletes the style from the catalog.
    * - Edit
      - Opens the QGIS symbology editor to edit the style of the layer. Some restrictions exist:
 
@@ -167,14 +207,13 @@ GeoServer style
        No validation is performed on the client side, but if the content of the editor is not a valid SLD, GeoServer will refuse to update it, and a corresponding error message shown.
 
    * - Set as default style
-     - Sets the style as the default style for the layer. Only shown if the style is under a layer item.
+     - Sets the style as the default style for the layer. Only shown when the style is under a layer item.
    * - Add style to layer
-     - A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer. Only shown if the style is under a layer item.
-
+     - A style can be selected in the dialog that will be shown, and it will be added as an additional style for the layer. Only shown when the style is under a layer item.
    * - Remove style from layer
-     - Removes a style from the list of alternatives styles of the layer. Only shown if the style is under a layer item, and not the default style.     
+     - Removes a style from the list of alternatives styles of the layer. Only shown when the style is under a layer item, and not the default style.     
 
-GeoWebCache layers
+GeoWebCache Layers
 ------------------
 
 .. list-table::
@@ -185,6 +224,8 @@ GeoWebCache layers
 
    * - Action
      - Description
+   * - Refresh
+     - Updates the contents of the cached layer list.
    * - New GWC layer
      - Adds a new GeoWebCache layer from an existing layer in the GeoServer catalog. The properties of the cached layer are defined in a dialog like the one shown below.
 
@@ -201,8 +242,6 @@ GeoWebCache layer
 
    * - Action
      - Description
-   * - Delete
-     - Removes the cached layer.
    * - Edit
      - Allows to change the properties of the GeoWebCache layer, by opening the same dialog used to define them when creating the layer.
    * - Seed
@@ -221,16 +260,24 @@ GeoWebCache layer
        .. image:: img/seed_status.png
 
        Since this operation might be very long, depending on the selected zoom levels and the area covered by the layer, progress in this case is not shown using the normal progress bar and hourglass mouse pointer. Instead, you can use QGIS as usual while the operation is running in the background, and to update the status, click the :guilabel:`update` link in the description box to get the current status. To stop the seeding operation, click the :guilabel:`kill` link.
-
-
    * - Empty
      - Deletes (truncates) all cached data for a given layer.
+   * - Delete
+     - Removes the cached layer.
 
 WPS Processes
 -------------
 
+Provides a read-only list of the available WPS processes in GeoServer, if any. There are no actions available with this element.
+
 GeoServer Settings
 ------------------
 
-The :guilabel:`Settings` item contains no children. Instead, when you click it, it will display all configurable parameters in the description panel. You can edit them there and then press the :guilabel:`Save` button to upload changes to the corresponding catalog and update it.
+When this item is selected, it will display all configurable parameters in the Description panel. You can edit them there and then press the :guilabel:`Save` button to upload changes to the corresponding catalog and update it.
+
+.. figure:: img/gssettings.png
+
+   GeoServer Settings
+
+.. note:: The description panel must be shown in order for these settings to be edited. It can be toggled on and off in the :ref:`config`.
 

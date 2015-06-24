@@ -70,8 +70,6 @@ def adaptQgsToGs(sld, layer):
         icons = getReadyToUploadSvgIcons(renderer.symbol())
     else:
         icons = []
-        #TODO:show some warning
-
 
     for icon in icons:
         for path in QgsApplication.svgPaths():
@@ -97,6 +95,17 @@ def getReadyToUploadSvgIcons(symbol):
             filename, ext = os.path.splitext(basename)
             propsHash = hash(frozenset(props.items()))
             icons.append ([sl.path(), "%s_%s%s" % (filename, propsHash, ext), svg])
+        elif isinstance(sl, QgsSVGFillSymbolLayer):
+            props = sl.properties()
+            with open(sl.svgFilePath()) as f:
+                svg = "".join(f.readlines())
+            svg = re.sub(r'param\(outline\).*?\"', props["outline_color"] + '"', svg)
+            svg = re.sub(r'param\(fill\).*?\"', props["color"] + '"', svg)
+            svg = re.sub(r'param\(outline-width\).*?\"', props["outline_width"] + '"', svg)
+            basename = os.path.basename(sl.svgFilePath())
+            filename, ext = os.path.splitext(basename)
+            propsHash = hash(frozenset(props.items()))
+            icons.append ([sl.svgFilePath(), "%s_%s%s" % (filename, propsHash, ext), svg])
     return icons
 
 def getLabelingAsSld(layer):

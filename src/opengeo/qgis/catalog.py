@@ -161,9 +161,8 @@ class OGCatalog(object):
     def uploadIcons(self, icons):
         url = self.catalog.gs_base_url + "app/api/icons"
         for icon in icons:
-            s = StringIO.StringIO(icon[2])
-            files = {'file': (icon[1], open(s, 'r'), "image/svg+xml")}
-            r = requests.put(url, files=files)
+            files = {'file': (icon[1], icon[2])}
+            r = requests.post(url, files=files, auth=(self.catalog.username, self.catalog.password))
             try:
                 r.raise_for_status()
             except Exception, e:

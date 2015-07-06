@@ -27,7 +27,6 @@ from opengeo.geoserver.util import groupsWithLayer, removeLayerFromGroups, \
     addLayerToGroups
 from opengeo.gui.gsnameutils import xmlNameFixUp, xmlNameIsValid
 import requests
-import StringIO
 
 try:
     from processing.modeler.ModelerAlgorithm import ModelerAlgorithm

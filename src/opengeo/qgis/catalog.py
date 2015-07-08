@@ -137,9 +137,6 @@ class OGCatalog(object):
                     self.catalog.save(layer)
 
 
-
-
-
     def publishStyle(self, layer, overwrite = True, name = None):
         '''
         Publishes the style of a given layer style in the specified catalog. If the overwrite parameter is True,

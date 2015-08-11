@@ -218,13 +218,16 @@ class DefineCatalogDialog(QtGui.QDialog):
                                   "The selected authentication type is not supported")
                 return
 
-        self.name = unicode(self.nameBox.text())
-        name = self.name
-        i = 2
-        while name in self.explorer.catalogs().keys():
-            name = self.name + "_" + str(i)
-            i += 1
-        self.name = name
+        nametxt = unicode(self.nameBox.text())
+        # increment only when adding a new connection or if editing a saved
+        # connection and the name has changed
+        if self.name is None or (self.name is not None and nametxt != self.name):
+            newname = nametxt
+            i = 2
+            while newname in self.explorer.catalogs().keys():
+                newname = nametxt + "_" + str(i)
+                i += 1
+            self.name = newname
         self.geonodeUrl = unicode(self.urlGeonodeBox.text())
         settings = QtCore.QSettings()
         settings.setValue('/OpenGeo/LastCatalogName', self.nameBox.text())

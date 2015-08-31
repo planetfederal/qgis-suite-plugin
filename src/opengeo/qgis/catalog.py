@@ -158,7 +158,10 @@ class OGCatalog(object):
         url = self.catalog.gs_base_url + "app/api/icons"
         for icon in icons:
             files = {'file': (icon[1], icon[2])}
-            r = requests.post(url, files=files, auth=(self.catalog.username, self.catalog.password))
+            if isinstance(self.catalog, PKICatalog):
+                r = requests.post(url, files=files, cert=(self.catalog.cert, self.catalog.key), verify=self.catalog.ca_cert)
+            else:
+                r = requests.post(url, files=files, auth=(self.catalog.username, self.catalog.password))
             try:
                 r.raise_for_status()
             except Exception, e:

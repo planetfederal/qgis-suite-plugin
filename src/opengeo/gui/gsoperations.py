@@ -201,7 +201,7 @@ def publishTable(table, catalog = None, workspace = None, overwrite=True,
         if table.name != rscname:
             ftype.dirty["name"] = rscname
             ftype.dirty["title"] = rscname
-            catalog.save(ftype)
+        catalog.save(ftype)
 
         if overwrite and grpswlyr:
             ftype = catalog.get_resource(rscname)

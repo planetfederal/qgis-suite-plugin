@@ -248,7 +248,7 @@ class GsCatalogsItem(GsTreeItem):
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/../images/geoserver.png")
         GsTreeItem.__init__(self, None, icon, "GeoServer Catalogs")
         settings = QSettings()
-        saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", False, bool))
+        saveCatalogs = bool(settings.value("/OpenGeo/Settings/GeoServer/SaveCatalogs", True, bool))
         if saveCatalogs:
             settings.beginGroup("/OpenGeo/GeoServer")
             for name in settings.childGroups():

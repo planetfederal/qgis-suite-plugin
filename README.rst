@@ -1,6 +1,10 @@
 OpenGeo Explorer QGIS Plugin
 **************************
 
-A plugin to configure and manage the OpenGeo Suite from QGIS
+This plugin has been discontinued.
 
-Installation and usage are documented `here <http://qgis.boundlessgeo.com/static/docs/index.html>`_
+GeoServer functionality can now be found in the GeoServer plugin
+
+https://github.com/boundlessgeo/qgis-geoserver-plugin
+
+PostGIS functionality is available in the built-in QGIS DB Manager

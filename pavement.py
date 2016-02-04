@@ -77,7 +77,17 @@ def setup(options):
         if req.startswith('-e'):
             if not develop:
                 # use pip to just process the URL and fetch it in to place
-                sh('pip install --no-install --src=%s %s' % (ext_src, req))
+                # check pip version
+                import pip
+                pipversion = float(pip.__version__[0:3])
+                if pipversion < 7:
+                    # --no-install option is deprecated since pip 1.5
+                    # check the correct alternative to the installed version
+                    sh('pip install --no-install --src=%s %s' % (ext_src, req))
+                else:
+                    # TODO: check the correct syntax equivalence 
+                    # this syntax seems correct starting from version 7
+                    sh('pip download --dest=/tmp --exists-action=w --src=%s %s' % (ext_src, req))
             # now change the req to be the location installed to
             # and easy_install will do the rest
             urlspec, req = req.split('#egg=')

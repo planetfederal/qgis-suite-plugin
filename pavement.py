@@ -80,14 +80,16 @@ def setup(options):
                 # check pip version
                 import pip
                 pipversion = float(pip.__version__[0:3])
-                if pipversion < 7:
-                    # --no-install option is deprecated since pip 1.5
-                    # check the correct alternative to the installed version
-                    sh('pip install --no-install --src=%s %s' % (ext_src, req))
-                else:
-                    # TODO: check the correct syntax equivalence 
-                    # this syntax seems correct starting from version 7
+                if pipversion >= 8:
+                    # TODO: check the correct syntax equivalence
+                    # this syntax seems correct starting from version 8.0.0
                     sh('pip download --dest=/tmp --exists-action=w --src=%s %s' % (ext_src, req))
+                elif pipversion >= 7:
+                    # --no-install option removed since pip 7.0.0
+                    # check the correct alternative to the installed version
+                    sh('pip install --download=/tmp --src=%s %s' % (ext_src, req))
+                else:
+                    sh('pip install --no-install --src=%s %s' % (ext_src, req))
             # now change the req to be the location installed to
             # and easy_install will do the rest
             urlspec, req = req.split('#egg=')

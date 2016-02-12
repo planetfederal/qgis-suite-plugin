@@ -7,6 +7,7 @@ import re
 import os
 from PyQt4.QtXml import *
 from qgis.core import *
+import math
 
 SIZE_FACTOR = 4
 RASTER_SLD_TEMPLATE = ('<?xml version="1.0" encoding="UTF-8"?>'
@@ -30,7 +31,8 @@ RASTER_SLD_TEMPLATE = ('<?xml version="1.0" encoding="UTF-8"?>'
                     '</sld:StyledLayerDescriptor>')
 
 def adaptQgsToGs(sld, layer):
-
+    if layer.type() != QgsMapLayer.VectorLayer:
+        return sld, []
     sld = sld.replace("se:SvgParameter","CssParameter")
     sld = sld.replace("1.1.","1.0.")
     sld = sld.replace("\t","")
@@ -50,12 +52,17 @@ def adaptQgsToGs(sld, layer):
     sld = sld.replace("se:", "sld:")
     sizes = re.findall("<sld:Size>.*?</sld:Size>", sld)
     for size in sizes:
-        newsize="<sld:Size>%f</sld:Size>" % (float(size[10:-11]) * SIZE_FACTOR)
+        newsize="<sld:Size>%f</sld:Size>" % (math.floor(float(size[10:-11]) * SIZE_FACTOR))
         sld = sld.replace(size, newsize)
     widths = re.findall('<CssParameter name="stroke-width">.*?</CssParameter>', sld)
     for w in widths:
-        newwidth='<CssParameter name="stroke-width">%f</CssParameter>' % (float(w[34:-15]) * SIZE_FACTOR)
+        newwidth='<CssParameter name="stroke-width">%f</CssParameter>' % (math.floor(float(w[34:-15]) * SIZE_FACTOR))
         sld = sld.replace(w, newwidth)
+    dasharrays = re.findall('<CssParameter name="stroke-dasharray">.*?</CssParameter>', sld)
+    for arr in dasharrays:
+        newpattern = " ".join([str(int(math.floor(float(i) * SIZE_FACTOR))) for i in arr[38:-15].strip().split(" ")])
+        newdasharrays='<CssParameter name="stroke-dasharray">%s</CssParameter>' % newpattern
+        sld = sld.replace(arr, newdasharrays)
     #//replace "native" SLD symbols
     wknReplacements = {}
     if layer.geometryType() == QGis.Point:
@@ -65,7 +72,7 @@ def adaptQgsToGs(sld, layer):
                        "rectangle": "square",
                        "filled_arrowhead": "ttf://Webdings#0x34",
                        "line": "shape://vertline",
-                       "arrow": "ttf:Webdings#0x7F18",
+                       "arrow": "ttf://Wingdings#0xE9",
                        "diamond": "ttf://Wingdings#0x75"}
     if layer.geometryType() == QGis.Polygon:
         wknReplacements = {"horline":"shape://horline",
@@ -98,6 +105,7 @@ def adaptQgsToGs(sld, layer):
                 path += os.sep
             relPath = os.path.normpath(icon[0]).replace(path, "").replace("\\", "/")
             sld = sld.replace(relPath, icon[1])
+
     return sld, icons
 
 def getReadyToUploadSvgIcons(symbol):
@@ -191,6 +199,14 @@ def getLabelingAsSld(layer):
         return ""
 
 def adaptGsToQgs(sld):
+    sizes = re.findall("<sld:Size>.*?</sld:Size>", sld)
+    for size in sizes:
+        newsize="<sld:Size>%f</sld:Size>" % (float(size[10:-11]) / SIZE_FACTOR)
+        sld = sld.replace(size, newsize)
+    widths = re.findall('<sld:CssParameter name="stroke-width">.*?</sld:CssParameter>', sld)
+    for w in widths:
+        newwidth='<CssParameter name="stroke-width">%f</CssParameter>' % (float(w[38:-19]) / SIZE_FACTOR)
+        sld = sld.replace(w, newwidth)
     return sld
 
 def getGsCompatibleSld(layer):

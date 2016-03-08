@@ -1,11 +1,19 @@
 [general]
 name=OpenGeo Explorer
 description=An interface to easily manage and configure OpenGeo Suite components such a GeoServer and PostGIS
+about=The OpenGeo Explorer plugin allows performing configuration tasks for PostGIS and  GeoServer catalogs from the QGIS interface, acting as a GUI for the GeoServer REST API
 version=0.8.0
 qgisMinimumVersion=2.0
-author=Victor Olaya
+author=Victor Olaya (Boundless)
 email=volayaf@boundlessgeo.org.com
+repository=https://github.com/boundlessgeo/suite-qgis-plugin
+tracker=https://github.com/boundlessgeo/suite-qgis-plugin/issues
 homepage=http://qgis.boundlessgeo.com
 icon=images/opengeo.png
+tags=plugins,boundless
 class_name=OpenGeoPlugin
-experimental = False
+experimental=False
+changelog=
+	** General **
+	0.8.0:
+		- Update codebase compatibility with QGIS 2.12+

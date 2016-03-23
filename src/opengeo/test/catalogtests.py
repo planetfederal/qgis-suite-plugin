@@ -8,6 +8,7 @@ from opengeo.test import utils
 from opengeo.test.utils import PT1, DEM, DEM2, PT1JSON, DEMASCII,\
     GEOLOGY_GROUP, GEOFORMS, LANDUSE, HOOK, WORKSPACE
 import sys
+import re
 
 class CatalogTests(unittest.TestCase):
     '''
@@ -59,8 +60,12 @@ class CatalogTests(unittest.TestCase):
         self.cat.catalog.delete(self.cat.catalog.get_layer(DEMASCII), recurse = True)
 
     def compareSld(self, a, b):
+
         a = a.replace("\r", "").replace("\n", "").replace(" ", "")
         b = b.replace("\r", "").replace("\n", "").replace(" ", "")
+        a = re.sub(r"<sld:StyledLayerDescriptor.*?>", "", a)
+        b = re.sub(r"<sld:StyledLayerDescriptor.*?>", "", b)
+
         return a == b
 
     def testVectorStylingUpload(self):

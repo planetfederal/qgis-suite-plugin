@@ -31,7 +31,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
     def testCreateCatalogDialog(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("name")
-        dialog.urlBox.setText("http://localhost:8080/geoserver")
+        dialog.urlBox.setText("http://boundless-test:8080/geoserver")
         dialog.passwordBox.setText("password")
         dialog.usernameBox.setText("username")
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
@@ -40,7 +40,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("username", dialog.username)
         self.assertEquals("password", dialog.password)
         self.assertEquals("name", dialog.name)
-        self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
+        self.assertEquals("http://boundless-test:8080/geoserver/rest", dialog.url)
         settings = QSettings()
         settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/name")
@@ -50,7 +50,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
     def testCreateCatalogDialogWithUrlWithoutProtocol(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("name")
-        dialog.urlBox.setText("localhost:8080/geoserver")
+        dialog.urlBox.setText("boundless-test:8080/geoserver")
         dialog.passwordBox.setText("password")
         dialog.usernameBox.setText("username")
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
@@ -59,7 +59,7 @@ class CreateCatalogDialogTests(unittest.TestCase):
         self.assertEquals("username", dialog.username)
         self.assertEquals("password", dialog.password)
         self.assertEquals("name", dialog.name)
-        self.assertEquals("http://localhost:8080/geoserver/rest", dialog.url)
+        self.assertEquals("http://boundless-test:8080/geoserver/rest", dialog.url)
         settings = QSettings()
         settings.endGroup()
         settings.beginGroup("/OpenGeo/GeoServer/name")
@@ -85,15 +85,15 @@ class CreateCatalogDialogTests(unittest.TestCase):
     def testLastCatalogNameIsShownByDefault(self):
         dialog = DefineCatalogDialog(self.explorer)
         dialog.nameBox.setText("catalogname")
-        dialog.urlBox.setText("localhost:8081/geoserver")
+        dialog.urlBox.setText("boundless-test:8081/geoserver")
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         self.assertTrue(dialog.ok)
         self.assertEquals("catalogname", dialog.name)
-        self.assertEquals("http://localhost:8081/geoserver/rest", dialog.url)
+        self.assertEquals("http://boundless-test:8081/geoserver/rest", dialog.url)
         dialog = DefineCatalogDialog(self.explorer)
         self.assertEquals("catalogname", dialog.nameBox.text())
-        self.assertEquals("localhost:8081/geoserver", dialog.urlBox.text())
+        self.assertEquals("boundless-test:8081/geoserver", dialog.urlBox.text())
         okWidget = dialog.buttonBox.button(dialog.buttonBox.Ok)
         QTest.mouseClick(okWidget, Qt.LeftButton)
         settings = QSettings()
@@ -107,7 +107,7 @@ class LayerDialogTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.explorer = OpenGeoExplorer(singletab = True)
-        cls.cat = Catalog("http://localhost:8080/geoserver/rest", "admin", "geoserver")
+        cls.cat = Catalog("http://boundless-test:8080/geoserver/rest", "admin", "geoserver")
         cls.catalogs = {"catalog": cls.cat}
         cleanCatalog(cls.cat)
         cls.cat.create_workspace(WORKSPACE, "http://test1.com")

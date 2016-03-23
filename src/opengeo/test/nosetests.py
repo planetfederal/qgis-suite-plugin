@@ -1,7 +1,7 @@
 '''
 Tests for the OpenGeo Explorer.
-This suite requires a GeoServer catalog running on localhost:8080 with default credentials.
-It also requires a running PostGIS on localhost:5432 with default credentials (postgres/postgres)
+This suite requires a GeoServer catalog running on boundless-test:8080 with default credentials.
+It also requires a running PostGIS on boundless-test:5432 with default credentials (postgres/postgres)
 and a database named "opengeo"
 
 To run, open the python console in qgis and run the following:

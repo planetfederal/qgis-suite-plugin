@@ -13,8 +13,8 @@ import re
 class CatalogTests(unittest.TestCase):
     '''
     Tests for the OGCatalog class that provides additional capabilities to a gsconfig catalog
-    Requires a Geoserver catalog running on localhost:8080 with default credentials
-    It also requires a running PostGIS on localhost:54321 with default credentials (postgres/postgres)
+    Requires a Geoserver catalog running on boundless-test:8080 with default credentials
+    It also requires a running PostGIS on boundless-test:54321 with default credentials (postgres/postgres)
     and a database named "opengeo"
     '''
 

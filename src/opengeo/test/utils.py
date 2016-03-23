@@ -31,7 +31,7 @@ DB_CONFIG = dict(
     DATABASE = 'opengeo',
     USER = 'postgres',
     PASSWORD = 'postgres',
-    HOST = 'localhost',
+    HOST = 'boundless-test',
     PORT = '5432',
 )
 DB_CONFIG.update([ (k,os.getenv('Q%s' % k)) for k in DB_CONFIG if 'Q%s' % k in os.environ])
@@ -50,7 +50,7 @@ def getPostgresConnection(name="connection"):
 
 def getGeoServerCatalog():
     conf = dict(
-        URL = 'http://localhost:8080/geoserver/rest',
+        URL = 'http://boundless-test:8080/geoserver/rest',
         USER = 'admin',
         PASSWORD = 'geoserver'
     )

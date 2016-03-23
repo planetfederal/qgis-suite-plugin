@@ -13,7 +13,7 @@ cafile =  os.path.join(os.path.dirname(__file__), "resources", "ca.pem")
 class PKITests(unittest.TestCase):
     '''
     Tests for PKI support in QGIS
-    Requires a Geoserver catalog with pki auth on localhost:8443 with the default sample data
+    Requires a Geoserver catalog with pki auth on boundless-test:8443 with the default sample data
     '''
 
     def testOpenWFSLayer(self):
@@ -27,7 +27,7 @@ class PKITests(unittest.TestCase):
             'keyid': keyfile,
             'issuerid': cafile
         }
-        uri = 'http://localhost:8443/geoserver/wfs?' +  urllib.unquote(urllib.urlencode(params))
+        uri = 'http://boundless-test:8443/geoserver/wfs?' +  urllib.unquote(urllib.urlencode(params))
 
         vlayer = QgsVectorLayer(uri, "poly_landmarks", "WFS")
         self.assertTrue(vlayer.isValid())
@@ -42,7 +42,7 @@ class PKITests(unittest.TestCase):
             'keyid': keyfile,
             'issuerid': cafile
         }
-        uri = 'http://localhost:8443/geoserver/wms?' +  urllib.unquote(urllib.urlencode(params))
+        uri = 'http://boundless-test:8443/geoserver/wms?' +  urllib.unquote(urllib.urlencode(params))
         rlayer = QgsRasterLayer(uri, 'Arc_Sample', 'wms')
         self.assertTrue(rlayer.isValid())
 

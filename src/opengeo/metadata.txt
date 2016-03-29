@@ -13,6 +13,7 @@ icon=images/opengeo.png
 tags=plugins,boundless
 class_name=OpenGeoPlugin
 experimental=False
+deprecated=True
 changelog=
 	** General **
 	0.8.0:

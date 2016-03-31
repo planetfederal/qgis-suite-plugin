@@ -448,7 +448,7 @@ class InfoIconTest(unittest.TestCase):
         iw.setWindowModality(Qt.ApplicationModal)
         iw.show()
         QTest.mouseMove(iw, iw.pos())
-        self.assertEqual(QToolTip.text(), 'Name is not unique')
+        self.assertEqual(QToolTip.text(), '')
         QTest.mouseMove(ii)
 
         # why is this necessary?

@@ -1,7 +1,7 @@
 OpenGeo Explorer
 ================
 
-This plugin for QGIS has been discontinued.
+**This plugin for QGIS has been discontinued.**
 
 GeoServer functionality can now be found in the GeoServer plugin
 
@@ -15,7 +15,7 @@ Documentation
 Nevertheless, the plugin is documentated `here<http://boundlessgeo.github.io/qgis-plugins-documentation/suite>`_.
 
 Cloning this repository
-=======================
+-----------------------
 
 This repository uses external repositories as submodules. Therefore in order to include the external repositories during cloning you should use the *--recursive* option:
 

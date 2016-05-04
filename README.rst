@@ -1,13 +1,18 @@
-OpenGeo Explorer QGIS Plugin
-**************************
+OpenGeo Explorer
+================
 
-This plugin has been discontinued.
+This plugin for QGIS has been discontinued.
 
 GeoServer functionality can now be found in the GeoServer plugin
 
 https://github.com/boundlessgeo/qgis-geoserver-plugin
 
 PostGIS functionality is available in the built-in QGIS DB Manager
+
+Documentation
+-------------
+
+Nevertheless, the plugin is documentated `here<http://boundlessgeo.github.io/qgis-plugins-documentation/suite>`_.
 
 Cloning this repository
 =======================

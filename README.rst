@@ -12,7 +12,7 @@ PostGIS functionality is available in the built-in QGIS DB Manager
 Documentation
 -------------
 
-Nevertheless, the plugin is documentated `here<http://boundlessgeo.github.io/qgis-plugins-documentation/suite>`_.
+Nevertheless, the plugin is documented `here <http://boundlessgeo.github.io/qgis-plugins-documentation/suite>`_.
 
 Cloning this repository
 -----------------------

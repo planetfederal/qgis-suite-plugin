@@ -6,6 +6,7 @@ The OpenGeo Explorer plugin for QGIS is used to configure the components of Open
 This manual describes how to use the OpenGeo Explorer plugin.
 
 .. toctree::
+   :glob:
    :maxdepth: 2
 
    intro/index
@@ -16,3 +17,4 @@ This manual describes how to use the OpenGeo Explorer plugin.
    metadata/index
    config/index
    caveats/index
+   *
